@@ -2,12 +2,12 @@
 #      Main Configs       #
 # ----------------------- #
 
-url: http://yoursite.com
-title: My Octopress Blog
-subtitle: A blogging framework for hackers.
-author: Your Name
+url: http://zudochk.in
+title: Записки Вредного программиста
+subtitle: "enjoy"
+author: Зудочкин Дима
 simple_search: http://google.com/search
-description:
+description: Описание для бложика
 
 # Default date format is "ordinal" (resulting in "July 22nd 2007")
 # You can customize the format as defined in
