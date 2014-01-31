@@ -4,6 +4,9 @@ comments: true
 date: 2011-03-17 20:09:11+00:00
 layout: post
 slug: jpeg2text-ascii-art
+
+permalink: /2011/03/jpeg2text-ascii-art
+
 title: Jpeg2text или немного баловства
 wordpress_id: 671
 categories:

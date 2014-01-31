@@ -4,6 +4,9 @@ comments: true
 date: 2010-04-20 18:43:07+00:00
 layout: post
 slug: zend-framework-auth-and-login
+
+permalink: /2010/04/zend-framework-auth-and-login
+
 title: 'Zend Framework: аутентификация и регистрация'
 wordpress_id: 458
 categories:

@@ -4,6 +4,9 @@ comments: true
 date: 2010-02-11 15:58:38+00:00
 layout: post
 slug: thumbnails-ph-gd
+
+permalink: /2010/02/thumbnails-ph-gd
+
 title: Создание миниатюр GD
 wordpress_id: 249
 categories:

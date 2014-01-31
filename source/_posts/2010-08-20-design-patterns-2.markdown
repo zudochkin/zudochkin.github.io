@@ -4,6 +4,9 @@ comments: true
 date: 2010-08-20 12:47:54+00:00
 layout: post
 slug: design-patterns-2
+
+permalink: /2010/08/design-patterns-2
+
 title: 'Шаблоны проектирования: руководство для начинающих. Часть вторая'
 wordpress_id: 590
 categories:

@@ -4,6 +4,9 @@ comments: true
 date: 2010-07-09 08:57:49+00:00
 layout: post
 slug: sitemap-modx
+
+permalink: /2010/07/sitemap-modx
+
 title: Карта сайта MODx - короткая заметка
 wordpress_id: 535
 categories:

@@ -4,6 +4,9 @@ comments: true
 date: 2010-08-13 12:32:09+00:00
 layout: post
 slug: zend-framework-google-books
+
+permalink: /2010/08/zend-framework-google-books
+
 title: Zend Framework для книголюбов
 wordpress_id: 574
 categories:

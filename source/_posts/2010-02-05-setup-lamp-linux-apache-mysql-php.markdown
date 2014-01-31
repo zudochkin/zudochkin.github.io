@@ -4,6 +4,9 @@ comments: true
 date: 2010-02-05 09:50:25+00:00
 layout: post
 slug: setup-lamp-linux-apache-mysql-php
+
+permalink: /2010/02/setup-lamp-linux-apache-mysql-php
+
 title: Установка LAMP (Linux + Apache + mySQL + PHP)
 wordpress_id: 212
 categories:

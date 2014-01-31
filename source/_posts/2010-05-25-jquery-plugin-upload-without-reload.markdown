@@ -4,6 +4,9 @@ comments: true
 date: 2010-05-25 17:34:59+00:00
 layout: post
 slug: jquery-plugin-upload-without-reload
+
+permalink: /2010/05/jquery-plugin-upload-without-reload
+
 title: Добавление файлов на сервер без перезагрузки страницы
 wordpress_id: 476
 categories:

@@ -4,6 +4,9 @@ comments: true
 date: 2010-01-30 19:12:03+00:00
 layout: post
 slug: jquery-for-beginners-3-ajax
+
+permalink: /2010/01/jquery-for-beginners-3-ajax
+
 title: jQuery для начинающих часть 3 (AJAX)
 wordpress_id: 183
 categories:

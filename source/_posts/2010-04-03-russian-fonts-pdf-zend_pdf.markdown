@@ -4,6 +4,9 @@ comments: true
 date: 2010-04-03 15:20:30+00:00
 layout: post
 slug: russian-fonts-pdf-zend_pdf
+
+permalink: /2010/04/russian-fonts-pdf-zend_pdf
+
 title: Русские шрифты в Pdf (Zend_Pdf)
 wordpress_id: 435
 categories:

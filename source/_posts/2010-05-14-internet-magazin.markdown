@@ -4,6 +4,9 @@ comments: true
 date: 2010-05-14 18:38:09+00:00
 layout: post
 slug: internet-magazin
+
+permalink: /2010/05/internet-magazin
+
 title: Проектирование интернет-магазина
 wordpress_id: 467
 categories:

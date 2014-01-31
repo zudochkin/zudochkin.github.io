@@ -4,6 +4,9 @@ comments: true
 date: 2012-02-04 23:24:29+00:00
 layout: post
 slug: ruby-sinatra-cms-heroku
+
+permalink: /2012/02/ruby-sinatra-cms-heroku
+
 title: Ruby для начинающих CMS
 wordpress_id: 834
 categories:

@@ -4,6 +4,9 @@ comments: true
 date: 2010-02-20 14:07:22+00:00
 layout: post
 slug: hello-world-and-zend-framework
+
+permalink: /2010/02/hello-world-and-zend-framework
+
 title: '''Hello world'' и Zend Framework'
 wordpress_id: 265
 categories:

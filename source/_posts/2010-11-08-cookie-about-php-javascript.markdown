@@ -4,6 +4,9 @@ comments: true
 date: 2010-11-08 14:55:24+00:00
 layout: post
 slug: cookie-about-php-javascript
+
+permalink: /2010/11/cookie-about-php-javascript
+
 title: Немного кулинарии или поговорим о печеньях
 wordpress_id: 611
 categories:

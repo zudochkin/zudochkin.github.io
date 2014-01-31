@@ -4,6 +4,9 @@ comments: true
 date: 2013-01-25 08:12:16+00:00
 layout: post
 slug: slite3-to-posgres-migration
+
+permalink: /2013/01/slite3-to-posgres-migration
+
 title: Перенос sqlite3 базы данных в Postgres (Heroku)
 wordpress_id: 961
 categories:

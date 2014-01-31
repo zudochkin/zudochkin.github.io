@@ -4,6 +4,9 @@ comments: true
 date: 2012-02-08 18:19:50+00:00
 layout: post
 slug: tdd-ruby-introduction
+
+permalink: /2012/02/tdd-ruby-introduction
+
 title: Введение в TDD с Ruby и Rspec
 wordpress_id: 865
 categories:

@@ -4,6 +4,9 @@ comments: true
 date: 2011-03-22 19:10:12+00:00
 layout: post
 slug: zend-framework-wysiwyg-filebrowser
+
+permalink: /2011/03/zend-framework-wysiwyg-filebrowser
+
 title: 'Zend Framework: WYSIWYG + FileBrowser'
 wordpress_id: 684
 categories:

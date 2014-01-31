@@ -4,6 +4,9 @@ comments: true
 date: 2009-12-25 15:11:19+00:00
 layout: post
 slug: round-corners-css
+
+permalink: /2009/12/round-corners-css
+
 title: Закругленные углы (метод раздвижных дверей)
 wordpress_id: 158
 categories:

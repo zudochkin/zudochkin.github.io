@@ -4,6 +4,9 @@ comments: true
 date: 2010-06-20 15:32:33+00:00
 layout: post
 slug: multilangua-zend-framework
+
+permalink: /2010/06/multilangua-zend-framework
+
 title: Мультиязычность в формах и в сообщениях валидаторов Zend Framework
 wordpress_id: 528
 categories:

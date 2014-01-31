@@ -4,6 +4,9 @@ comments: true
 date: 2010-03-17 17:23:49+00:00
 layout: post
 slug: blog-zend-framework-part1
+
+permalink: /2010/03/blog-zend-framework-part1
+
 title: 'Пишем блог на Zend Framework и Smarty: часть 1 - подготовка'
 wordpress_id: 425
 categories:

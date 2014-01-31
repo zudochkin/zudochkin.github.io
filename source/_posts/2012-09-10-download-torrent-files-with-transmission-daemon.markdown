@@ -4,6 +4,9 @@ comments: true
 date: 2012-09-10 19:51:27+00:00
 layout: post
 slug: download-torrent-files-with-transmission-daemon
+
+permalink: /2012/09/download-torrent-files-with-transmission-daemon
+
 title: Скачиваем Torrent файлы с помощью ruby и transmission
 wordpress_id: 932
 categories:

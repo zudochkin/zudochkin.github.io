@@ -4,6 +4,9 @@ comments: false
 date: 2010-04-05 18:22:19+00:00
 layout: post
 slug: zend-framework-guestbook
+
+permalink: /2010/04/zend-framework-guestbook
+
 title: Гостевая книга на Zend Framework
 wordpress_id: 442
 categories:

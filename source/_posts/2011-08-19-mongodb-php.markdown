@@ -4,6 +4,9 @@ comments: true
 date: 2011-08-19 21:46:43+00:00
 layout: post
 slug: mongodb-php
+
+permalink: /2011/08/mongodb-php
+
 title: MongoDb и PHP
 wordpress_id: 759
 categories:

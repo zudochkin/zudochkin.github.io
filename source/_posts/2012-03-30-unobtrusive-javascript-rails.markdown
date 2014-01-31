@@ -4,6 +4,9 @@ comments: true
 date: 2012-03-30 10:55:02+00:00
 layout: post
 slug: unobtrusive-javascript-rails
+
+permalink: /2012/03/unobtrusive-javascript-rails
+
 title: Собеседование и Unobtrusive Javascript на Rails
 wordpress_id: 911
 categories:

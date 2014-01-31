@@ -4,6 +4,9 @@ comments: true
 date: 2009-12-09 09:37:36+00:00
 layout: post
 slug: spiderkot
+
+permalink: /2009/12/spiderkot
+
 title: СпайдерКОТ
 wordpress_id: 136
 categories:

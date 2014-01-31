@@ -4,6 +4,9 @@ comments: true
 date: 2011-06-07 07:43:34+00:00
 layout: post
 slug: jquery-for-beginners-confusing-part1
+
+permalink: /2011/06/jquery-for-beginners-confusing-part1
+
 title: Общие заблуждения о jQuery (часть 1) parent, parents, closest
 wordpress_id: 716
 categories:

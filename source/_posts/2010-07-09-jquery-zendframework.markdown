@@ -4,6 +4,9 @@ comments: true
 date: 2010-07-09 19:16:27+00:00
 layout: post
 slug: jquery-zendframework
+
+permalink: /2010/07/jquery-zendframework
+
 title: jQuery и Zend Framework - красивый симбиоз
 wordpress_id: 539
 categories:

@@ -4,6 +4,9 @@ comments: true
 date: 2012-04-18 19:26:02+00:00
 layout: post
 slug: polymorphic-relations-and-token-input-jquery
+
+permalink: /2012/04/polymorphic-relations-and-token-input-jquery
+
 title: Rails Полиморфная связь и TokenInput jQuery
 wordpress_id: 916
 categories:

@@ -4,6 +4,9 @@ comments: true
 date: 2010-08-19 13:39:59+00:00
 layout: post
 slug: design-patterns-1
+
+permalink: /2010/08/design-patterns-1
+
 title: 'Шаблоны проектирования: руководство для начинающих. Часть первая'
 wordpress_id: 581
 categories:

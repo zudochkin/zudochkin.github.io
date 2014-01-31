@@ -4,6 +4,9 @@ comments: true
 date: 2010-05-18 14:52:53+00:00
 layout: post
 slug: devconf
+
+permalink: /2010/05/devconf
+
 title: Devconf
 wordpress_id: 472
 categories:

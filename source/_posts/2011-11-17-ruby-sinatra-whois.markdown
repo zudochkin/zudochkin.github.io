@@ -4,6 +4,9 @@ comments: true
 date: 2011-11-17 22:26:34+00:00
 layout: post
 slug: ruby-sinatra-whois
+
+permalink: /2011/11/ruby-sinatra-whois
+
 title: 'Sinatra и Whois gem: маленькое приложение'
 wordpress_id: 800
 categories:

@@ -4,6 +4,9 @@ comments: true
 date: 2010-11-22 17:07:16+00:00
 layout: post
 slug: cheatsheet-mysql
+
+permalink: /2010/11/cheatsheet-mysql
+
 title: Шпаргалка по MySQL
 wordpress_id: 616
 categories:

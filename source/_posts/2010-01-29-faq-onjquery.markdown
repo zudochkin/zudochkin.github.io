@@ -4,6 +4,9 @@ comments: true
 date: 2010-01-29 10:36:45+00:00
 layout: post
 slug: faq-onjquery
+
+permalink: /2010/01/faq-onjquery
+
 title: Вопрос-ответ (FAQ) на jQuery
 wordpress_id: 190
 categories:

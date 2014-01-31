@@ -4,6 +4,9 @@ comments: true
 date: 2010-03-03 17:20:26+00:00
 layout: post
 slug: yandex-xml-get-host-position
+
+permalink: /2010/03/yandex-xml-get-host-position
+
 title: Держи позиции сайтов под прицелом (Yandex XML)
 wordpress_id: 363
 categories:

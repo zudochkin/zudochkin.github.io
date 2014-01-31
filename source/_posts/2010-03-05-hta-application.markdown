@@ -4,6 +4,9 @@ comments: true
 date: 2010-03-05 15:28:56+00:00
 layout: post
 slug: hta-application
+
+permalink: /2010/03/hta-application
+
 title: Создание Windows приложений на чистом HTML
 wordpress_id: 404
 categories:

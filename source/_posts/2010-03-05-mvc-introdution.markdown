@@ -4,6 +4,9 @@ comments: true
 date: 2010-03-05 11:46:31+00:00
 layout: post
 slug: mvc-introdution
+
+permalink: /2010/03/mvc-introdution
+
 title: Введение в MVC паттерн
 wordpress_id: 396
 categories:

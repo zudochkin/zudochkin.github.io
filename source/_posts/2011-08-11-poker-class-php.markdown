@@ -4,6 +4,9 @@ comments: true
 date: 2011-08-11 09:52:41+00:00
 layout: post
 slug: poker-class-php
+
+permalink: /2011/08/poker-class-php
+
 title: Покерный класс на PHP
 wordpress_id: 752
 categories:

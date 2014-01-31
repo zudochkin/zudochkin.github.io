@@ -4,6 +4,9 @@ comments: true
 date: 2011-05-16 11:02:21+00:00
 layout: post
 slug: view-helper-wherever-u-want
+
+permalink: /2011/05/view-helper-wherever-u-want
+
 title: 'Zend Framework: вставляем viewHelper куда душе угодно'
 wordpress_id: 708
 categories:

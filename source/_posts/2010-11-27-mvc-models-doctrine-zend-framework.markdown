@@ -4,6 +4,9 @@ comments: true
 date: 2010-11-27 18:02:20+00:00
 layout: post
 slug: mvc-models-doctrine-zend-framework
+
+permalink: /2010/11/mvc-models-doctrine-zend-framework
+
 title: Модели, Doctrine и Zend Framework
 wordpress_id: 629
 categories:

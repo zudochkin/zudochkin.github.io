@@ -4,6 +4,9 @@ comments: true
 date: 2012-03-17 14:14:35+00:00
 layout: post
 slug: lets-game-with-ruby-and-php
+
+permalink: /2012/03/lets-game-with-ruby-and-php
+
 title: Поиграем? или совместное использование ruby и php
 wordpress_id: 901
 categories:

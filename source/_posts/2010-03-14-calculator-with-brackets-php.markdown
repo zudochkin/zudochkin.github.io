@@ -4,6 +4,9 @@ comments: true
 date: 2010-03-14 10:00:08+00:00
 layout: post
 slug: calculator-with-brackets-php
+
+permalink: /2010/03/calculator-with-brackets-php
+
 title: Калькулятор со скобками на php
 wordpress_id: 417
 categories:

@@ -4,6 +4,9 @@ comments: true
 date: 2012-02-11 19:58:01+00:00
 layout: post
 slug: backbone-js-sinatra-ruby
+
+permalink: /2012/02/backbone-js-sinatra-ruby
+
 title: Backbone.js и Sinatra (Ruby)
 wordpress_id: 883
 categories:

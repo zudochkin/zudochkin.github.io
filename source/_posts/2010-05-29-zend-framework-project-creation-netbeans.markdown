@@ -4,6 +4,9 @@ comments: true
 date: 2010-05-29 07:24:51+00:00
 layout: post
 slug: zend-framework-project-creation-netbeans
+
+permalink: /2010/05/zend-framework-project-creation-netbeans
+
 title: Быстрое создание Zend Framework проекта
 wordpress_id: 486
 categories:

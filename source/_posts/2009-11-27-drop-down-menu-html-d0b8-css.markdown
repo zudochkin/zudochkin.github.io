@@ -4,6 +4,9 @@ comments: true
 date: 2009-11-27 08:57:31+00:00
 layout: post
 slug: drop-down-menu-html-%d0%b8-css
+
+permalink: /2009/11/drop-down-menu-html-%d0%b8-css
+
 title: Выпадающее меню на HTML и CSS
 wordpress_id: 68
 categories:

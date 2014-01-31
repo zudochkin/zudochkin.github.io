@@ -4,6 +4,9 @@ comments: true
 date: 2010-03-05 09:34:34+00:00
 layout: post
 slug: round-corners-jquery
+
+permalink: /2010/03/round-corners-jquery
+
 title: Закругленные углы jQuery
 wordpress_id: 380
 categories:

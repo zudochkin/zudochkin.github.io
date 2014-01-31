@@ -4,6 +4,9 @@ comments: true
 date: 2011-02-12 20:33:38+00:00
 layout: post
 slug: depth-first-search-php
+
+permalink: /2011/02/depth-first-search-php
+
 title: Обход графа или как проехать из ... в ... на php
 wordpress_id: 641
 categories:

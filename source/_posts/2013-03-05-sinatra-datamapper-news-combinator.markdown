@@ -4,6 +4,9 @@ comments: true
 date: 2013-03-05 19:29:26+00:00
 layout: post
 slug: sinatra-datamapper-news-combinator
+
+permalink: /2013/03/sinatra-datamapper-news-combinator
+
 title: Парсим news.ycombinator.com или не рельсами едиными жив человек (Sinatra, DataMapper)
 wordpress_id: 986
 categories:

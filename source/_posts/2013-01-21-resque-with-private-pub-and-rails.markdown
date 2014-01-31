@@ -4,6 +4,9 @@ comments: true
 date: 2013-01-21 18:45:24+00:00
 layout: post
 slug: resque-with-private-pub-and-rails
+
+permalink: /2013/01/resque-with-private-pub-and-rails
+
 title: Оповещение после выполнения "тяжелой" фоновой задачи с помощью faye и PrivatePub
 wordpress_id: 949
 categories:

@@ -4,6 +4,9 @@ comments: true
 date: 2010-02-24 19:30:59+00:00
 layout: post
 slug: statistics-of-downloads
+
+permalink: /2010/02/statistics-of-downloads
+
 title: Статистика по количеству скачиваний
 wordpress_id: 314
 categories:

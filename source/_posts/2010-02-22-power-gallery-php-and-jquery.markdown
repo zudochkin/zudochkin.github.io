@@ -4,6 +4,9 @@ comments: true
 date: 2010-02-22 21:05:11+00:00
 layout: post
 slug: power-gallery-php-and-jquery
+
+permalink: /2010/02/power-gallery-php-and-jquery
+
 title: Продвинутая галерея на PHP и jQuery
 wordpress_id: 288
 categories:

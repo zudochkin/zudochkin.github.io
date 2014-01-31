@@ -4,6 +4,9 @@ comments: true
 date: 2010-07-14 08:46:43+00:00
 layout: post
 slug: my-honey
+
+permalink: /2010/07/my-honey
+
 title: Один бы я не справился
 wordpress_id: 569
 categories:

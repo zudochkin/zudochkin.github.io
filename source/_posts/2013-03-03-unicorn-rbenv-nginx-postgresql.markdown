@@ -4,6 +4,9 @@ comments: true
 date: 2013-03-03 12:13:05+00:00
 layout: post
 slug: unicorn-rbenv-nginx-postgresql
+
+permalink: /2013/03/unicorn-rbenv-nginx-postgresql
+
 title: Разворачиваем rails приложение вместе с capistrano
 wordpress_id: 974
 categories:

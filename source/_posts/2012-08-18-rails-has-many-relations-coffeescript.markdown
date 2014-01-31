@@ -4,6 +4,9 @@ comments: true
 date: 2012-08-18 16:52:03+00:00
 layout: post
 slug: rails-has-many-relations-coffeescript
+
+permalink: /2012/08/rails-has-many-relations-coffeescript
+
 title: Один вопрос и несколько ответов
 wordpress_id: 925
 categories:

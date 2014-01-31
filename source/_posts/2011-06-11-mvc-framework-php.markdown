@@ -4,6 +4,9 @@ comments: true
 date: 2011-06-11 16:15:56+00:00
 layout: post
 slug: mvc-framework-php
+
+permalink: /2011/06/mvc-framework-php
+
 title: Пишем свой первый фреймворк на PHP
 wordpress_id: 731
 categories:

@@ -4,6 +4,9 @@ comments: true
 date: 2009-11-23 10:02:20+00:00
 layout: post
 slug: jquery-gallery
+
+permalink: /2009/11/jquery-gallery
+
 title: Галерея на jQuery
 wordpress_id: 36
 categories:

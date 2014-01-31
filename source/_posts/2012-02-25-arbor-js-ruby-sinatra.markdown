@@ -4,6 +4,9 @@ comments: true
 date: 2012-02-25 13:24:37+00:00
 layout: post
 slug: arbor-js-ruby-sinatra
+
+permalink: /2012/02/arbor-js-ruby-sinatra
+
 title: 'arbor.js: красивые графы на стороне клиента с помощью Ruby'
 wordpress_id: 892
 categories:

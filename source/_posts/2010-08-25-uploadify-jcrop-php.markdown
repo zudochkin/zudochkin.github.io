@@ -4,6 +4,9 @@ comments: true
 date: 2010-08-25 14:08:58+00:00
 layout: post
 slug: uploadify-jcrop-php
+
+permalink: /2010/08/uploadify-jcrop-php
+
 title: Создание миниатюр на стороне клиента без перезагрузки страницы или немного
   уличной магии
 wordpress_id: 597

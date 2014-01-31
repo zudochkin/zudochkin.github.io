@@ -4,6 +4,9 @@ comments: true
 date: 2010-03-13 13:22:10+00:00
 layout: post
 slug: jquery-for-beginners-part4
+
+permalink: /2010/03/jquery-for-beginners-part4
+
 title: 'jQuery для начинающих: углубляемся в реализацию'
 wordpress_id: 411
 categories:

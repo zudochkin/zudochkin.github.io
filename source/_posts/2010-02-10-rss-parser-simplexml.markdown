@@ -7,6 +7,9 @@ excerpt: В сегодняшней заметки мы поговорим с в�
   ставшую в последнее время так популярной на примере Цитатника Рунета bash.org.ru.
 layout: post
 slug: rss-parser-simplexml
+
+permalink: /2010/02/rss-parser-simplexml
+
 title: RSS парсер на PHP
 wordpress_id: 236
 categories:

@@ -4,6 +4,9 @@ comments: true
 date: 2010-03-04 20:16:18+00:00
 layout: post
 slug: svn-trac-ubuntu
+
+permalink: /2010/03/svn-trac-ubuntu
+
 title: Работа над большими проектами (svn & trac)
 wordpress_id: 372
 categories:

@@ -4,6 +4,9 @@ comments: true
 date: 2011-03-12 20:23:49+00:00
 layout: post
 slug: uploading-files-using-curl-php
+
+permalink: /2011/03/uploading-files-using-curl-php
+
 title: Загрузка файлов с помощью cURL и PHP
 wordpress_id: 666
 categories:

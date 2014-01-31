@@ -4,6 +4,9 @@ comments: true
 date: 2009-12-04 13:34:24+00:00
 layout: post
 slug: simple-translator
+
+permalink: /2009/12/simple-translator
+
 title: 'Javascript & Google Api: Простой перевод текста'
 wordpress_id: 110
 categories:

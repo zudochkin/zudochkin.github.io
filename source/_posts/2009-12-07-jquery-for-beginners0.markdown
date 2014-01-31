@@ -4,6 +4,9 @@ comments: true
 date: 2009-12-07 20:24:02+00:00
 layout: post
 slug: jquery-for-beginners0
+
+permalink: /2009/12/jquery-for-beginners0
+
 title: jQuery для начинающих. часть 0
 wordpress_id: 114
 categories:

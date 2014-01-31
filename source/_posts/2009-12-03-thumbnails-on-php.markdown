@@ -4,6 +4,9 @@ comments: true
 date: 2009-12-03 09:00:46+00:00
 layout: post
 slug: thumbnails-on-php
+
+permalink: /2009/12/thumbnails-on-php
+
 title: Создание миниатюр на PHP
 wordpress_id: 96
 categories:

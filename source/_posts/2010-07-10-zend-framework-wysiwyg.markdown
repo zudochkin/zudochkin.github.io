@@ -4,6 +4,9 @@ comments: true
 date: 2010-07-10 08:38:01+00:00
 layout: post
 slug: zend-framework-wysiwyg
+
+permalink: /2010/07/zend-framework-wysiwyg
+
 title: Zend Framework и WYSIWYG (CKEditor)
 wordpress_id: 554
 categories:

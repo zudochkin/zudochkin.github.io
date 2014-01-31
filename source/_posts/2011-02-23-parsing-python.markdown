@@ -4,6 +4,9 @@ comments: true
 date: 2011-02-23 15:16:04+00:00
 layout: post
 slug: parsing-python
+
+permalink: /2011/02/parsing-python
+
 title: Парсинг на Python или как скачать обои в большом разрешении
 wordpress_id: 658
 categories:

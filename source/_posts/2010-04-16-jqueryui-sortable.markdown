@@ -4,6 +4,9 @@ comments: true
 date: 2010-04-16 13:42:15+00:00
 layout: post
 slug: jqueryui-sortable
+
+permalink: /2010/04/jqueryui-sortable
+
 title: jQuery UI - сортировка в стиле web 2.0
 wordpress_id: 447
 categories:

@@ -4,6 +4,9 @@ comments: true
 date: 2009-11-20 10:38:16+00:00
 layout: post
 slug: interesting-service
+
+permalink: /2009/11/interesting-service
+
 title: Преинтереснейший сервис
 wordpress_id: 34
 categories:

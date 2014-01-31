@@ -4,6 +4,9 @@ comments: true
 date: 2012-02-03 19:51:25+00:00
 layout: post
 slug: ruby-application-heroku
+
+permalink: /2012/02/ruby-application-heroku
+
 title: Деплой ruby приложения на heroku
 wordpress_id: 823
 categories:

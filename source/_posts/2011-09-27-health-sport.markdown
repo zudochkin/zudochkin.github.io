@@ -4,6 +4,9 @@ comments: true
 date: 2011-09-27 19:34:39+00:00
 layout: post
 slug: health-sport
+
+permalink: /2011/09/health-sport
+
 title: Здоровый образ жизни и я
 wordpress_id: 792
 categories:

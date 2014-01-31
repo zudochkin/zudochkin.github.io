@@ -4,6 +4,9 @@ comments: true
 date: 2011-08-26 12:29:19+00:00
 layout: post
 slug: php-sinatra-closures
+
+permalink: /2011/08/php-sinatra-closures
+
 title: 'PHP замыкания и немного рефлексии '
 wordpress_id: 770
 categories:
