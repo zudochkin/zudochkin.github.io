@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Записки Вредного программиста]]></title>
+  <link href="http://vredniy.github.io/atom.xml" rel="self"/>
+  <link href="http://vredniy.github.io/"/>
+  <updated>2014-02-01T03:48:21+04:00</updated>
+  <id>http://vredniy.github.io/</id>
+  <author>
+    <name><![CDATA[Зудочкин Дима]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Парсим news.ycombinator.com или не рельсами едиными жив человек (Sinatra, DataMapper)]]></title>
+    <link href="http://vredniy.github.io/2013/03/sinatra-datamapper-news-combinator"/>
+    <updated>2013-03-05T23:29:26+04:00</updated>
+    <id>http://vredniy.github.io/2013/03/sinatra-datamapper-news-combinator</id>
+    <content type="html"><![CDATA[<p>Дело было вечером, делать было нечего и решил я написать небольшое приложение на Sinatra с Datamapper&#8217;ом. За идеей далеко ходить также не пришлось: решил написать небольшой &ldquo;фильтратор&rdquo; интересного для меня контента из новостей news.ycombinator.ru.<!-- more --> Не стал изобретать велосипед на этот раз и интересными буду считать новости, названия которых содержат определенные слова. Будем отображать список прочитанных и непрочитанных новостей. Список новостей каждый час будет обновляться по cron&#8217;у &ndash; вот и вся задача.</p>
+
+<p>Начнем с реализации: для этого нам понадобится:</p>
+
+<ul>
+<li>data_mapper с двумя адаптерами (sqlite3 для локального использование и postgresql для production&#8217;а)</li>
+<li>sinatra</li>
+<li>coffeeScript, хоть можно было и легко обойтись без него</li>
+<li>slim в качестве шаблонизатора</li>
+</ul>
+
+
+<p>Итак, поехали:</p>
+
+<p>Gemfile:</p>
+
+<div>
+  <pre><code class='ruby'>source &#39;https://rubygems.org&#39;
+
+gem &#39;sinatra&#39;
+gem &#39;data_mapper&#39;
+
+group :development do
+  gem &#39;dm-sqlite-adapter&#39;
+  gem &#39;capistrano&#39;
+end
+
+group :production do
+  gem &#39;dm-postgres-adapter&#39;
+end
+
+gem &#39;slim&#39;
+gem &#39;coffee-script&#39;
+gem &#39;whenever&#39;, :require =&gt; false
+
+gem &#39;nokogiri&#39;
+
+gem &#39;unicorn&#39;</code></pre>
+</div>
+
+
+<p>В нем нет ничего необычного, добавляем необходимые гемы для разных сред.</p>
+
+<p>Теперь самое интересное: основной файл приложения, который занимает больше всего места.</p>
+
+<p>./app.rb</p>
+
+<p>[cc lang=&ldquo;ruby&rdquo;]
+require &lsquo;sinatra&rsquo;
+require &lsquo;slim&rsquo;</p>
+
+<p>require &lsquo;coffee-script&rsquo;
+require &lsquo;data_mapper&rsquo;</p>
+
+<p>DataMapper::Property::String.length(400)</p>
+
+<p>configure :development do
+  DataMapper.setup(:default, &lsquo;sqlite3:./db/articles.db&rsquo;)
+end</p>
+
+<p>configure :production do
+  DataMapper.setup(:default, &lsquo;postgres://deployer:funnydb@localhost/ycombinator&rsquo;)
+end</p>
+
+<p>class Article
+  include DataMapper::Resource</p>
+
+<p>  INTERESTING_KEYWORDS = %w(ruby rails coffee js javascript ember angular</p>
+
+<pre><code>backbone tdd rspec shoulda gem unicorn nginx sinatra vim mac)
+</code></pre>
+
+<p>  property :id, Serial
+  property :url, String, :unique_index => :u, :required => true, :format => :url
+  property :title, String, :required => true, :index => true
+  property :interesting, Boolean, :default => false
+  property :read_at, DateTime
+  timestamps :created_at, :updated_on</p>
+
+<p>  def interesting?</p>
+
+<pre><code>!!(title =~ Regexp.new(INTERESTING_KEYWORDS.join('|'), Regexp::IGNORECASE))
+</code></pre>
+
+<p>  end</p>
+
+<p>  def self.interesting_to_me</p>
+
+<pre><code>all(:interesting =&gt; true)
+</code></pre>
+
+<p>  end</p>
+
+<p>  def self.unread</p>
+
+<pre><code>all(:read_at =&gt; nil)
+</code></pre>
+
+<p>  end</p>
+
+<p>  def self.read</p>
+
+<pre><code>all(:read_at.not =&gt; nil)
+</code></pre>
+
+<p>  end</p>
+
+<p>  def self.search(term=&lsquo;&rsquo;)</p>
+
+<pre><code>if DataMapper.repository.adapter.options[:scheme] == 'sqlite3'
+  all(:title.like =&gt; "%#{term.to_s}%")
+else
+  all(:conditions =&gt; [ 'title ILIKE ?', "%#{term.to_s}%" ])
+end
+</code></pre>
+
+<p>  end
+end</p>
+
+<p>DataMapper.finalize</p>
+
+<h1>DataMapper.auto_migrate!</h1>
+
+<p>DataMapper.auto_upgrade!</p>
+
+<p>helpers do
+  def do_process(scope=nil)</p>
+
+<pre><code>@search_term = params[:term].nil? ? nil : params[:term]
+@articles = case scope
+            when :all
+              Article
+            when :all_read
+              Article.read
+            when :all_unread
+              Article.unread
+            else
+              Article.interesting_to_me.unread
+            end.search(@search_term)
+slim :index
+</code></pre>
+
+<p>  end
+end</p>
+
+<p>get &lsquo;/application.js&rsquo; do
+  coffee :application
+end</p>
+
+<p>post &lsquo;/:id/read&rsquo; do
+  @article = Article.get(params[:id])
+  @article.read_at = Time.now
+  @article.save
+end</p>
+
+<p>get &lsquo;/all&rsquo; do
+  do_process :all
+end</p>
+
+<p>get &lsquo;/all/read&rsquo; do
+  do_process :all_read
+end</p>
+
+<p>get &lsquo;/all/unread&rsquo; do
+  do_process :all_unread
+end</p>
+
+<p>get &lsquo;/*&rsquo; do
+  do_process
+end
+[/cc]</p>
+
+<p>А теперь немного комментариев:</p>
+
+<ul>
+<li><p><strong>1-5 строки</strong> &ndash; подключаем необходимые для работы файлы</p></li>
+<li><p><strong>7 строка</strong> &ndash; сообщаем DataMapper&#8217;y, что длина строки (String) не 80 символов, а 400, 255 не хватает.</p></li>
+<li><p><strong>9-15</strong> &ndash; конфигурируем два адаптера: один для разработки, другой для продакшна.</p></li>
+<li><p><strong>17-53</strong></p>
+
+<ul>
+<li><p><strong>20,21</strong> &ndash; объявляем интересные мне ключевые слова</p></li>
+<li><p><strong>23-28</strong> &ndash; описываем все поля, которые будут в нашей модели</p></li>
+<li><p><strong>30-32</strong> &ndash; метод interesting? определяет по заголовку новости интересна она мне или нет</p></li>
+<li><p><strong>34-40</strong> &ndash; несколько используемых в приложении scope&#8217;ов</p></li>
+<li><p><strong>46-52</strong> &ndash; метод search (из-за того, что в Postgresql like учитывает регистр букв, пришлось переписать оператор поиска на ilike, который этого не делает)</p></li>
+</ul>
+</li>
+<li><p><strong>60-73</strong> &ndash; объявляем метод, который является &ldquo;сердцем&rdquo; и в зависимости от параметра заполняет коллекцию определенными статьями и рендерит вьюху ./views/index.slim</p></li>
+<li><p><strong>76-78</strong> &ndash; рендерим coffeeScript, которые делает следующее, если мы кликам по новости, то отправляем ajax post запрос и помечаем новость как прочитанную (read_at = Time.now)</p></li>
+<li><p><strong>80-84</strong> &ndash; сам метод, который помечает новость прочитанной при post запросе</p></li>
+<li><p><strong>86-100</strong> &ndash; разные коллекции (все, прочитанные, непрочитанные и т.д.)</p></li>
+</ul>
+
+
+<p>теперь Rakefile, который будет парсить news.ycombinator.com каждый час</p>
+
+<p>[cc lang=&ldquo;ruby&rdquo;]
+require &lsquo;./app&rsquo;</p>
+
+<p>require &lsquo;nokogiri&rsquo;
+require &lsquo;open-uri&rsquo;</p>
+
+<p>desc &lsquo;Parse all articles&rsquo;
+task :parse do
+  doc = Nokogiri::HTML(open(&lsquo;<a href="http://news.ycombinator.com/">http://news.ycombinator.com/</a>&rsquo;))
+  links = doc.css(&lsquo;td.title a&rsquo;)
+  next_page_link = links.pop</p>
+
+<p>  links.each do |link|</p>
+
+<pre><code>href = link[:href]
+text = link.children.text
+
+unless Article.first(:url =&gt; href)
+  Article.create(:url =&gt; href, :title =&gt; text)
+end
+</code></pre>
+
+<p>  end</p>
+
+<p>  puts Time.now.to_s
+end</p>
+
+<p>desc &lsquo;Update Interesting tasks&rsquo;
+task :update_interesting do
+  Article.all.each do |a|</p>
+
+<pre><code>a.update(:interesting =&gt; a.interesting?)
+puts "#{a.id} updated"
+</code></pre>
+
+<p>  end
+end
+[/cc]</p>
+
+<p>В нем всего две задачи: первая &ndash; парсит новости, вторая нужна для того, что если вдруг изменися интересные ключевые слова, то вы сможете легко обновить список инетересных вам новостей.</p>
+
+<p>Файл, который отвечает за частоту выполнения определенных тасков ./config/shedule.rb
+[cc lang=&ldquo;ruby&rdquo;]
+set :output, &lsquo;/home/deployer/projects/ycombinator/shared/log/shedule.log&rsquo;</p>
+
+<p>job_type :rake, &ldquo;cd :path &amp;&amp; RACK_ENV=:environment bundle exec rake :task &mdash;silent :output&rdquo;</p>
+
+<p>every :hour do
+  rake &lsquo;parse&rsquo;
+end
+[/cc]</p>
+
+<p>В первой строчке я указываю путь до файла с логами, чтобы каждый раз при запуске rake task&#8217;а в конец добавлялось время последнего обновления. В блоке с every можно очень гибко указать как часто выполняться, смотрите документацию к гему whenever.</p>
+
+<p>Также я добавил несколько строк к файлу, выполняющего деплой из <a href="http://vredniy.github.io/unicorn-rbenv-nginx-postgresql/">Разворачиваем Rails приложение вместе с Capistrano</a>. ./config/deploy.rb</p>
+
+<p>[cc lang=&ldquo;ruby&rdquo;]
+&hellip;
+set :application, &lsquo;ycombinator&rsquo;
+set :whenever_command, &ldquo;bundle exec whenever&rdquo;
+require &ldquo;whenever/capistrano&rdquo;
+&hellip;
+[/cc]</p>
+
+<p>Теперь мы можем запустить обновления cron&#8217;а deployer&#8217;а командой <code>cap whenever:update_crontab</code></p>
+
+<p>После ее запуска вы можете проверить, что вышло, обновился ли cron, запустив на сервере, список cron задач: <code>crontab -l</code></p>
+
+<p>Без комментариев оставлю вьюхи, но текст их приведу.</p>
+
+<p>./views/application.coffee
+[cc lang=&ldquo;coffeescript&rdquo;]
+$ &ndash;>
+  $(&ldquo;.article&rdquo;).click &ndash;></p>
+
+<pre><code>$.post "/" + $(this).attr("id") + "/read", -&gt;
+$(this).parent('li').remove()
+</code></pre>
+
+<p>[/cc]</p>
+
+<p>./views/layout.slim
+[cc lang=&ldquo;ruby&rdquo;]
+doctype html</p>
+
+<p>head
+  title Ycombinator
+  script src=&ldquo;//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js&rdquo;
+  script src=&ldquo;/application.js&rdquo;</p>
+
+<p>body
+  a{ href=&ldquo;/all&rdquo; } All
+  br
+  a{ href=&ldquo;/all/read&rdquo; } All read
+  br
+  a{ href=&ldquo;/all/unread&rdquo; } All unread
+  br
+  a{ href=&ldquo;/&rdquo; } Home
+  hr
+  == yield
+[/cc]</p>
+
+<p>И наконец, ./views/index.slim
+[cc lang=&ldquo;ruby&rdquo;]
+h1
+  &lsquo; Unread articles
+  &ndash; if @search_term</p>
+
+<pre><code>= "searched by: '#{ @search_term }'"
+</code></pre>
+
+<p>p Search form
+form{ method=&ldquo;get&rdquo; action=&ldquo;&rdquo; }
+  input{ type=&ldquo;text&rdquo; name=&ldquo;term&rdquo; value=&ldquo;#{ @search_term }&rdquo; }
+  input{ type=&ldquo;submit&rdquo; value=&ldquo;Find&rdquo; }</p>
+
+<ul>
+<li>if @search_term
+a{ href=&ldquo;/&rdquo; } Home</li>
+</ul>
+
+
+<p>ul
+  &ndash; @articles.each do |article|</p>
+
+<pre><code>li
+  a{ href="#{ article.url }" id="#{ article.id }" class="article" target="_blank" }
+    = article.title
+</code></pre>
+
+<p>[/cc]</p>
+
+<p>Получислось такое незамысловатое и некрасивое приложение :).</p>
+
+<p><img src="http://vredniy.ru/wp-content/uploads/2013/03/Screen-Shot-2013-03-05-at-10.33.43-PM.png" alt="Sinatra DataMapper" /></p>
+
+<p>Вместо заключения: чтобы мозги не были напичканы только рельсами (читать как одним фреймворком), мне кажется, необходимо покидать зону комфорта и писать небольшые приложения для души на смежных технологиях. Скажу честно, для того, чтобы реализовать это несложное приложение у меня ушло масса времени на чтение мануалов к Sinatra, DataMapper&#8217;у, нежели на написание кода. Но мне понравилось, практической ценности, конечно, приложение почти не имеет, но мозги размялись однозначно. Разминай мозги, коллега :)</p>
+]]></content>
+  </entry>
+  
+</feed>
