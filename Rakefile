@@ -32,6 +32,37 @@ if (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
   `chcp 65001`
 end
 
+
+# My rake tasks
+require 'psych'
+
+namespace :my do
+  desc 'Right permalink for wordpress consistency'
+  task :transform_permalink do
+    Dir.glob('./source/_posts/*.markdown').each do |source_post|
+      post_content = IO.read source_post
+      yaml_object = Psych.load post_content
+
+      slug = yaml_object['slug']
+      date = yaml_object['date']
+
+      next if yaml_object['permalink']
+
+      permalink = "/#{date.to_s.split(' ').first.split('-')[0..1].join('/')}/#{slug}"
+
+      puts permalink
+
+      IO.write source_post, post_content.sub("slug: #{slug}", "slug: #{slug}\n\npermalink: #{permalink}\n")
+    end
+  end
+end
+
+
+
+
+
+
+
 desc "Initial setup for Octopress: copies the default theme into the path of Jekyll's generator. Rake install defaults to rake install[classic] to install a different theme run rake install[some_theme_name]"
 task :install, :theme do |t, args|
   if File.directory?(source_dir) || File.directory?("sass")
@@ -252,7 +283,7 @@ desc "deploy public directory to github pages"
 multitask :push do
   puts "## Deploying branch to Github Pages "
   puts "## Pulling any updates from Github Pages "
-  cd "#{deploy_dir}" do 
+  cd "#{deploy_dir}" do
     system "git pull"
   end
   (Dir["#{deploy_dir}/*"]).each { |f| rm_rf(f) }
