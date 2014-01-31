@@ -18,6 +18,7 @@ group :development do
 
   # for permalinks update
   gem 'psych'
+  gem 'pry'
 end
 
 gem 'sinatra', '~> 1.4.2'

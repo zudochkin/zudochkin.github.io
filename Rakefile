@@ -9,10 +9,10 @@ ssh_port       = "22"
 document_root  = "~/website.com/"
 rsync_delete   = false
 rsync_args     = ""  # Any extra arguments to pass to rsync
-deploy_default = "rsync"
+deploy_default = "push"
 
 # This will be configured for you when you run config_deploy
-deploy_branch  = "gh-pages"
+deploy_branch  = "master"
 
 ## -- Misc Configs -- ##
 
@@ -46,7 +46,17 @@ namespace :my do
       slug = yaml_object['slug']
       date = yaml_object['date']
 
+      code_finder_regexp = /\[cc lang="([^"]+)"\](.*?)\[\/cc\]/m # finds [cc lang="?"]code[/cc] blocks
+
+      next if post_content !~ code_finder_regexp
+
+      puts post_content.gsub(code_finder_regexp, "``` \\1\n\\2\n```")
+
+      require 'pry'; binding.pry
+
       next if yaml_object['permalink']
+
+
 
       permalink = "/#{date.to_s.split(' ').first.split('-')[0..1].join('/')}/#{slug}"
 
