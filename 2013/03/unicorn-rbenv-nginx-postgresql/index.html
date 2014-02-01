@@ -1,0 +1,638 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Разворачиваем rails приложение вместе с capistrano - Записки Вредного программиста</title>
+  <meta name="author" content="Зудочкин Дима">
+
+  
+  <meta name="description" content="Здравствуйте, дорогие друзья, сегодня я расскажу вам как быстро развернуть Ruby on Rails приложение на сервере. Если у вас маленькое приложение, &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://vredniy.github.io/2013/03/unicorn-rbenv-nginx-postgresql">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Записки Вредного программиста" type="application/atom+xml">
+  <link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <div id="logo">
+  	<div id="logoLeft">{</div>
+  	<div id="logoText">Zudochkin Dmitry</div>
+  	<div id="logoRight">}</div>
+  	<div class="clear"></div>
+  </div>
+  <h1><a href="/">Записки Вредного программиста</a></h1>
+  
+    <h2>enjoy, motherfuckers ;)</h2>
+  
+  <div class="clear"></div>
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:vredniy.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Главная</a></li>
+  <li><a href="/blog/archives">Архив</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      
+        <h1 class="entry-title">Разворачиваем Rails приложение вместе с Capistrano</h1>
+      
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-03T16:13:05+04:00" pubdate data-updated="true">03.03.2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Здравствуйте, дорогие друзья, сегодня я расскажу вам как быстро развернуть Ruby on Rails приложение на сервере. Если у вас маленькое приложение, которое посещает 10 человек в день, то вам достаточно будет задеплоить его на heroku (имею в виду бесплатный тариф) и не читать все то, что написано ниже. Если же у вас приложение побольше, то милости прошу на огонек.<!-- more --></p>
+
+<h3>Сервер</h3>
+
+<p>Сервер: я буду настраивать все на Ubuntu 12.04 (64x), но не думаю, что должны возникнуть сложности с подобной операционной системой. Если же появятся траблы, пишите в комментах, попытаемся решить вместе.</p>
+
+<p>Итак, поехали, логинимся по root&#8217;ом и производим базовую настройку сервера. Я начинаю всегда с локалей, для этого делаю следующее.</p>
+
+<p><strong>localedef ru_RU.UTF-8 -i ru_RU -fUTF-8</strong> и в файл <strong>/etc/default/locale</strong> добавляю</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>LANG="ru_RU.UTF-8"
+</span><span class='line'>LC_CTYPE="ru_RU.UTF-8"
+</span><span class='line'>LC_NUMERIC=C
+</span><span class='line'>LC_TIME=C
+</span><span class='line'>LC_COLLATE=C
+</span><span class='line'>LC_MESSAGES=C</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Затем создаем пользователя, от лица которого мы и будем все делать и наделим его привилегиями запускать команды через sudo.</p>
+
+<p><code>useradd -m -g staff -s /bin/bash deployer &amp;&amp; passwd deployer</code> &ndash; создаем пользователя deployer в группе staff (флаг -g) и с домашней папкой /home/deployer (флаг -m), флаг -s назначает пользоватлю шел по умолчанию. И задаем ему пароль. В дальнейшем весь экшн будет производиться от имени этого пользователя.</p>
+
+<p>Чтобы наш пользователь мог выполнять команды от рута, необходимо добавить его в группу в файл <strong>/etc/sudoers</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(%staff ALL=(ALL) ALL)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Теперь выходим из под рута и логинимся под деплоером. Для того, чтобы не писать пароль каждый раз при входе, необходимо добавить на сервер инфо, что мы свои (авторизация по ключу).</p>
+
+<p><code>cat ~/.ssh/id_rsa.pub | ssh deployer@server "mkdir ~/.ssh; cat &gt;&gt; ~/.ssh/authorized_keys"</code></p>
+
+<p>Если у кого на рабочей машине ubuntu, то они могут запустить эту операцию намного проще (ssh-copy-id deployer@server).</p>
+
+<p>Проверяем, ssh deployer@server более не должно спрашивать пароль, а сразу же пустить нас на сервер.</p>
+
+<p>Для удобства можно добавить в файл <strong>~/.ssh/config</strong>, чтобы удобно было заходить, печатая только <strong>ssh my_serv</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Host my_serv
+</span><span class='line'>  HostName server.com$
+</span><span class='line'>  User deployer$
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>sudo apt-get update &amp;&amp; sudo apt-get upgrade</code> &ndash; обновляем все источники приложений и накатываем обновления</p>
+
+<h3>Установка и базовая настройка Postgres&#8217;а</h3>
+
+<p><code>sudo apt-get install postgresql libpq-dev</code> (второй пакет нужен для того, чтобы гем pg поставился)</p>
+
+<p>Данная установка подразумевает, что вы не собираетесь соединяться с базой данных с других машин. По умолчанию в Ubuntu, Postgresql сконфигурирован так, чтобы использовать логин текущего пользователя, т.е. если вы вошли под пользователем deployer и в Postgresql есть пользователь deployer, то спрашивать пароль у вас никто не будет.</p>
+
+<p><code>sudo -u postgres createuser --superuser $USER</code> (создаем пользователя deployer, который будет являться суперпользователем, этого делать не желательно, если у вас более, чем один проект, лучше под каждую бд создать отдельных пользователей с разными паролями)</p>
+
+<p><code>sudo -u postgres psql</code> &ndash; запускаем postgres консоль</p>
+
+<p>postgres=# \password deployer &ndash; задаем пароль для нашего пользователя (имя пользователя заменить на свое) &ndash; этот пароль будет использоваться в конфигах вашего приложения (config/database.yml)</p>
+
+<p><code>createdb $USER</code> &ndash; создаем базу данных deployer</p>
+
+<h3>Ставим rbenv, ruby и gem bundler</h3>
+
+<p>Ставим все необходимое, чтобы склонировать репозиторий rbenv, установить последние ruby и пользоваться загрузкой картинок в наших приложениям (последние два пакета).</p>
+
+<p><code>sudo apt-get install build-essential bison openssl libreadline6 libreadline6-dev curl git-core zlib1g zlib1g-dev libssl-dev libyaml-dev libxml2-dev libxslt1-dev autoconf libc6-dev libncurses5-dev libmagickcore-dev imagemagick</code></p>
+
+<p>Теперь давайте перейдем к установки ruby с помощью rbenv и ruby-build. Здесь нет ничего не обычного, в основном все взято со страниц README rbenv и ruby-build.</p>
+
+<h5>rbenv</h5>
+
+<p><code>git clone git://github.com/sstephenson/rbenv.git ~/.rbenv</code></p>
+
+<p><code>echo 'export PATH="$HOME/.rbenv/bin:$PATH"' &gt;&gt; ~/.bash_profile</code> &ndash; для доступа к команде rbenv</p>
+
+<p><code>echo 'eval "$(rbenv init -)"' &gt;&gt; ~/.bash_profile</code> &ndash; для доступа к бинарникам установленных гемов и автокомплиту rbenv команд</p>
+
+<p><code>exec $SHELL</code> &ndash; перезапускам шел</p>
+
+<h5>ruby-build &ndash; для простой загрузки и сборки ruby из исходников</h5>
+
+<p><code>git clone git://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build</code></p>
+
+<p>устанвливаем ruby <code>rbenv install 1.9.3-p392</code> (для этого необходимо немало времени, поэтому наберитесь терпения, на машине с 512 оперативы эта операция занимает около 7 минут)</p>
+
+<p>Пока приложение настраивается можно добавить пару строк в ~/.gemrc файл, для того, чтобы не устанавливать документацию вместе с гемами</p>
+
+<p>install: &mdash;no-ri &mdash;no-rdoc
+update: &mdash;no-ri &mdash;no-rdoc</p>
+
+<p>после этого <code>rbenv global 1.9.3-p392</code> и <code>gem install bundler</code></p>
+
+<h3>Локальное приложение для деплоя</h3>
+
+<p>Теперь давайте подготовим наше локальное приложение (я для
+этих целей создал простое приложение rails</p>
+
+<p><code>rails new simple_deployment -T</code></p>
+
+<p><code>rails g scaffold item name description:text</code> &ndash; для того, чтобы проверить и соединение с базой данных.</p>
+
+<p>создадим файл .rbenv-version (<code>echo '1.9.3-p392' &gt; .rbenv-version</code>) для того, чтобы unicorn запускал необходимую версию ruby</p>
+
+<p>также добавим в Gemfile gem unicorn и gem capistrano (последний в группу :development)</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">gem</span> <span class="s1">&#39;unicorn&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">group</span> <span class="ss">:development</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">gem</span> <span class="s1">&#39;capistrano&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>и запустим в консоли <code>capify .</code> (capistrano создаст для нас файлик config/deploy.rb, который и будет &ldquo;пультом управления&rdquo; нашего приложения на сервере)</p>
+
+<p><strong>config/deploy.rb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;bundler/capistrano&#39;</span>
+</span><span class='line'><span class="nb">load</span> <span class="s1">&#39;deploy/assets&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">set</span> <span class="ss">:repository</span><span class="p">,</span> <span class="s1">&#39;YOUR_GIT_OR_SVN_REPOSITORY_URL&#39;</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:scm</span><span class="p">,</span> <span class="ss">:git</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">server</span> <span class="s1">&#39;YOUR_SERVER_IP_OR_HOSTNAME&#39;</span><span class="p">,</span> <span class="ss">:app</span><span class="p">,</span> <span class="ss">:web</span><span class="p">,</span> <span class="ss">:db</span><span class="p">,</span> <span class="ss">:primary</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">set</span> <span class="ss">:ssh_options</span><span class="p">,</span> <span class="p">{</span> <span class="ss">:forward_agent</span> <span class="o">=&gt;</span> <span class="kp">true</span> <span class="p">}</span>
+</span><span class='line'><span class="n">default_run_options</span><span class="o">[</span><span class="ss">:shell</span><span class="o">]</span> <span class="o">=</span> <span class="s1">&#39;bash -l&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">set</span> <span class="ss">:user</span><span class="p">,</span> <span class="s1">&#39;deployer&#39;</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:group</span><span class="p">,</span> <span class="s1">&#39;staff&#39;</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:use_sudo</span><span class="p">,</span> <span class="kp">false</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:rails_env</span><span class="p">,</span> <span class="s1">&#39;production&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">set</span> <span class="ss">:project_name</span><span class="p">,</span> <span class="s1">&#39;simple_deployment&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">set</span> <span class="ss">:deploy_to</span><span class="p">,</span> <span class="s2">&quot;/home/deployer/projects/</span><span class="si">#{</span> <span class="n">project_name</span> <span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">desc</span> <span class="s2">&quot;Restart of Unicorn&quot;</span>
+</span><span class='line'><span class="n">task</span> <span class="ss">:restart</span><span class="p">,</span> <span class="ss">:except</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">:no_release</span> <span class="o">=&gt;</span> <span class="kp">true</span> <span class="p">}</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">run</span> <span class="s2">&quot;kill -s USR2 `cat /home/deployer/projects/</span><span class="si">#{</span> <span class="n">project_name</span> <span class="si">}</span><span class="s2">/shared/pids/unicorn.pid`&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">desc</span> <span class="s2">&quot;Start unicorn&quot;</span>
+</span><span class='line'><span class="n">task</span> <span class="ss">:start</span><span class="p">,</span> <span class="ss">:except</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">:no_release</span> <span class="o">=&gt;</span> <span class="kp">true</span> <span class="p">}</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">run</span> <span class="s2">&quot;cd </span><span class="si">#{</span><span class="n">current_path</span><span class="si">}</span><span class="s2"> ; bundle exec unicorn_rails -c config/unicorn.rb -D -E </span><span class="si">#{</span> <span class="n">rails_env</span> <span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">desc</span> <span class="s2">&quot;Stop unicorn&quot;</span>
+</span><span class='line'><span class="n">task</span> <span class="ss">:stop</span><span class="p">,</span> <span class="ss">:except</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">:no_release</span> <span class="o">=&gt;</span> <span class="kp">true</span> <span class="p">}</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">run</span> <span class="s2">&quot;kill -s QUIT `cat /home/deployer/projects/</span><span class="si">#{</span> <span class="n">project_name</span> <span class="si">}</span><span class="s2">/shared/pids/unicorn.pid`&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">after</span> <span class="s1">&#39;deploy:finalize_update&#39;</span><span class="p">,</span> <span class="s1">&#39;deploy:symlink_db&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">namespace</span> <span class="ss">:deploy</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">desc</span> <span class="s2">&quot;Symlinks the database.yml&quot;</span>
+</span><span class='line'>  <span class="n">task</span> <span class="ss">:symlink_db</span><span class="p">,</span> <span class="ss">:roles</span> <span class="o">=&gt;</span> <span class="ss">:app</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">run</span> <span class="s2">&quot;ln -nfs </span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="s2">/shared/config/database.yml </span><span class="si">#{</span><span class="n">release_path</span><span class="si">}</span><span class="s2">/config/database.yml&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Проекты у нас на сервере будут жить в домашнией папке + projects, т.е. для нашего пользователя deployer это будет /home/deployer/projects.</p>
+
+<p>В каждой папке приложения находятся еще три папки (releases &ndash; где хранятся все релизы нашего приложения, current &ndash; симлинк на текущий релиз из папки releases и shared, где хранится общая шняга для все релизов: пиды, идентификаторы сессий, логи и прочее.)</p>
+
+<p>Также необходимо добавить ssh ключ сервера на github или bitbucket</p>
+
+<p>содержимое ключа <code>cat ~/.ssh/id_rsa.pub</code>, если такого файла нет, то нужно его сгенерировать <code>ssh-keygen -t rsa</code></p>
+
+<p>и сделать с сервера <code>ssh git@bitbucket.org</code>, чтобы подтвердить соединение.</p>
+
+<h5>config/unicorn.rb &ndash; минимальный конфиг для нашего HTTP сервера.</h5>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">worker_processes</span> <span class="mi">2</span>
+</span><span class='line'><span class="n">user</span> <span class="s1">&#39;deployer&#39;</span><span class="p">,</span> <span class="s1">&#39;staff&#39;</span>
+</span><span class='line'><span class="n">preload_app</span> <span class="kp">true</span>
+</span><span class='line'><span class="n">timeout</span> <span class="mi">30</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">project_name</span> <span class="o">=</span> <span class="s1">&#39;simple_deployment&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">working_directory</span> <span class="s2">&quot;/home/deployer/projects/</span><span class="si">#{</span> <span class="n">project_name</span> <span class="si">}</span><span class="s2">/current&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">listen</span> <span class="s2">&quot;/tmp/</span><span class="si">#{</span> <span class="n">project_name</span> <span class="si">}</span><span class="s2">.socket&quot;</span><span class="p">,</span> <span class="ss">:backlog</span> <span class="o">=&gt;</span> <span class="mi">64</span>
+</span><span class='line'><span class="n">pid</span> <span class="s2">&quot;/home/deployer/projects/</span><span class="si">#{</span> <span class="n">project_name</span> <span class="si">}</span><span class="s2">/shared/pids/unicorn.pid&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">stderr_path</span> <span class="s2">&quot;/home/deployer/projects/</span><span class="si">#{</span> <span class="n">project_name</span> <span class="si">}</span><span class="s2">/shared/log/unicorn.stderr.log&quot;</span>
+</span><span class='line'><span class="n">stdout_path</span> <span class="s2">&quot;/home/deployer/projects/</span><span class="si">#{</span> <span class="n">project_name</span> <span class="si">}</span><span class="s2">/shared/log/unicorn.stdout.log&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Если вы указали все верно в config/deploy.rb, то можно запустить <strong>cap deploy:setup</strong> для создания capistrano необходимых для разворачивания приложения папок на стороне сервера.</p>
+
+<h3>Nginx</h3>
+
+<p>Устанвливаем nginx командой <code>sudo apt-get install nginx</code> и переходим к его настройке. Для начала отредактируем файл <strong>/etc/nginx/nginx.conf</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">user</span> <span class="n">deployer</span> <span class="n">staff</span><span class="p">;</span>
+</span><span class='line'><span class="n">worker_processes</span> <span class="mi">2</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">pid</span> <span class="sr">/var/</span><span class="n">run</span><span class="o">/</span><span class="n">nginx</span><span class="o">.</span><span class="n">pid</span><span class="p">;</span>
+</span><span class='line'><span class="n">events</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">worker_connections</span> <span class="mi">1024</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">multi_accept</span> <span class="n">on</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">http</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">sendfile</span> <span class="n">on</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">tcp_nopush</span> <span class="n">on</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">tcp_nodelay</span> <span class="n">off</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kp">include</span> <span class="sr">/etc/n</span><span class="n">ginx</span><span class="o">/</span><span class="n">mime</span><span class="o">.</span><span class="n">types</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">default_type</span> <span class="n">application</span><span class="o">/</span><span class="n">octet</span><span class="o">-</span><span class="n">stream</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">access_log</span> <span class="sr">/var/</span><span class="n">log</span><span class="o">/</span><span class="n">nginx</span><span class="o">/</span><span class="n">access</span><span class="o">.</span><span class="n">log</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">error_log</span> <span class="sr">/var/</span><span class="n">log</span><span class="o">/</span><span class="n">nginx</span><span class="o">/</span><span class="n">error</span><span class="o">.</span><span class="n">log</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">gzip</span> <span class="n">on</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">gzip_disable</span> <span class="s2">&quot;msie6&quot;</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">gzip_proxied</span> <span class="n">any</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">gzip_min_length</span> <span class="mi">500</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">gzip_types</span> <span class="n">text</span><span class="o">/</span><span class="n">plain</span> <span class="n">text</span><span class="o">/</span><span class="n">css</span> <span class="n">application</span><span class="o">/</span><span class="n">json</span> <span class="n">application</span><span class="o">/</span><span class="n">x</span><span class="o">-</span><span class="n">javascript</span> <span class="n">text</span><span class="o">/</span><span class="n">xml</span> <span class="n">application</span><span class="o">/</span><span class="n">xml</span> <span class="n">application</span><span class="o">/</span><span class="n">xml</span><span class="o">+</span><span class="n">rss</span> <span class="n">text</span><span class="o">/</span><span class="n">javascript</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kp">include</span> <span class="sr">/etc/n</span><span class="n">ginx</span><span class="o">/</span><span class="n">conf</span><span class="o">.</span><span class="n">d</span><span class="o">/*.</span><span class="n">conf</span><span class="p">;</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="sr">/etc/n</span><span class="n">ginx</span><span class="o">/</span><span class="n">sites</span><span class="o">-</span><span class="n">enabled</span><span class="o">/*</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Последняя строчка нужна, чтобы nginx загружал свои конфиги и из папка <strong>/etc/nginx/sites-enabled/</strong> (это нужно для того, чтобы не хранить все конфиги для проектов в одном файле).</p>
+
+<p>А теперь nginx конфиг для нашего приложения.Будем считать, что наше приложение называется simple_deployment, а домен у него simple-deployment.com (чтобы вам удобнее было заменять на свои данные).</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">upstream</span> <span class="n">simple_deployment</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">server</span> <span class="ss">unix</span><span class="p">:</span><span class="sr">/tmp/sim</span><span class="n">ple_deployment</span><span class="o">.</span><span class="n">socket</span> <span class="n">fail_timeout</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">server</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">server_name</span> <span class="n">simple</span><span class="o">-</span><span class="n">deployment</span><span class="o">.</span><span class="n">com</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">root</span> <span class="sr">/home/</span><span class="n">deployer</span><span class="o">/</span><span class="n">projects</span><span class="o">/</span><span class="n">simple_deployment</span><span class="o">/</span><span class="n">current</span><span class="o">/</span><span class="kp">public</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">access_log</span> <span class="sr">/var/</span><span class="n">log</span><span class="o">/</span><span class="n">nginx</span><span class="o">/</span><span class="n">simple_deployment_access</span><span class="o">.</span><span class="n">log</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">rewrite_log</span> <span class="n">on</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">location</span> <span class="o">/</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">proxy_pass</span> <span class="ss">http</span><span class="p">:</span><span class="sr">//sim</span><span class="n">ple_deployment</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">proxy_redirect</span> <span class="n">off</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">proxy_set_header</span> <span class="no">Host</span> <span class="vg">$host</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">proxy_set_header</span> <span class="n">X</span><span class="o">-</span><span class="no">Real</span><span class="o">-</span><span class="no">IP</span> <span class="vg">$remote_addr</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">proxy_set_header</span> <span class="n">X</span><span class="o">-</span><span class="no">Forwarded</span><span class="o">-</span><span class="no">For</span> <span class="vg">$proxy_add_x_forwarded_for</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">client_max_body_size</span> <span class="mi">10</span><span class="n">m</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">client_body_buffer_size</span> <span class="mi">128</span><span class="n">k</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">proxy_connect_timeout</span> <span class="mi">90</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">proxy_send_timeout</span> <span class="mi">90</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">proxy_read_timeout</span> <span class="mi">90</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">proxy_buffer_size</span> <span class="mi">4</span><span class="n">k</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">proxy_buffers</span> <span class="mi">4</span> <span class="mi">32</span><span class="n">k</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">proxy_busy_buffers_size</span> <span class="mi">64</span><span class="n">k</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">proxy_temp_file_write_size</span> <span class="mi">64</span><span class="n">k</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">location</span> <span class="o">~</span> <span class="o">^/</span><span class="p">(</span><span class="n">assets</span><span class="o">|</span><span class="n">images</span><span class="o">|</span><span class="n">javascripts</span><span class="o">|</span><span class="n">stylesheets</span><span class="o">|</span><span class="nb">system</span><span class="p">)</span><span class="o">/</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">root</span> <span class="sr">/home/</span><span class="n">deployer</span><span class="o">/</span><span class="n">projects</span><span class="o">/</span><span class="n">simple_deployment</span><span class="o">/</span><span class="n">current</span><span class="o">/</span><span class="kp">public</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">expires</span> <span class="n">max</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>и удалить файлы <strong>/etc/nginx/sites-available/default</strong> и <strong>/etc/nginx/sites-enabled/default</strong></p>
+
+<p>Теперь можно смело пробовать запускать <code>cap deploy:migrations</code>  в консоли локального приложения. Если все было выполнено по данной заметке, то вы должны получить развернутое приложения на сервере в папке <strong>/home/deployer/projects/simple_deployment</strong>, если вы конечно строго следовали инструкциям.</p>
+
+<p>Запустим последную команду на сервере, запустим nginx (<code>sudo service nginx start</code>).</p>
+
+<p>Теперь, после деплоя можно запускать команду cap start или cap stop для запуска сервера или его остановки. Надеюсь, следуя этому мануалу, у вас получилось развернуть свое приложение на сервере. Если нет, то милости прошу в комментарии, чем смогу, постараюсь помочь.</p>
+
+<p>Ссылки на дополнительные материлы:</p>
+
+<ul>
+<li><a href="http://gembundler.com/deploying.html">деплой вместе с bundler</a></li>
+<li><a href="http://unicorn.bogomips.org/Unicorn/Configurator.html">конфигурация unicorn&#8217;а</a></li>
+</ul>
+
+
+<p>Enjoy, my little colleagues :)</p>
+
+<p>UPDATE: 06.03.2013
+Немного защитим наш сервер, в первую очередь давайте запретим логин рута по ssh, у нас на это есть пользователь deployer, который может выполлнять команды от рута с помощью sudo. Для этого в файле <strong>/etc/ssh/sshd_config</strong> необходимо изменить
+<strong>PermitRootLogin</strong> на <strong>no</strong> и <strong>PasswordAuthentication</strong> на <strong>no</strong>, последняя настройка запретит авторизацию для SSH по паролю (только по ключу).</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-03T16:13:05+04:00" pubdate data-updated="true">03.03.2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ruby/'>Ruby</a>, <a class='category' href='/blog/categories/ruby-on-rails/'>Ruby On Rails</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://vredniy.github.io/2013/03/unicorn-rbenv-nginx-postgresql" data-via="" data-counturl="http://vredniy.github.io/2013/03/unicorn-rbenv-nginx-postgresql" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+      
+        <a class="basic-alignment right articlenav" href="/2013/03/sinatra-datamapper-news-combinator" title="Next Post: Парсим news.ycombinator.com или не рельсами едиными жив человек (Sinatra, DataMapper)">Парсим news.ycombinator.com или не рельсами едиными жив человек (Sinatra, DataMapper) &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2013/03/sinatra-datamapper-news-combinator">Парсим news.ycombinator.com или не рельсами едиными жив человек (Sinatra, DataMapper)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/03/unicorn-rbenv-nginx-postgresql">Разворачиваем Rails приложение вместе с Capistrano</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Зудочкин Дима -
+  <span class="credit">Powered by <a rel="nofollow" href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
