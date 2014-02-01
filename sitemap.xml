@@ -2,26 +2,62 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
         <loc>http://zudochkin.ru/2013/01/resque-with-private-pub-and-rails</loc>
-        <lastmod>2014-02-01T16:17:25+04:00</lastmod>
+        <lastmod>2014-02-01T18:34:45+04:00</lastmod>
     </url>
     <url>
         <loc>http://zudochkin.ru/2013/01/slite3-to-posgres-migration</loc>
-        <lastmod>2014-02-01T16:17:25+04:00</lastmod>
+        <lastmod>2014-02-01T18:34:45+04:00</lastmod>
     </url>
     <url>
         <loc>http://zudochkin.ru/2013/03/unicorn-rbenv-nginx-postgresql</loc>
-        <lastmod>2014-02-01T16:17:25+04:00</lastmod>
+        <lastmod>2014-02-01T18:34:45+04:00</lastmod>
     </url>
     <url>
         <loc>http://zudochkin.ru/2013/03/sinatra-datamapper-news-combinator</loc>
-        <lastmod>2014-02-01T16:17:25+04:00</lastmod>
+        <lastmod>2014-02-01T18:34:45+04:00</lastmod>
     </url>
     <url>
-        <loc>http://zudochkin.ru/blog/archives/</loc>
-        <lastmod>2014-02-01T16:17:25+04:00</lastmod>
+        <loc>http://zudochkin.ru/2013/06/devconf</loc>
+        <lastmod>2014-02-01T18:40:30+04:00</lastmod>
+    </url>
+    <url>
+        <loc>http://zudochkin.ru/2013/07/useless-links-1</loc>
+        <lastmod>2014-02-01T21:16:55+04:00</lastmod>
+    </url>
+    <url>
+        <loc>http://zudochkin.ru/2013/07/useless-links-2</loc>
+        <lastmod>2014-02-01T21:20:56+04:00</lastmod>
+    </url>
+    <url>
+        <loc>http://zudochkin.ru/2013/07/useless-links-3</loc>
+        <lastmod>2014-02-01T21:20:40+04:00</lastmod>
+    </url>
+    <url>
+        <loc>http://zudochkin.ru/2013/08/logrotate-unicorn</loc>
+        <lastmod>2014-02-01T21:31:40+04:00</lastmod>
+    </url>
+    <url>
+        <loc>http://zudochkin.ru/2013/08/vim-first-plugin</loc>
+        <lastmod>2014-02-01T22:33:20+04:00</lastmod>
+    </url>
+    <url>
+        <loc>http://zudochkin.ru/2013/08/first-photography</loc>
+        <lastmod>2014-02-01T22:33:54+04:00</lastmod>
+    </url>
+    <url>
+        <loc>http://zudochkin.ru/2013/11/open-uri-progress-bar</loc>
+        <lastmod>2014-02-01T22:37:51+04:00</lastmod>
+    </url>
+    <url>
+        <loc>http://zudochkin.ru/2014/01/22/fulltext-phones-postgresql/</loc>
+        <lastmod>2014-02-01T22:44:21+04:00</lastmod>
+    </url>
+    <url>
+        <loc>http://zudochkin.ru/archives/</loc>
+        <lastmod>2014-02-01T22:44:21+04:00</lastmod>
     </url>
     <url>
         <loc>http://zudochkin.ru/</loc>
-        <lastmod>2014-02-01T16:17:25+04:00</lastmod>
+        <lastmod>2014-02-01T22:44:21+04:00</lastmod>
     </url>
 </urlset>

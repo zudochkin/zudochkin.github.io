@@ -4,7 +4,7 @@
   <title><![CDATA[Записки Вредного программиста]]></title>
   <link href="http://zudochkin.ru/atom.xml" rel="self"/>
   <link href="http://zudochkin.ru/"/>
-  <updated>2014-02-01T18:01:49+04:00</updated>
+  <updated>2014-02-01T22:46:41+04:00</updated>
   <id>http://zudochkin.ru/</id>
   <author>
     <name><![CDATA[Зудочкин Дима]]></name>
@@ -12,6 +12,588 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Полнотекстовый поиск по телефонным номерам разного формата (PostgreSQL)]]></title>
+    <link href="http://zudochkin.ru/2014/01/22/fulltext-phones-postgresql/"/>
+    <updated>2014-01-22T02:44:24+04:00</updated>
+    <id>http://zudochkin.ru/2014/01/22/fulltext-phones-postgresql</id>
+    <content type="html"><![CDATA[<p>В одном из последних своих проектов, где использовалась большая база контактов, у каждого контакта имелось несколько телефонов, понадобилось искать по номеру телефона. Недолго думая решил сделать это через встроенный ILIKE, но поиск почти ничего не находил, потому что в таблице с номерами телефонов хранились номера в совершенном разных форматов, например, +7(903)555-12-11, +46 8 52506000 и т.д. Поэтому нужно было придумать что-то более радикальное и в то же время не очень медленное. <!--more--></p>
+
+<p>Идея номер 2 заключалась в том, чтобы для каждого телефонного номера в этой же таблице сохранять номер телефона без специфических символов, т.е. 79035551211 и 46852506000 соответственно. Но идея не нравилась тем, что необходимо было почти дублировать колонку, оставил этот план про запас, на случай, если ничего более путного не придумаю.</p>
+
+<p>Идея номер 3 заключается в использовании встроенных функций замены при поиске, например <strong>regexp_replace</strong>, которая позволяет заменять строки по регекспу.</p>
+
+<p><code>SELECT number FROM phones WHERE regexp_replace(number, '\\d', '', 'g') ILIKE '%313%';</code> &ndash; найдет все номера, в которых встречаются подряд идущие цифры <strong>313</strong> (первый параметр это где ищем, второй &ndash; сам регексп <code>\d</code> &ndash; только цифры, третий &ndash; меняем на пустую строку и последний модификатор для регулярного выражения, который указывает что поиск нужно вести до победного, а не останавливается на первом вхождении).  Но опять же есть небольшая проблема, если посмотреть <strong>EXPLAIN</strong>, то становится понятно в чем она.</p>
+
+<p>Для этого запускаем <code>EXPLAIN ANALYZE SELECT number FROM phones WHERE regexp_replace(number, '\\d', '', 'g') ILIKE '%313%';</code> в результате видим примерно следующее.</p>
+
+<p><img src="http://zudochk.in/uploads/asset/image/52/huge_Screenshot_2014-01-21_20.31.34.png" alt="query plan without index" /></p>
+
+<p>Что как бы намекает нам, что это очень долго, потому что поиск идет строка за строкой, просматривая каждую строку таблицы. Значит, нам нужен индекс, комплексный индекс.</p>
+
+<p><code>CREATE INDEX idx_phones_search_on_number ON phones USING gist(regexp_replace(number, '\\d', '', 'g') gist_trgm_ops);</code></p>
+
+<p>Проверяем, запускаем такой же запрос и получаем следующую картину.</p>
+
+<p><img src="http://zudochk.in/uploads/asset/image/53/huge_Screenshot_2014-01-21_21.48.18.png" alt="query plan with index" /></p>
+
+<p>Мы видим, что сейчас начал использоваться индекс и скорость выполнения запроса возросла в 6 с небольшим раз. Магия индексов воочию.</p>
+
+<p>Но давайте пойдем чуть дальше и допустим, что пользователь сам вводит номер телефона, по которому собирается найти контакт. Он может это сделать как нам удобно <em>79035551211</em> или же как нам вообще не удобно, <em>+7(903)555-12-11</em> и более того, он ничего не найдет. Значит нужно и в запросе от пользователя удалять все нецифровые символы. Например, так:</p>
+
+<p><code>'+7(903)555-12-11'.gsub(/\D/, '')</code>, но это добавляет некоторую головную боль, т.к. и в ruby, и в sql придется выполнять одно и то же действие, но на разных языках, что не есть хорошо.</p>
+
+<p>Помогут решить нам эту проблему postgresql функции. Одна будет удалять все нецифровые символы, другая будет оставлять только цифры и знак <strong>%</strong>, для задания маски поиска. Для этого создадим миграцию для добавления двух функций и заодно добавим индекс. Получится следующее:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">AddFunctionsAndIndexForSearchByPhone</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Migration</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">up</span>
+</span><span class='line'>    <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span> <span class="sx">%q{</span>
+</span><span class='line'><span class="sx">      CREATE OR REPLACE FUNCTION onlynum(n text) RETURNS text AS</span>
+</span><span class='line'><span class="sx">      $func$</span>
+</span><span class='line'><span class="sx">      SELECT regexp_replace($1, &#39;\\D&#39;, &#39;&#39;, &#39;g&#39;);</span>
+</span><span class='line'><span class="sx">      $func$ LANGUAGE sql IMMUTABLE;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sx">      CREATE OR REPLACE FUNCTION onlynums(n text) RETURNS text AS</span>
+</span><span class='line'><span class="sx">      $func$</span>
+</span><span class='line'><span class="sx">      SELECT regexp_replace($1, &#39;[^\d%]&#39;, &#39;&#39;, &#39;g&#39;);</span>
+</span><span class='line'><span class="sx">      $func$ LANGUAGE sql IMMUTABLE;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sx">      CREATE INDEX idx_phones_search_on_number ON phones USING gist(onlynum(number) gist_trgm_ops);</span>
+</span><span class='line'><span class="sx">    }</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">down</span>
+</span><span class='line'>    <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span> <span class="sx">%Q{</span>
+</span><span class='line'><span class="sx">      DROP INDEX idx_phones_search_on_number;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sx">      DROP FUNCTION onlynum(text);</span>
+</span><span class='line'><span class="sx">      DROP FUNCTION onlynums(text);</span>
+</span><span class='line'><span class="sx">    }</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Запустим миграцию <code>rake db:migrate</code> и добавим где-нибудь в модель, пусть это будет <strong>Phone</strong> метод <strong>.search</strong> примерно следующего содержания:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Phone</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">search</span> <span class="n">term</span>
+</span><span class='line'>    <span class="n">where</span> <span class="s1">&#39;onlynum(phones.number) LIKE onlynums(:search)&#39;</span><span class="p">,</span> <span class="ss">search</span><span class="p">:</span> <span class="s2">&quot;%</span><span class="si">#{</span><span class="n">term</span><span class="si">}</span><span class="s2">%&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Это очень упрощенный метод, но он работает, теперь для поиска телефона, необходимо вызвать где-нибудь в коде наш метод: <code>Phone.search '313'</code> и вы получите список строк, телефоны которых содержат заданную строку.</p>
+
+<p><img src="http://zudochk.in/uploads/asset/image/54/huge_Screenshot_2014-01-21_22.39.20.png" alt="search execution" /></p>
+
+<p>Надеюсь, данный пост поможет вам. Все мысли, ошибки, неточности можете оставлять в комментариях, с удовольствием их почитаю :) Мир, братья и сестры.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Ruby OpenURI::open и ProgressBar]]></title>
+    <link href="http://zudochkin.ru/2013/11/open-uri-progress-bar"/>
+    <updated>2013-11-25T18:43:24+04:00</updated>
+    <id>http://zudochkin.ru/2013/11/open-uri-progress-bar</id>
+    <content type="html"><![CDATA[<p>Рыская по документации к методу open из набора OpenURI (мне нужно было установить большее значение timeout&#8217;а). Пролистав нужное место в документации натолкнулся на интересные параметры, с которыми можно вызывать метод open.<!--more--></p>
+
+<ul>
+<li><code>:content_length_proc =&gt; lambda {|content_length| ... }</code> &ndash; если данный proc установлен, то в него передается Content-Length или nil, если данный параметр недоступен. В этот момент мы уже знаем полный размер файлы и можем нарисовать красивый ProgressBar.</li>
+<li><code>:progress_proc =&gt; lambda {|size| ...}</code> &ndash; данный proc вызывается с одним параметром (размер скаченного фрагмента в байтах), когда метод <strong>open</strong> получает очередной фрагмент из сети.</li>
+<li><code>:read_timeout=&gt;10</code> &ndash; это тот параметр, из-за которого я и полез в документацию, устанавливает таймаут на чтение для http соединения.</li>
+</ul>
+
+
+<p>А теперь небольшой пример использования данных знаний. Нам понадобится большой файл, я взял трехмегабайтный файл и положил его в Dropbox/Public, чтобы легко было получить на него ссылку. Также понадобится установленный gem <a href="https://github.com/jfelchner/ruby-progressbar">ruby-progressbar</a>.</p>
+
+<p>Вот и все, работающий пример готов.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;ruby-progressbar&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;open-uri&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">progress_bar</span> <span class="o">=</span> <span class="kp">nil</span>
+</span><span class='line'><span class="nb">open</span><span class="p">(</span><span class="s1">&#39;https://dl.dropboxusercontent.com/u/11041525/DIX1.0Universal.dmg&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="n">content_length_proc</span><span class="p">:</span> <span class="nb">proc</span> <span class="p">{</span> <span class="o">|</span><span class="n">total</span><span class="o">|</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">total</span><span class="o">.</span><span class="n">to_i</span> <span class="o">&gt;</span> <span class="mi">0</span>
+</span><span class='line'>      <span class="n">progress_bar</span> <span class="o">=</span> <span class="no">ProgressBar</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">title</span><span class="p">:</span> <span class="s1">&#39;Downloaded&#39;</span><span class="p">,</span> <span class="ss">total</span><span class="p">:</span> <span class="n">total</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'><span class="p">},</span>
+</span><span class='line'><span class="n">progress_proc</span><span class="p">:</span> <span class="nb">proc</span> <span class="p">{</span> <span class="o">|</span><span class="n">step</span><span class="o">|</span>
+</span><span class='line'>  <span class="n">progress_bar</span><span class="o">.</span><span class="n">progress</span> <span class="o">=</span> <span class="n">step</span>
+</span><span class='line'><span class="p">})</span> <span class="p">{</span> <span class="o">|</span><span class="n">file</span><span class="o">|</span> <span class="nb">puts</span> <span class="s2">&quot;File </span><span class="si">#{</span><span class="n">file</span><span class="si">}</span><span class="s2"> successfully downloaded&quot;</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<iframe width="560" height="315" src="http://zudochkin.ru//www.youtube.com/embed/SIWBIl1oRrc" frameborder="0" allowfullscreen></iframe>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Первая выездная фотосъемка (Большой Москворецкий мост)]]></title>
+    <link href="http://zudochkin.ru/2013/08/first-photography"/>
+    <updated>2013-08-21T16:41:24+04:00</updated>
+    <id>http://zudochkin.ru/2013/08/first-photography</id>
+    <content type="html"><![CDATA[<p>Две недели мы планировали встретиться с <a href="http://sapegin.ru/">Артемом Сапегиным</a>, но на прошлой недели я подвел из-за свой болезни. На этой неделе же судьба была благосклонна ко мне и со здоровьем все было хорошо.<!--more--></p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-08-first-photography/huge_IMG_2180.jpg"></p>
+
+<p>Договорились встретиться в 19 часов, чтобы пофотографировать пейзаж во время заката. Т.к. я в этом деле еще новичок, то был согласен на любый действа, тем более, что Артем занимается фотографией уже 9 с лишним лет. А мне очень хочется постичь съемочное мастерство.</p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-08-first-photography/huge_IMG_2151.jpg"></p>
+
+<p>Как раз к этой встрече купил себе простой и дешевый штатив для экспериментов и очень нетерпелось его опробовать.</p>
+
+<p>Встретились и пошли на <a href="http://ru.wikipedia.org/wiki/%D0%91%D0%BE%D0%BB%D1%8C%D1%88%D0%BE%D0%B9_%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%BE%D1%80%D0%B5%D1%86%D0%BA%D0%B8%D0%B9_%D0%BC%D0%BE%D1%81%D1%82">Большой Москворецкий мост</a>, установили штативы, примостили туда свои камеры и начали съемку еще в досумеречное время. Я задавал Артему, наверное, тысячу вопросов, на которые всегда находился ответ. То у меня снимки получались засвеченными, то наоборот слишком темными. Артем помог выставить правильные параметры: выдержку и диафрагму, после чего снимки стали получаться намного приятнее, по крайней мере, как по мне.</p>
+
+<p>Дальше были сумерки и закат, мои эксперименты с режимами и выдержкой. Потом сходили, дожидаясь включения искусственного освещения, попить кофе в СтарБакс. Вернулись на мост, и я стал снимать движущиеся машины с большой (10-30 секунд) выдержкой. Получившиеся фотографии приводили меня в неописуемый восторг.</p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-08-first-photography/huge_IMG_2198.jpg"></p>
+
+<p>Это моя первая &ldquo;выездная фотосъемка&rdquo; за что хочу сказать Артему огромное спасибо. Очень надеюсь, что желание снимать не только не пропадет, а станет еще сильнее.</p>
+
+<p>Так что, друзья, пробуйте, эксперементируйте и будет вам счастье :)</p>
+
+<p>Ссылка на <a href="http://www.flickr.com/photos/vredniy/sets/72157635129351284/">фотографии на Flickr</a>, которые, по-моему, вышли неплохо.</p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-08-first-photography/huge_IMG_2124.jpg"></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Написание первого плагина для Vim]]></title>
+    <link href="http://zudochkin.ru/2013/08/vim-first-plugin"/>
+    <updated>2013-08-16T03:40:24+04:00</updated>
+    <id>http://zudochkin.ru/2013/08/vim-first-plugin</id>
+    <content type="html"><![CDATA[<p>Я использую Vim уже больше года и только сейчас возникла необходимость написать свое первое для него расширение. Расширение будет преобразовывать старые хеши из версии 1.8 языка Ruby в новые, появившиеся в версии 1.9, т.е. нечто вида <strong>:a => &lsquo;b&rsquo;</strong> превратится в нечто более читаемое и компактное <strong>a: &lsquo;b&rsquo;</strong>.<!--more--></p>
+
+<p>Для начала необходимо создать папку, где будем хранить наше расширение, я использую <strong>~/Projects/viml/ruby-hashes</strong>, для того, чтобы проекты на одном языке не лежали в одной папке с проектами на другом. (Когда проектов очень много можно легко запутаться).</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>tree .
+</span><span class='line'>├── LICENSE-MIT.txt
+</span><span class='line'>├── README.md
+</span><span class='line'>├── autoload
+</span><span class='line'>│   └── rubyhashes.vim
+</span><span class='line'>└── doc
+</span><span class='line'>
+</span><span class='line'>2 directories, 3 files</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Вот что будет представлять из себя весь плагин. <strong>LICENSE-MIT.txt</strong>, думаю не вызывает вопросов, впрочем, как и <strong>README.md</strong>, остается только один файл с раширением <strong>.vim</strong>, в папке <strong>autoload</strong>, почему именно в эту папку, в не в папку <strong>plugin</strong>, наверное, спросите вы. Отвечу, что в папке <strong>autoload</strong> хранятся вещи, которые загружаются только по требованию, т.е., если нам не нужно будет это расширение, <strong>Vim</strong> загружать его не будет. (Надеюсь, ничего не перепутал).</p>
+
+<h3>Задача</h3>
+
+<p>Реализовать плагин, который сможет заменять старые хеши на новые во всем файле.</p>
+
+<h3>Реализация</h3>
+
+<p>Теперь приступим непосредственно к программирование на <strong>VimScript</strong>&lsquo;e. <strong>VimScript</strong> &ndash; достаточно богатый скриптовый язык ко всему прочему позволяющий также и объявлять функции, а куда же без них. Функции будем называть следующим образом <strong>#{названиеФайлаБезРасширения}#НазваниеФункции()</strong>, т.е. функцию в файле <code>autoload/rubyhashes.vim</code>, производящую замену по всему файлу, мы назовем <code>rubyhashes#ReplaceAll()</code>. И соответственно ее объявление будет выглядеть, как</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func! rubyhashes#ReplaceAll()
+</span><span class='line'>  echo 'hello, world!'
+</span><span class='line'>endfunc</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Для того, чтобы увидеть выполнение нашей функции, файл необходимо сохранить. Чтобы <strong>Vim</strong> интерпретировал нашу функцию, как часть своей экосистемы, необходимо написать <code>:source %</code>. (Примерно тоже самое есть и в <strong>bash</strong>).</p>
+
+<p>Теперь давайте запустим нашу функцию, чтобы увидеть заветные хеллоу ворлд.</p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-08-vim-first-plugin/Screenshot_2013-08-15_23.37.56.png"></p>
+
+<p>Если все было набрано верно, то вы увидите заветную фразу.</p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-08-vim-first-plugin/Screenshot_2013-08-15_23.38.09.png"></p>
+
+<p>Следующим шагом будет составление регулярного выражения, по которому будут находиться старые хеши и заменяться на новые. Если бы мы его писали на Ruby, как и на многих других языках программирования, использующих PCRE &ndash; Perl-совместимые регулярные выражения, к коим относятся javascript, php и др., то оно бы выглядело следующим образом.</p>
+
+<p><code>/:(\w+)\s*=&gt;\s*/</code>, если кто не очень хорошо с ними знаком, скажу что мы сначала ищем <strong>:</strong>, затем любой символ слова <strong>(\w+)</strong>, дальше долго следовать любое количество пробелов <strong>\s</strong>* (ноль в том числе), дальше &ndash; символы <strong>=></strong> и любое количество пробелов.</p>
+
+<p>Осталось только трансформировать данное регулярное выражение в vim-совместимое, для этого необходимо будет экранировать скобки и знак &ldquo;плюс&rdquo;, что в результате превращается в <code>:\(\w\+\)\s*=&gt;\s</code>.</p>
+
+<p>Вы можете написать старый рубишный хеш вида <strong>:a => &lsquo;b&rsquo;</strong>, нажать <strong>/</strong> (запускает поиск) и ввести там <code>:\(\w\+\)\s*=&gt;\s</code> и увидите, что найденный текст подсветился.</p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-08-vim-first-plugin/Screenshot_2013-08-16_00.01.38.png"></p>
+
+<p>Искать по регулярному выражения мы уже научились, теперь необходимо заменять текст по регулярному выражению. В <strong>Vim&#8217;е</strong> для того, чтобы менять текст существует команда <strong>substitute</strong> или сокращенно <strong>s</strong>. Чтобы заменить все вхождения символа &ldquo;а&rdquo;, на &ldquo;б&rdquo;, необходимо выполнить команду <code>:%s/a/b/g</code>, где <strong>%</strong> &ndash; это диапазон поиска и замены, в данном случае это шорткат для всего файла, &ldquo;a&rdquo; &ndash; что заменяем, &ldquo;b&rdquo; &ndash; чем заменяем, &ldquo;g&rdquo; &ndash; это флаг, указывающий, что необходимо не останавливаться на первой замене, а продолжить до конца.</p>
+
+<p>Результирующее команда замены примет вид</p>
+
+<p><code>%s/:\(\w\+\)\s*=&gt;\s*/\1: /ge</code></p>
+
+<p>где <strong>\1:</strong> &ndash; это на что меняем (наша <strong>(\w+)</strong> часть)
+<strong>/ge</strong> &ndash; g &ndash; глобальный поиск и замена, e &ndash; это не показывать ошибку, если искомое выражение не найдено.</p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-08-vim-first-plugin/Screenshot_2013-08-16_00.08.56.png"></p>
+
+<p>Дело за малым, сейчас нужно сделать так, чтобы при вызове нашей функции запускалась команда из предыдущего пункта. И тут в <strong>Vim</strong> есть команда, которая так и называется <strong>execute</strong> или сокращенно <strong>exe</strong>. Удалим <strong>echo &lsquo;hello, world!&rsquo;</strong> и допишем</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func! rubyhashes#ReplaceAll()
+</span><span class='line'>  exe '%s/:\(\w\+\)\s*=&gt;\s*/\1: /ge'
+</span><span class='line'>endfunc</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Сохраним и запустим <code>:source %</code>, чтобы данные нашей функции обновились. Теперь пробуем. Пишем в командной строке <code>call rubyhashes#ReplaceAll()</code> после того, как нажмем <strong>:</strong>. Если вы запустили нашу функцию в окне, где находились старые хеши, то они должны были поменяться на новые.</p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-08-vim-first-plugin/Screenshot_2013-08-16_00.16.03.png"></p>
+
+<p>Вот и все для небольшого туториала по Vim плагинам, надеюсь, вам понравилось. <a href="https://github.com/vredniy/vim-rubyhashes">Ссылка на репозиторий на гитхабе</a>, где имеется, помимо функции, заменяющей хеши во всем файле, функция, которая производит замену в выделенном.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Ротация логов на примере логов Unicorn]]></title>
+    <link href="http://zudochkin.ru/2013/08/logrotate-unicorn"/>
+    <updated>2013-08-09T03:32:24+04:00</updated>
+    <id>http://zudochkin.ru/2013/08/logrotate-unicorn</id>
+    <content type="html"><![CDATA[<p>Что-то все реже и реже находится время, чтобы написать несколько абзацев в свой новый блог. Но сегодня будет исключение. Я все же возьму себя в руки и что-нибудь напишу. Речь в сегодняшнем посте пойдет о ротации логов: с чем едят, как готовить на примере нами любимого <a href="https://github.com/defunkt/unicorn">unicorn&#8217;а</a>.<!--more--></p>
+
+<p>Думаю, что такое логи и для чего они нужны все знают. А вот что такое ротация логов многие могут не знать. Или знать, что это такое, но не использовать в повседневной жизни (к коим относился я до недавних пор).</p>
+
+<p>Ротация логов &ndash; это, если простыми словами, то простой сдвиг, после которого текущий файл логов &ldquo;обрубается&rdquo;, архивируется (по  желанию) и логи начинают писаться в чистый файл. Для ротации логов используют logrotate, конфигурационные файлы которого можно найти в <em>/etc/logrotate.d/</em>. Скорее всего, у вас на сервере эта папка не пуста и можно найти конфиги для postgresql&#8217;а, nginx&#8217;а и много чего еще.</p>
+
+<p>Мы же с вами рассмотрим настройку ротации логов для unicorn&#8217;а. Если ваш ресурс посещает множество людей, то лог файл (production.log) становится нескромно большим, т.к. хранит все обращения ко всем страницам, все произошедшие ошибки и прочую информацию. Для того, чтобы этого избежать, создадим файл <em>/etc/logrorate.d/#{your_app_name}</em></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>"/home/deployer/projects/#{your_app_name}/shared/log/production.log"
+</span><span class='line'>{
+</span><span class='line'>  daily
+</span><span class='line'>  missingok
+</span><span class='line'>  rotate 180
+</span><span class='line'>  compress
+</span><span class='line'>  dateext
+</span><span class='line'>
+</span><span class='line'>  delaycompress
+</span><span class='line'>
+</span><span class='line'>  lastaction
+</span><span class='line'>    pid=/home/deployer/projects/#{your_app_name}/shared/pids/unicorn.pid
+</span><span class='line'>    test -s $pid && kill -USR1 "$(cat $pid)"
+</span><span class='line'>  endscript
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Теперь по порядку:</p>
+
+<ul>
+<li>в кавычках мы указываем какие файлы будут &ldquo;вращаться&rdquo;, можно использовать &ldquo;*&rdquo; для нескольких файлов</li>
+<li><strong>daily</strong> &ndash; сообщает logrotate &ldquo;прокручивать&rdquo; файл(ы) логов раз в день.</li>
+<li><strong>missingok</strong> &ndash; не выдавать ошибочное сообщение, если файл логов отсутствует.</li>
+<li><strong>rotate</strong> &ndash; лог будет &ldquo;сдвинут&rdquo; 180 раз, прежде, чем будет удален.</li>
+<li><strong>compress</strong> &ndash; старые файлы будут заархивированы (gzip по умолчанию) для того, чтобы занимать меньше места.</li>
+<li><strong>dateext</strong> &ndash; полезная опция, которая дописывает в название файла дату, формат можно изменить опцией <strong>dateformat</strong> вместо скучных названий, вроде (blog.log.1)</li>
+<li><strong>delaycompress</strong> &ndash; откладывает сжатие на один цикл</li>
+<li><strong>lastaction и endscript</strong> &ndash; строки между данными директивами будут выполнены (с применением /bin/sh) после каждой ротации. Мы используем их, чтобы сообщить unicorn&#8217;у и всем его воркерам (USR1 сигнал) заново открыть файлы логов.</li>
+</ul>
+
+
+<p>После того, как мы написали конфиг, мы должны сообщить logrotate об этом, я предпочитаю сделать это с флагом <strong>-f (force)</strong>, который заново считывает свои конфиги делает один &ldquo;оборот&rdquo; логов.</p>
+
+<p><code>sudo logrotate -f /etc/logrotate.d/#{your_app_name}</code></p>
+
+<p>Как вы, наверное, уже догадались, #{your_app_name} необходимо заменить именем вашего приложения. После прочтения данного поста, вы с легкостью сможете настроить ротацию логов для чего угодно. Удачи вам и не теряйте свои логи :)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[(бес)Полезные ссылки #3]]></title>
+    <link href="http://zudochkin.ru/2013/07/useless-links-3"/>
+    <updated>2013-07-14T15:53:24+04:00</updated>
+    <id>http://zudochkin.ru/2013/07/useless-links-3</id>
+    <content type="html"><![CDATA[<p>Вот и очередной, третий по счету выпуск (бес)Полезных ссылок.<!--more--></p>
+
+<h5>Ruby and Rails</h5>
+
+<ul>
+<li><a href="http://about.travis-ci.org/blog/2013-07-09-introducing-continuous-deployment-to-heroku/">Интеграция Heroku and TravisCI</a></li>
+<li><a href="http://blog.lunarlogicpolska.com/2013/declutter-lib-directory/">Приводим в порядок lib директорию в своем Ruby on Rails проекте </a></li>
+<li><a href="https://github.com/koudelka/asbestos">DSL для написаний правил для firewall&#8217;ов</a></li>
+<li><a href="http://www.codebeerstartups.com/2013/07/better-way-to-parse-user-info-from-omniauth-hash/">Better Way to Parse User Info From Omniauth Hash</a></li>
+<li><a href="http://raysrashmi.com/2013/07/09/rails4-directory-structure/">Новое в организации директорий в приложении на Ruby on Rails 4</a></li>
+<li>Интервью с создателем Ruby Yukihiro “Matz&#8221; Matsumoto <a href="http://fredwu.me/post/54175219257/the-future-of-computing-the-future-of-computer">о будущем компьютерных технологий</a></li>
+<li>Вышла <a href="http://myronmars.to/n/dev-blog/2013/07/rspec-2-14-is-released">новая версия RSpec&#8217;а 2.14</a>, включающая в себя много интересных &ldquo;плюшек&rdquo;</li>
+<li>Интересное видео <a href="http://www.youtube.com/watch?v=5ZjwEPupybw">&ldquo;Функциональное программирование и Ruby&rdquo;</a></li>
+<li><a href="http://rubysource.com/the-self-pipe-trick-explained/">В этой статье немного о unix процессах, сигналах, пайпах и одновременном выполнении команд в проессах</a></li>
+<li>Реализовываем аутентификацию вместе с гемом <a href="http://pothibo.com/2013/07/authentication-with-warden-devise-less/">Warden, но без Devise&#8217;а</a></li>
+<li><a href="https://github.com/mislav/git-deploy">Деплой Heroku-style</a></li>
+</ul>
+
+
+<h5>JavaScript</h5>
+
+<ul>
+<li><a href="http://hub.tutsplus.com/tutorials/required-javascript-reading--net-33131">Список интересного чтива</a></li>
+</ul>
+
+
+<h5>Objective-C</h5>
+
+<ul>
+<li>Кто когда-либо разрабатывал приложения в Xcode, обязательно сталкивался с применением CocoaPods (что-то, вроде bundler&#8217;а для приложения для iOS или MacOS). Но тут ребята пошли еще дальше, и интегрировали <a href="https://github.com/kattrali/cocoapods-xcode-plugin">CocoaPods прямо в Xcode</a>). <strong>Работает только в Xcode 5 версии, которая доступна лишь разработчикам</strong>.</li>
+<li><a href="http://www.macdigger.ru/iphone-ipod/vse-osobennosti-ios-7-beta-3-v-odnoj-state-obnovlenie.html">Вышла третья beta iOS7</a>, список изменений можно прочитать на сайте macdigger.</li>
+</ul>
+
+
+<h5>Other stuff</h5>
+
+<ul>
+<li>Для тех, кто не прочитал <a href="https://github.com/jsmarkus/the-little-mongodb-book/blob/master/ru/mongodb.markdown">The little mongodb book на русском языке</a>, рекомендую.</li>
+<li><a href="http://therules.ru/">Правила русского языка для тех, кто хочет писать грамотно</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[(бес)Полезные ссылки #2]]></title>
+    <link href="http://zudochkin.ru/2013/07/useless-links-2"/>
+    <updated>2013-07-08T15:56:24+04:00</updated>
+    <id>http://zudochkin.ru/2013/07/useless-links-2</id>
+    <content type="html"><![CDATA[<p>Вот уже второй выпуск в рубрике (бес)Полезные ссылки. На этот раз, надеюсь, выпуск выйдет без опозданий :)</p>
+
+<p>Итак, поехали.<!--more--></p>
+
+<p>Т.к. к списку моих интересов несколько месяцев назад добавился еще и Objective-C и разработка под мобильные iOS устройства, то нет-нет будут проскакивать интересные штуки и про него.</p>
+
+<h5>Сервис недели</h5>
+
+<p>Товарищ <a href="https://twitter.com/newsergey">Сергей Анисимов</a> подкинул ссылку на преинтереснейший сервис, позволяющий, как заявляют его создатели развернуть девелоперское окружение за 60 секнуд.</p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-07-useless-links-2/Screenshot_2013-07-08_11.52.57.png"></p>
+
+<ul>
+<li>Данное чудо поддерживает Ruby and Rails, Python and Django, nodeJS и Go.</li>
+<li>Предоставляет мощную IDE с полноценным Linux шеллом.</li>
+<li>Поддерживает совместную работу над проектом с другими членами команды.</li>
+<li>И все это можно показать другим людям, потому веб-сервер смотрит наружу. (Необходимо, хотя бы для общего развития, посмотреть видос, который есть у них на сайте, показывающий все вышеназванные пункты)</li>
+</ul>
+
+
+<p>Не пугайтесь, даю <a href="https://www.nitrous.io/join/5JyOqcCTRJU">ссылку на сервис со своей реферальной ссылкой</a>, пройдя и зарегестрировавшись по которой вы получите дополнительные нитро (внутренняя валюта).</p>
+
+<h5>iOS</h5>
+
+<ul>
+<li>на просторах интернетов нашел очередной интересный блог с не менее интересным названием <a href="http://nshipster.com/">NSHipster</a>, особенно мне понравился <a href="http://nshipster.com/core-data-libraries-and-utilities/">пост про CoreData</a> со списком утилит и полезных библиотек</li>
+</ul>
+
+
+<h5>Ruby and Rails</h5>
+
+<ul>
+<li><a href="http://www.codebeerstartups.com/2013/04/must-have-gems-for-development-machine-in-ruby-on-rails/">Список гемов</a>, которые очень облегчают жизнь Ruby on Rails разработчику на локальной машине, про многие не слышал, но большинство использую сам, поэтому welcome.</li>
+<li><a href="http://www.ruby-lang.org/en/news/2013/06/30/we-retire-1-8-7/">Прекращена поддержка Ruby 1.8.7</a></li>
+<li>Интересная вводная статья для начинающих, кто хочет понять как <a href="http://net.tutsplus.com/tutorials/exploring-rack/">работает Rack от nettuts+</a></li>
+<li>Если кто упустил <a href="https://blog.engineyard.com/2013/whats-new-and-awesome-in-ruby-2">изменения в Ruby 2 и в Ruby on Rails 4 от компании EngineYard</a>, то прошу проследовать по ссылке, которая исправит этот изъян.</li>
+<li><a href="https://github.com/jrochkind/fake_work_app/blob/master/README.md">Больший синтетический тест, разных веб серверов, написанных на Ruby</a></li>
+<li>Если хочется отдохнуть немного от Рельсов и посмотреть что-то стоящее по Руби, рекомендую видео <a href="http://www.youtube.com/watch?v=2aYdtS7FZJA">&ldquo;Building a Mocking Library&rdquo;</a> от мейнтейнера RSpec&#8217;а</li>
+</ul>
+
+
+<h5>Other stuff</h5>
+
+<ul>
+<li>Очень <a href="http://www.goodui.org/">красивый одностраничный сайт</a>, посвященный хорошему тону в проектировании UI</li>
+<li>Вышел наконец-таки один из популярнейших текстовых редакторов <a href="http://www.sublimetext.com/blog/articles/sublime-text-3-public-beta">Sublime Text 3 Public Beta</a>, так ожидаемый многими. Это второй после MacVim&#8217;а текстовый редактор, который я очень часто использую, чтобы почитать исходники гемов, рубей и прочие большие проекты.</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[(бес)Полезные ссылки #1]]></title>
+    <link href="http://zudochkin.ru/2013/07/useless-links-1"/>
+    <updated>2013-07-04T15:56:24+04:00</updated>
+    <id>http://zudochkin.ru/2013/07/useless-links-1</id>
+    <content type="html"><![CDATA[<p><em>Пишу с небольшим опозданием, потому как выходные выдались очень бурные и я ничего не успел сделать :)</em></p>
+
+<p>Давно хотел завести какую-нибудь рубрику на сайте, где можно постить ссылки, подводить итоги недели или месяца без длинных, нудных описаний. Так вот, встречаем, рубрика, (бес)Полезные ссылки, название говорит само за себя, для кого-то ссылки окажутся бесполезными, я же считаю их полезными для себя. Ну, поехали. <!--more--></p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-06-useless-links-1/Screen_Shot_2013-07-04_at_11.58.10_AM.png"></p>
+
+<ul>
+<li>мой первый, пока очень незначительный, <a href="https://github.com/rails/rails/pull/11098">коммит</a> в Ruby on Rails</li>
+<li>выход стабильной &ldquo;четверки&rdquo; (<a href="http://weblog.rubyonrails.org/2013/6/25/Rails-4-0-final/">ruby on rails 4</a>), список изменений в которой можно почерпнуть отсюда:
+
+<ul>
+<li><a href="https://github.com/rails/rails/blob/v4.0.0/actionpack/CHANGELOG.md">actionpack</a></li>
+<li><a href="https://github.com/rails/rails/blob/v4.0.0/activemodel/CHANGELOG.md">activemodel</a></li>
+<li><a href="https://github.com/rails/rails/blob/v4.0.0/activerecord/CHANGELOG.md">activerecord</a></li>
+<li><a href="https://github.com/rails/rails/blob/v4.0.0/activesupport/CHANGELOG.md">activesupport</a></li>
+<li><a href="https://github.com/rails/rails/blob/v4.0.0/railties/CHANGELOG.md">railties</a></li>
+</ul>
+</li>
+<li>пост про <a href="http://www.bthlabs.pl/post/fun_with_postgresql_tagging_blog_posts.html">тегирование средствами PostgreSQL</a> и небольшой сравнительный анализ производительности (теги средствами массивов в PostgreSQL и теги, как ассоциация)</li>
+<li><a href="http://progrium.com/localtunnel/">gem localtunnel</a>, который я открыл для себя на этой неделе, позволяющий расшарить свой локальный сервер, запущенный на каком-нибудь порте, для доступа со всех интернетов по адресу, к примеру <em>http://3bwz.localtunnel.com</em></li>
+<li><a href="http://www.railsconf.com/2013/talks">много интересных докладов и презентаций</a> с конференции RailsConf, прошедшей в апреле-мае сего года в Портленде</li>
+<li>исправление уязвимости <a href="http://www.ruby-lang.org/en/news/2013/06/27/hostname-check-bypassing-vulnerability-in-openssl-client-cve-2013-4073/">CVE-2013-4073</a> в SSL, патчи вышли сразу для всех рублей (<a href="http://www.ruby-lang.org/en/news/2013/06/27/ruby-1-8-7-p374-is-released/">1.8.7-p374</a>, <a href="http://www.ruby-lang.org/en/news/2013/06/27/ruby-1-9-3-p448-is-released/">1.9.3-p448</a>, <a href="http://www.ruby-lang.org/en/news/2013/06/27/ruby-2-0-0-p247-is-released/">2.0.0-p247</a>)</li>
+<li><a href="http://vimeo.com/68716827">40-минутный доклад</a> с кратким описанием возможностей следующей версии JavaScript ECMAScript 6</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Devconf 2013 - мои впечатления, ссылки на доклады и несколько фоток :)]]></title>
+    <link href="http://zudochkin.ru/2013/06/devconf"/>
+    <updated>2013-06-18T21:31:24+04:00</updated>
+    <id>http://zudochkin.ru/2013/06/devconf</id>
+    <content type="html"><![CDATA[<p>Прошло 4 года с моего последнего и в то же время первого визита на конференцию разработчиков. 4 года назад сидел я в секции #php и почти не понимал что происходит, не понимал о каких проблемах говорят докладчики, но для меня это было, однозначно, в новинку и очень интересным. В течение всех этих лет желание посещать технические конференции только росло, но возможности, к сожалению, предоставлялось из-за не очень заинтересованных в этом работодателей. <!--more--></p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-06-devconf/devconf2010.gif"></p>
+
+<p>Чуть больше года назад я сменил язык разработки и окончательно перешел на Ruby. Теперь желание заключалось в том, чтобы посетить Ruby секцию на той же <a href="http://devconf.ru/">DevConf</a>. И вот, наконец, минимечта сбылась, и я на конференции.</p>
+
+<p>К сожалению, пришлось немного опоздать из-за того, что любовь ко сну немного пересилила любовь к получению новых знаний.</p>
+
+<h3>Доклады</h3>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-06-devconf/2013-06-14_11.16.27.jpg"></p>
+
+<p>И вот регистрация и начало нового доклада, который не хотелось пропускать, ведь выступал чел, забаненный на Github&#8217;е, специалист по безопасности <a href="https://twitter.com/homakov" title="@homakov">Егор Хомяков</a> со своим докладом &ldquo;Безопасный сайт на примере Rails&rdquo;. Его рассказал про всевозможные атаки в web&#8217;е, как с ними бороться нужно и как эти проблемы решают (или как не решают) нами любимые рельсы. Узнал много нового о типах атаках и способов защиты с ними. <a href="http://f.cl.ly/items/2G3g462j2T0o1w0g3K2o/rails%20and%20security.pdf" title="Безопасный сайт на примере Rails">Презентацию</a> помог достать из интернетов товарищ <a href="https://twitter.com/milushov">roma</a>, за что ему отдельное спасибо.</p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-06-devconf/2013-06-14_11.04.56.jpg"></p>
+
+<p>Дальше был кофебрейк, на котором было сложно протиснуться, поэтому кофе попить не удалось, ну, хоть, водички попили.</p>
+
+<p>После кофебрейка удалось таки занять сидячие места и спокойно с интересом послушать очередного докладчика, которым оказался разработчик из Питера Николай Рыжиков, рассказавший нам о <a href="http://ru.wikipedia.org/wiki/%D0%9F%D1%80%D0%BE%D0%B1%D0%BB%D0%B5%D0%BC%D0%BD%D0%BE-%D0%BE%D1%80%D0%B8%D0%B5%D0%BD%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%BD%D0%BE%D0%B5_%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5" title="Проблемно-ориантированное проектирование">DDD</a> в <a href="http://f.cl.ly/items/2b3C0H3S0n2a473x1M3Z/DDD%20on%20rails.pdf">докладе</a> под названием <strong>&ldquo;Domain Driven Design on Rails&rdquo;</strong>. Я очень часто слышал эту аббревиатуру, но так до конца и не понимал что это, как это готовить и как использовать в своих проектах (и сейчас не понимаю, но я научусь).</p>
+
+<p>После очередного интересного доклада, после которого захотелось освоить эти забавные, но еще так непонятные 3D, мы послушали <a href="http://www.slideshare.net/profyclub_ru/13-20022107">доклад</a> с громким названием <strong>&ldquo;Быстрое тестирование Ruby on Rails&rdquo;</strong> от Александра Балашова, из компании-спонсора DevConf Evrone. Рассказ получился очень поверхностным, который можно уложить в одно приложение: <em>&ldquo;Используйте поменьше обращений к БД и юзайте <a href="https://github.com/jonleighton/spring">Spring</a>, <a href="https://github.com/burke/zeus">Zeus</a> или <a href="https://github.com/sporkrb/spork">spork</a> для ускорения запуска приложения&rdquo;</em>.</p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-06-devconf/2013-06-14_13.57.20.jpg"></p>
+
+<p>Следующий доклад <strong>&ldquo;Проектирование API&rdquo;</strong> прочитал <a href="https://twitter.com/igkuz" title="@igkuz">Игорь Кузнецов</a> &ndash; Ruby разработчик из Undev.ru. Этот доклад я очень хотел послушать, потому что реализовывать API самому не приходилось,  а очень хотелось попробовать написать что-то подобное, наступая на &ldquo;подводные камни&rdquo;. Но, к сожалению, вопросов, которые я бы хотел услышать в докладе не освещалось, а именно аутентификация и больше практических советов, аля как использовать rails-api в связке с гемом devise, какие есть костыли и прочее. Но автор коснулся лишь теоретических основ проектирования API, что тоже было очень интересно послушать, кое-что я занес в заметки, чтобы в дальнейшем посмотреть. Интересно было рассказано про версионирование: отличие мажорной и минорной версии, какие изменения должно увеличивать мажорную, а какие минорную версию. И, конечно же стоит отметить упоминания автором доклада темы <a href="http://json-schema.org/">JSON Schema</a>, которая одновременно является и документацией для API, и валидатором.</p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-06-devconf/2013-06-14_14.40.35.jpg"></p>
+
+<p>После доклада, который закончился немного раньше мы двинули на обед, благо, что нас отпустили немного раньше положенного времени, ибо, когда мы уходили с обеда очередь за едой была километровая. Покормили знатно, как в Египте прям, шведский стол, куча блюд и куча сладостей с фондю. В общем обед придал новых сил и мы двинули на очередной доклад.</p>
+
+<p>Александров Игорь из компании JetRockets рассказал нам о <a href="https://speakerdeck.com/alexandrov/billing-in-rails-saas-applications">&ldquo;Биллинге в SaaS-системах на Rails&rdquo;</a>. Перед каждым, кто принимает платежи в своих проектах обязательно встает вопрос отдавать биллинг на аутсорс или реализовывать свою систему оплаты. Игорь рассказал и про плюсы, и про минусы обеих систем. Дальше рассказал про путь, в котором вы разрабатывает свою систему: биллинговый интервал и страшное название <strong>PCI-compliant</strong>, являющееся набором требований для организаций, сервисов, которые работают с платежными данными пользователей. Специально для Devconf 2013 было разработано приложение <a href="https://github.com/igor-alexandrov/spaceship" title="Demo application for DevConf 2013">SpaceShip</a>, показывающее все, что сказал автор доклада: биллинговые периоды, тарифы и пр.</p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-06-devconf/2013-06-14_16.48.29.jpg"></p>
+
+<p>Ну а дальше был апофеоз всего Devconf&#8217;а, доклад, ради которого стоило пойти на конференцию, даже если бы не было вкусного обеда  и остальных докладчиков. <a href="http://kaize.ru/" title="ортодоксальный приверженец SOLID-принципа">Кирилл Мокевнин</a>, известный и php мире, и в мире Ruby on Rails, превосходный докладчик и специалист, разбирающийся в своем деле. Доклад назывался <a href="https://speakerdeck.com/mokevnin/arkhitiekturnyie-praktiki-v-rails">&ldquo;Архитектурные практики в Rails&rdquo;</a>, где Кирилл поделился со слушателями своим опытом разработки, рассказал о проблемах, с которыми сталкивался и как их решал сам.
+Были описаны следующие проблемы:</p>
+
+<ul>
+<li>Организация иерархии в  папках с контроллерами и моделями, <a href="http://habrahabr.ru/post/136461/" title="Ссылка автора на свой пост на Хабрахабре">наименования модулей</a> и написание удобных правил в <code>config/routes.rb</code>.</li>
+<li>Ссылки в js, замечатели ли вы что очень часто пишем в javascript-coffescript файлах, нечто похожее на &ldquo;/posts/#{post.slug}&rdquo;, Кирилл рекомендует использовать для этих целей гем <a href="https://github.com/railsware/js-routes/" title="Bringing Rails named routes to javascript">js-routes</a>.</li>
+<li>Использовать для фильрации и сортировки гем <a href="https://github.com/ernie/ransack" title="Object-based searching. The successor to MetaSearch">ransack</a>. Данный гем не пробовал, поэтому ничего пока сказать не могу.</li>
+<li>Также автор затронул вопрос DDD, чем однозначно убедил прочитать в ближайшее время книгу Эрика Эванса &ldquo;Domain-Driven Design. Tackling Complexity in the Heart of Software&rdquo;</li>
+<li>Также несколько примеров, которые приводит Кирилл
+
+<ul>
+<li><a href="http://blog.codeclimate.com/blog/2012/10/17/7-ways-to-decompose-fat-activerecord-models/" title="7 Patterns to Refactor Fat ActiveRecord Models">7 Patterns to Refactor Fat ActiveRecord Models</a></li>
+<li><a href="https://github.com/kaize/nastachku">Проект nastachku.ru на Github&#8217;е</a></li>
+<li>не стесняйтесь использовать custom inputs в simple_form</li>
+<li>используйте gem версии популярных js библиотек, иначе вы забываете их обновлять :) <a href="https://github.com/grosser/vendorer" title="Vendorer keeps your dependencies documented, cached and up to date">Gem Vendorer, если нет гема для библиотеки, которую вы используете</a></li>
+<li>before фильтры, а также before_validate &ndash; зло</li>
+</ul>
+</li>
+</ul>
+
+
+<p>К сожалению, после этого доклада пришлось покинуть конференцию, сожалея только о том, что пропущу очередной доклад Кирилла Мокевнина &ldquo;Ментальное программирование&rdquo;, но его по техническим причинам прервали. Сам Кирилл, предлагает посмотреть <a href="http://www.youtube.com/watch?v=eEEHWQNuCLQ" title="Ментальное программирование">видео</a> на Youtube&#8217;e с его предыдущим выступлением, которое называется также.</p>
+
+<h3>Подводя итоги</h3>
+
+<p>… хочется сказать, что конференция была очень поучительна, но почему-то я ожидал от нее большего. Многие вопросы, которые освещались были мне знакомы, поэтому я прослушал их как чужое мнение на вопросы, с которыми приходилось иметь дело.
+Но, вцелом, хочется поблагодарить спонсоров и огранизаторов конференции за такую замечательную конференцию, которая дает &ldquo;волшебный пендель&rdquo;, прививает очередную порцию любви к программированию и дает пообщаться с коллегами по цеху о методах решения тех или иных вопросов :)</p>
+
+<h3>P.S.</h3>
+
+<p>Несколько дней писал данный пост, вносил кучу дополнений и изменений, но, думаю, что на этом достаточно, иначе пост никогда не увидит свет.</p>
+
+<h3>P.S. №2</h3>
+
+<p>Презентации с доклада, которые пропустил:</p>
+
+<ul>
+<li>от <a href="https://twitter.com/makaroni4" title="@makaroni4">Анаталия Макаревича</a> <a href="http://www.slideshare.net/profyclub_ru/12-20022066">&ldquo;Рефакторинг Ruby кода&rdquo;</a></li>
+<li>от <a href="https://twitter.com/killthekitten" title="@killthekitten">Николая Шебанова</a> <a href="http://www.slideshare.net/profyclub_ru/14-20022236">&ldquo;Спасение утопающих &ndash; покрываем тестами взрослый Ruby on Rails проект&rdquo;</a></li>
+</ul>
+
+
+<h3>P.S. №3</h3>
+
+<p>Зарабатываю кружечку от Reg.ru, поднимая тяжести. <img class="image" src="http://zudochkin.ru/images/posts/2013-06-devconf/13.jpg"></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Парсим news.ycombinator.com или не рельсами едиными жив человек (Sinatra, DataMapper)]]></title>
@@ -951,7 +1533,7 @@ update: &mdash;no-ri &mdash;no-rdoc</p>
 
 <p>Дальше нам нужно скопировать нашу sqlite базу данных в postgres, для этого достаточно запустить одну команду:</p>
 
-<p><code>taps pull postgres://zudochkin@localhost/project_development http://user:pass@localhost:5000</code>, где postgres &ndash; это адаптер базы данных, вы можете смело использовать mysql, zudochkin &ndash; имя пользователя для postgres, project_development &ndash; имя базы данных, куда я собираюсь импортировать данные, <a href="http://user:pass@localhost:5000">http://user:pass@localhost:5000</a> &ndash; коннектимся к нашему серверу, где в качестве имени пользователя указали user, в качестве пароля pass, а крутится все это дело по умолчанию на 5000 порте.</p>
+<p><code>taps pull postgres://zudochkin@localhost/project_development http://user:pass@localhost:5000</code>, где postgres &ndash; это адаптер базы данных, вы можете смело использовать mysql, zudochkin &ndash; имя пользователя для postgres, project_development &ndash; имя базы данных, куда я собираюсь импортировать данные, http://user:pass@localhost:5000 &ndash; коннектимся к нашему серверу, где в качестве имени пользователя указали user, в качестве пароля pass, а крутится все это дело по умолчанию на 5000 порте.</p>
 
 <p>Теперь, если зайти и посмотреть через pgAdmin в нашу postgres базу данных, то мы увидим данные, скопированные из sqlite3.</p>
 

@@ -1,0 +1,340 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Полнотекстовый поиск по телефонным номерам разного формата (PostgreSQL) - Записки Вредного программиста</title>
+  <meta name="author" content="Зудочкин Дима">
+
+  
+  <meta name="description" content="В данной заметке я расскажу вам о своей реализации полнотекстового поиска по номерам телефонам разного формата: где есть плюс в начале, где дефисы, &hellip;">
+  <meta name="keywords" content="postgresql, rails">
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://zudochkin.ru/2014/01/22/fulltext-phones-postgresql/">
+
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Записки Вредного программиста" type="application/atom+xml">
+  <link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-11803166-9', 'zudochkin.ru');
+  ga('send', 'pageview');
+
+</script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <div id="logo">
+  	<div id="logoLeft">{</div>
+  	<div id="logoText">Zudochkin Dmitry</div>
+  	<div id="logoRight">}</div>
+  	<div class="clear"></div>
+  </div>
+  <h1><a href="/">Записки Вредного программиста</a></h1>
+  
+    <h2>enjoy, motherfuckers ;)</h2>
+  
+  <div class="clear"></div>
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:zudochkin.ru" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Главная</a></li>
+  <li><a href="/archives">Архив</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      
+        <h1 class="entry-title">Полнотекстовый поиск по телефонным номерам разного формата (PostgreSQL)</h1>
+      
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-22T02:44:24+04:00" pubdate data-updated="true">22.01.2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>В одном из последних своих проектов, где использовалась большая база контактов, у каждого контакта имелось несколько телефонов, понадобилось искать по номеру телефона. Недолго думая решил сделать это через встроенный ILIKE, но поиск почти ничего не находил, потому что в таблице с номерами телефонов хранились номера в совершенном разных форматов, например, +7(903)555-12-11, +46 8 52506000 и т.д. Поэтому нужно было придумать что-то более радикальное и в то же время не очень медленное. <!--more--></p>
+
+<p>Идея номер 2 заключалась в том, чтобы для каждого телефонного номера в этой же таблице сохранять номер телефона без специфических символов, т.е. 79035551211 и 46852506000 соответственно. Но идея не нравилась тем, что необходимо было почти дублировать колонку, оставил этот план про запас, на случай, если ничего более путного не придумаю.</p>
+
+<p>Идея номер 3 заключается в использовании встроенных функций замены при поиске, например <strong>regexp_replace</strong>, которая позволяет заменять строки по регекспу.</p>
+
+<p><code>SELECT number FROM phones WHERE regexp_replace(number, '\\d', '', 'g') ILIKE '%313%';</code> &ndash; найдет все номера, в которых встречаются подряд идущие цифры <strong>313</strong> (первый параметр это где ищем, второй &ndash; сам регексп <code>\d</code> &ndash; только цифры, третий &ndash; меняем на пустую строку и последний модификатор для регулярного выражения, который указывает что поиск нужно вести до победного, а не останавливается на первом вхождении).  Но опять же есть небольшая проблема, если посмотреть <strong>EXPLAIN</strong>, то становится понятно в чем она.</p>
+
+<p>Для этого запускаем <code>EXPLAIN ANALYZE SELECT number FROM phones WHERE regexp_replace(number, '\\d', '', 'g') ILIKE '%313%';</code> в результате видим примерно следующее.</p>
+
+<p><img src="http://zudochk.in/uploads/asset/image/52/huge_Screenshot_2014-01-21_20.31.34.png" alt="query plan without index" /></p>
+
+<p>Что как бы намекает нам, что это очень долго, потому что поиск идет строка за строкой, просматривая каждую строку таблицы. Значит, нам нужен индекс, комплексный индекс.</p>
+
+<p><code>CREATE INDEX idx_phones_search_on_number ON phones USING gist(regexp_replace(number, '\\d', '', 'g') gist_trgm_ops);</code></p>
+
+<p>Проверяем, запускаем такой же запрос и получаем следующую картину.</p>
+
+<p><img src="http://zudochk.in/uploads/asset/image/53/huge_Screenshot_2014-01-21_21.48.18.png" alt="query plan with index" /></p>
+
+<p>Мы видим, что сейчас начал использоваться индекс и скорость выполнения запроса возросла в 6 с небольшим раз. Магия индексов воочию.</p>
+
+<p>Но давайте пойдем чуть дальше и допустим, что пользователь сам вводит номер телефона, по которому собирается найти контакт. Он может это сделать как нам удобно <em>79035551211</em> или же как нам вообще не удобно, <em>+7(903)555-12-11</em> и более того, он ничего не найдет. Значит нужно и в запросе от пользователя удалять все нецифровые символы. Например, так:</p>
+
+<p><code>'+7(903)555-12-11'.gsub(/\D/, '')</code>, но это добавляет некоторую головную боль, т.к. и в ruby, и в sql придется выполнять одно и то же действие, но на разных языках, что не есть хорошо.</p>
+
+<p>Помогут решить нам эту проблему postgresql функции. Одна будет удалять все нецифровые символы, другая будет оставлять только цифры и знак <strong>%</strong>, для задания маски поиска. Для этого создадим миграцию для добавления двух функций и заодно добавим индекс. Получится следующее:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">AddFunctionsAndIndexForSearchByPhone</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Migration</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">up</span>
+</span><span class='line'>    <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span> <span class="sx">%q{</span>
+</span><span class='line'><span class="sx">      CREATE OR REPLACE FUNCTION onlynum(n text) RETURNS text AS</span>
+</span><span class='line'><span class="sx">      $func$</span>
+</span><span class='line'><span class="sx">      SELECT regexp_replace($1, &#39;\\D&#39;, &#39;&#39;, &#39;g&#39;);</span>
+</span><span class='line'><span class="sx">      $func$ LANGUAGE sql IMMUTABLE;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sx">      CREATE OR REPLACE FUNCTION onlynums(n text) RETURNS text AS</span>
+</span><span class='line'><span class="sx">      $func$</span>
+</span><span class='line'><span class="sx">      SELECT regexp_replace($1, &#39;[^\d%]&#39;, &#39;&#39;, &#39;g&#39;);</span>
+</span><span class='line'><span class="sx">      $func$ LANGUAGE sql IMMUTABLE;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sx">      CREATE INDEX idx_phones_search_on_number ON phones USING gist(onlynum(number) gist_trgm_ops);</span>
+</span><span class='line'><span class="sx">    }</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">down</span>
+</span><span class='line'>    <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span> <span class="sx">%Q{</span>
+</span><span class='line'><span class="sx">      DROP INDEX idx_phones_search_on_number;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sx">      DROP FUNCTION onlynum(text);</span>
+</span><span class='line'><span class="sx">      DROP FUNCTION onlynums(text);</span>
+</span><span class='line'><span class="sx">    }</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Запустим миграцию <code>rake db:migrate</code> и добавим где-нибудь в модель, пусть это будет <strong>Phone</strong> метод <strong>.search</strong> примерно следующего содержания:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Phone</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">search</span> <span class="n">term</span>
+</span><span class='line'>    <span class="n">where</span> <span class="s1">&#39;onlynum(phones.number) LIKE onlynums(:search)&#39;</span><span class="p">,</span> <span class="ss">search</span><span class="p">:</span> <span class="s2">&quot;%</span><span class="si">#{</span><span class="n">term</span><span class="si">}</span><span class="s2">%&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Это очень упрощенный метод, но он работает, теперь для поиска телефона, необходимо вызвать где-нибудь в коде наш метод: <code>Phone.search '313'</code> и вы получите список строк, телефоны которых содержат заданную строку.</p>
+
+<p><img src="http://zudochk.in/uploads/asset/image/54/huge_Screenshot_2014-01-21_22.39.20.png" alt="search execution" /></p>
+
+<p>Надеюсь, данный пост поможет вам. Все мысли, ошибки, неточности можете оставлять в комментариях, с удовольствием их почитаю :) Мир, братья и сестры.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-22T02:44:24+04:00" pubdate data-updated="true">22.01.2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/postgresql/'>postgresql</a>, <a class='category' href='/blog/categories/ruby-on-rails/'>ruby on rails</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://zudochkin.ru/2014/01/22/fulltext-phones-postgresql/" data-via="" data-counturl="http://zudochkin.ru/2014/01/22/fulltext-phones-postgresql/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left articlenav" href="/2013/11/open-uri-progress-bar" title="Предыдущий пост: Ruby OpenURI::open и ProgressBar">&laquo; Ruby OpenURI::open и ProgressBar</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Последние посты</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2014/01/22/fulltext-phones-postgresql/">Полнотекстовый поиск по телефонным номерам разного формата (PostgreSQL)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/11/open-uri-progress-bar">Ruby OpenURI::open и ProgressBar</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/first-photography">Первая выездная фотосъемка (Большой Москворецкий мост)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/vim-first-plugin">Написание первого плагина для Vim</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/logrotate-unicorn">Ротация логов на примере логов Unicorn</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Зудочкин Дима -
+  <span class="credit">Powered by <a rel="nofollow" href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

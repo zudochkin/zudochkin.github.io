@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Бесполезные ссылки | Записки Вредного программиста]]></title>
+  <link href="http://zudochkin.ru/blog/categories/biespolieznyie-ssylki/atom.xml" rel="self"/>
+  <link href="http://zudochkin.ru/"/>
+  <updated>2014-02-01T22:46:41+04:00</updated>
+  <id>http://zudochkin.ru/</id>
+  <author>
+    <name><![CDATA[Зудочкин Дима]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Ротация логов на примере логов Unicorn]]></title>
+    <link href="http://zudochkin.ru/2013/08/logrotate-unicorn"/>
+    <updated>2013-08-09T03:32:24+04:00</updated>
+    <id>http://zudochkin.ru/2013/08/logrotate-unicorn</id>
+    <content type="html"><![CDATA[<p>Что-то все реже и реже находится время, чтобы написать несколько абзацев в свой новый блог. Но сегодня будет исключение. Я все же возьму себя в руки и что-нибудь напишу. Речь в сегодняшнем посте пойдет о ротации логов: с чем едят, как готовить на примере нами любимого <a href="https://github.com/defunkt/unicorn">unicorn'а</a>.<!--more--></p>
+
+<p>Думаю, что такое логи и для чего они нужны все знают. А вот что такое ротация логов многие могут не знать. Или знать, что это такое, но не использовать в повседневной жизни (к коим относился я до недавних пор).</p>
+
+<p>Ротация логов &ndash; это, если простыми словами, то простой сдвиг, после которого текущий файл логов &ldquo;обрубается&rdquo;, архивируется (по  желанию) и логи начинают писаться в чистый файл. Для ротации логов используют logrotate, конфигурационные файлы которого можно найти в <em>/etc/logrotate.d/</em>. Скорее всего, у вас на сервере эта папка не пуста и можно найти конфиги для postgresql'а, nginx'а и много чего еще.</p>
+
+<p>Мы же с вами рассмотрим настройку ротации логов для unicorn'а. Если ваш ресурс посещает множество людей, то лог файл (production.log) становится нескромно большим, т.к. хранит все обращения ко всем страницам, все произошедшие ошибки и прочую информацию. Для того, чтобы этого избежать, создадим файл <em>/etc/logrorate.d/#{your_app_name}</em></p>
+
+<p>```
+&ldquo;/home/deployer/projects/#{your_app_name}/shared/log/production.log&rdquo;
+{
+  daily
+  missingok
+  rotate 180
+  compress
+  dateext</p>
+
+<p>  delaycompress</p>
+
+<p>  lastaction</p>
+
+<pre><code>pid=/home/deployer/projects/#{your_app_name}/shared/pids/unicorn.pid
+test -s $pid &amp;&amp; kill -USR1 "$(cat $pid)"
+</code></pre>
+
+<p>  endscript
+}
+```</p>
+
+<p>Теперь по порядку:</p>
+
+<ul>
+<li>в кавычках мы указываем какие файлы будут &ldquo;вращаться&rdquo;, можно использовать &ldquo;*&rdquo; для нескольких файлов</li>
+<li><strong>daily</strong> &ndash; сообщает logrotate &ldquo;прокручивать&rdquo; файл(ы) логов раз в день.</li>
+<li><strong>missingok</strong> &ndash; не выдавать ошибочное сообщение, если файл логов отсутствует.</li>
+<li><strong>rotate</strong> &ndash; лог будет &ldquo;сдвинут&rdquo; 180 раз, прежде, чем будет удален.</li>
+<li><strong>compress</strong> &ndash; старые файлы будут заархивированы (gzip по умолчанию) для того, чтобы занимать меньше места.</li>
+<li><strong>dateext</strong> &ndash; полезная опция, которая дописывает в название файла дату, формат можно изменить опцией <strong>dateformat</strong> вместо скучных названий, вроде (blog.log.1)</li>
+<li><strong>delaycompress</strong> &ndash; откладывает сжатие на один цикл</li>
+<li><strong>lastaction и endscript</strong> &ndash; строки между данными директивами будут выполнены (с применением /bin/sh) после каждой ротации. Мы используем их, чтобы сообщить unicorn'у и всем его воркерам (USR1 сигнал) заново открыть файлы логов.</li>
+</ul>
+
+
+<p>После того, как мы написали конфиг, мы должны сообщить logrotate об этом, я предпочитаю сделать это с флагом <strong>-f (force)</strong>, который заново считывает свои конфиги делает один &ldquo;оборот&rdquo; логов.</p>
+
+<p><code>sudo logrotate -f /etc/logrotate.d/#{your_app_name}</code></p>
+
+<p>Как вы, наверное, уже догадались, #{your_app_name} необходимо заменить именем вашего приложения. После прочтения данного поста, вы с легкостью сможете настроить ротацию логов для чего угодно. Удачи вам и не теряйте свои логи :)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[(бес)Полезные ссылки #3]]></title>
+    <link href="http://zudochkin.ru/2013/07/useless-links-3"/>
+    <updated>2013-07-14T15:53:24+04:00</updated>
+    <id>http://zudochkin.ru/2013/07/useless-links-3</id>
+    <content type="html"><![CDATA[<p>Вот и очередной, третий по счету выпуск (бес)Полезных ссылок.<!--more--></p>
+
+<h5>Ruby and Rails</h5>
+
+<ul>
+<li><a href="http://about.travis-ci.org/blog/2013-07-09-introducing-continuous-deployment-to-heroku/">Интеграция Heroku and TravisCI</a></li>
+<li><a href="http://blog.lunarlogicpolska.com/2013/declutter-lib-directory/">Приводим в порядок lib директорию в своем Ruby on Rails проекте </a></li>
+<li><a href="https://github.com/koudelka/asbestos">DSL для написаний правил для firewall'ов</a></li>
+<li><a href="http://www.codebeerstartups.com/2013/07/better-way-to-parse-user-info-from-omniauth-hash/">Better Way to Parse User Info From Omniauth Hash</a></li>
+<li><a href="http://raysrashmi.com/2013/07/09/rails4-directory-structure/">Новое в организации директорий в приложении на Ruby on Rails 4</a></li>
+<li>Интервью с создателем Ruby Yukihiro “Matz" Matsumoto <a href="http://fredwu.me/post/54175219257/the-future-of-computing-the-future-of-computer">о будущем компьютерных технологий</a></li>
+<li>Вышла <a href="http://myronmars.to/n/dev-blog/2013/07/rspec-2-14-is-released">новая версия RSpec'а 2.14</a>, включающая в себя много интересных &ldquo;плюшек&rdquo;</li>
+<li>Интересное видео <a href="http://www.youtube.com/watch?v=5ZjwEPupybw">&ldquo;Функциональное программирование и Ruby&rdquo;</a></li>
+<li><a href="http://rubysource.com/the-self-pipe-trick-explained/">В этой статье немного о unix процессах, сигналах, пайпах и одновременном выполнении команд в проессах</a></li>
+<li>Реализовываем аутентификацию вместе с гемом <a href="http://pothibo.com/2013/07/authentication-with-warden-devise-less/">Warden, но без Devise'а</a></li>
+<li><a href="https://github.com/mislav/git-deploy">Деплой Heroku-style</a></li>
+</ul>
+
+
+<h5>JavaScript</h5>
+
+<ul>
+<li><a href="http://hub.tutsplus.com/tutorials/required-javascript-reading--net-33131">Список интересного чтива</a></li>
+</ul>
+
+
+<h5>Objective-C</h5>
+
+<ul>
+<li>Кто когда-либо разрабатывал приложения в Xcode, обязательно сталкивался с применением CocoaPods (что-то, вроде bundler'а для приложения для iOS или MacOS). Но тут ребята пошли еще дальше, и интегрировали <a href="https://github.com/kattrali/cocoapods-xcode-plugin">CocoaPods прямо в Xcode</a>). <strong>Работает только в Xcode 5 версии, которая доступна лишь разработчикам</strong>.</li>
+<li><a href="http://www.macdigger.ru/iphone-ipod/vse-osobennosti-ios-7-beta-3-v-odnoj-state-obnovlenie.html">Вышла третья beta iOS7</a>, список изменений можно прочитать на сайте macdigger.</li>
+</ul>
+
+
+<h5>Other stuff</h5>
+
+<ul>
+<li>Для тех, кто не прочитал <a href="https://github.com/jsmarkus/the-little-mongodb-book/blob/master/ru/mongodb.markdown">The little mongodb book на русском языке</a>, рекомендую.</li>
+<li><a href="http://therules.ru/">Правила русского языка для тех, кто хочет писать грамотно</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[(бес)Полезные ссылки #2]]></title>
+    <link href="http://zudochkin.ru/2013/07/useless-links-2"/>
+    <updated>2013-07-08T15:56:24+04:00</updated>
+    <id>http://zudochkin.ru/2013/07/useless-links-2</id>
+    <content type="html"><![CDATA[<p>Вот уже второй выпуск в рубрике (бес)Полезные ссылки. На этот раз, надеюсь, выпуск выйдет без опозданий :)</p>
+
+<p>Итак, поехали.<!--more--></p>
+
+<p>Т.к. к списку моих интересов несколько месяцев назад добавился еще и Objective-C и разработка под мобильные iOS устройства, то нет-нет будут проскакивать интересные штуки и про него.</p>
+
+<h5>Сервис недели</h5>
+
+<p>Товарищ <a href="https://twitter.com/newsergey">Сергей Анисимов</a> подкинул ссылку на преинтереснейший сервис, позволяющий, как заявляют его создатели развернуть девелоперское окружение за 60 секнуд.</p>
+
+<p><img class="image" src="/images/posts/2013-07-useless-links-2/Screenshot_2013-07-08_11.52.57.png"></p>
+
+<ul>
+<li>Данное чудо поддерживает Ruby and Rails, Python and Django, nodeJS и Go.</li>
+<li>Предоставляет мощную IDE с полноценным Linux шеллом.</li>
+<li>Поддерживает совместную работу над проектом с другими членами команды.</li>
+<li>И все это можно показать другим людям, потому веб-сервер смотрит наружу. (Необходимо, хотя бы для общего развития, посмотреть видос, который есть у них на сайте, показывающий все вышеназванные пункты)</li>
+</ul>
+
+
+<p>Не пугайтесь, даю <a href="https://www.nitrous.io/join/5JyOqcCTRJU">ссылку на сервис со своей реферальной ссылкой</a>, пройдя и зарегестрировавшись по которой вы получите дополнительные нитро (внутренняя валюта).</p>
+
+<h5>iOS</h5>
+
+<ul>
+<li>на просторах интернетов нашел очередной интересный блог с не менее интересным названием <a href="http://nshipster.com/">NSHipster</a>, особенно мне понравился <a href="http://nshipster.com/core-data-libraries-and-utilities/">пост про CoreData</a> со списком утилит и полезных библиотек</li>
+</ul>
+
+
+<h5>Ruby and Rails</h5>
+
+<ul>
+<li><a href="http://www.codebeerstartups.com/2013/04/must-have-gems-for-development-machine-in-ruby-on-rails/">Список гемов</a>, которые очень облегчают жизнь Ruby on Rails разработчику на локальной машине, про многие не слышал, но большинство использую сам, поэтому welcome.</li>
+<li><a href="http://www.ruby-lang.org/en/news/2013/06/30/we-retire-1-8-7/">Прекращена поддержка Ruby 1.8.7</a></li>
+<li>Интересная вводная статья для начинающих, кто хочет понять как <a href="http://net.tutsplus.com/tutorials/exploring-rack/">работает Rack от nettuts+</a></li>
+<li>Если кто упустил <a href="https://blog.engineyard.com/2013/whats-new-and-awesome-in-ruby-2">изменения в Ruby 2 и в Ruby on Rails 4 от компании EngineYard</a>, то прошу проследовать по ссылке, которая исправит этот изъян.</li>
+<li><a href="https://github.com/jrochkind/fake_work_app/blob/master/README.md">Больший синтетический тест, разных веб серверов, написанных на Ruby</a></li>
+<li>Если хочется отдохнуть немного от Рельсов и посмотреть что-то стоящее по Руби, рекомендую видео <a href="http://www.youtube.com/watch?v=2aYdtS7FZJA">&ldquo;Building a Mocking Library&rdquo;</a> от мейнтейнера RSpec'а</li>
+</ul>
+
+
+<h5>Other stuff</h5>
+
+<ul>
+<li>Очень <a href="http://www.goodui.org/">красивый одностраничный сайт</a>, посвященный хорошему тону в проектировании UI</li>
+<li>Вышел наконец-таки один из популярнейших текстовых редакторов <a href="http://www.sublimetext.com/blog/articles/sublime-text-3-public-beta">Sublime Text 3 Public Beta</a>, так ожидаемый многими. Это второй после MacVim'а текстовый редактор, который я очень часто использую, чтобы почитать исходники гемов, рубей и прочие большие проекты.</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[(бес)Полезные ссылки #1]]></title>
+    <link href="http://zudochkin.ru/2013/07/useless-links-1"/>
+    <updated>2013-07-04T15:56:24+04:00</updated>
+    <id>http://zudochkin.ru/2013/07/useless-links-1</id>
+    <content type="html"><![CDATA[<p><em>Пишу с небольшим опозданием, потому как выходные выдались очень бурные и я ничего не успел сделать :)</em></p>
+
+<p>Давно хотел завести какую-нибудь рубрику на сайте, где можно постить ссылки, подводить итоги недели или месяца без длинных, нудных описаний. Так вот, встречаем, рубрика, (бес)Полезные ссылки, название говорит само за себя, для кого-то ссылки окажутся бесполезными, я же считаю их полезными для себя. Ну, поехали. <!--more--></p>
+
+<p><img class="image" src="/images/posts/2013-06-useless-links-1/Screen_Shot_2013-07-04_at_11.58.10_AM.png"></p>
+
+<ul>
+<li>мой первый, пока очень незначительный, <a href="https://github.com/rails/rails/pull/11098">коммит</a> в Ruby on Rails</li>
+<li>выход стабильной &ldquo;четверки&rdquo; (<a href="http://weblog.rubyonrails.org/2013/6/25/Rails-4-0-final/">ruby on rails 4</a>), список изменений в которой можно почерпнуть отсюда:
+
+<ul>
+<li><a href="https://github.com/rails/rails/blob/v4.0.0/actionpack/CHANGELOG.md">actionpack</a></li>
+<li><a href="https://github.com/rails/rails/blob/v4.0.0/activemodel/CHANGELOG.md">activemodel</a></li>
+<li><a href="https://github.com/rails/rails/blob/v4.0.0/activerecord/CHANGELOG.md">activerecord</a></li>
+<li><a href="https://github.com/rails/rails/blob/v4.0.0/activesupport/CHANGELOG.md">activesupport</a></li>
+<li><a href="https://github.com/rails/rails/blob/v4.0.0/railties/CHANGELOG.md">railties</a></li>
+</ul>
+</li>
+<li>пост про <a href="http://www.bthlabs.pl/post/fun_with_postgresql_tagging_blog_posts.html">тегирование средствами PostgreSQL</a> и небольшой сравнительный анализ производительности (теги средствами массивов в PostgreSQL и теги, как ассоциация)</li>
+<li><a href="http://progrium.com/localtunnel/">gem localtunnel</a>, который я открыл для себя на этой неделе, позволяющий расшарить свой локальный сервер, запущенный на каком-нибудь порте, для доступа со всех интернетов по адресу, к примеру <em>http://3bwz.localtunnel.com</em></li>
+<li><a href="http://www.railsconf.com/2013/talks">много интересных докладов и презентаций</a> с конференции RailsConf, прошедшей в апреле-мае сего года в Портленде</li>
+<li>исправление уязвимости <a href="http://www.ruby-lang.org/en/news/2013/06/27/hostname-check-bypassing-vulnerability-in-openssl-client-cve-2013-4073/">CVE-2013-4073</a> в SSL, патчи вышли сразу для всех рублей (<a href="http://www.ruby-lang.org/en/news/2013/06/27/ruby-1-8-7-p374-is-released/">1.8.7-p374</a>, <a href="http://www.ruby-lang.org/en/news/2013/06/27/ruby-1-9-3-p448-is-released/">1.9.3-p448</a>, <a href="http://www.ruby-lang.org/en/news/2013/06/27/ruby-2-0-0-p247-is-released/">2.0.0-p247</a>)</li>
+<li><a href="http://vimeo.com/68716827">40-минутный доклад</a> с кратким описанием возможностей следующей версии JavaScript ECMAScript 6</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

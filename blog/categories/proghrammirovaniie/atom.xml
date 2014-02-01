@@ -4,7 +4,7 @@
   <title><![CDATA[Category: программирование | Записки Вредного программиста]]></title>
   <link href="http://zudochkin.ru/blog/categories/proghrammirovaniie/atom.xml" rel="self"/>
   <link href="http://zudochkin.ru/"/>
-  <updated>2014-02-01T18:01:49+04:00</updated>
+  <updated>2014-02-01T22:46:41+04:00</updated>
   <id>http://zudochkin.ru/</id>
   <author>
     <name><![CDATA[Зудочкин Дима]]></name>
@@ -12,6 +12,93 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Devconf 2013 - мои впечатления, ссылки на доклады и несколько фоток :)]]></title>
+    <link href="http://zudochkin.ru/2013/06/devconf"/>
+    <updated>2013-06-18T21:31:24+04:00</updated>
+    <id>http://zudochkin.ru/2013/06/devconf</id>
+    <content type="html"><![CDATA[<p>Прошло 4 года с моего последнего и в то же время первого визита на конференцию разработчиков. 4 года назад сидел я в секции #php и почти не понимал что происходит, не понимал о каких проблемах говорят докладчики, но для меня это было, однозначно, в новинку и очень интересным. В течение всех этих лет желание посещать технические конференции только росло, но возможности, к сожалению, предоставлялось из-за не очень заинтересованных в этом работодателей. <!--more--></p>
+
+<p><img class="image" src="/images/posts/2013-06-devconf/devconf2010.gif"></p>
+
+<p>Чуть больше года назад я сменил язык разработки и окончательно перешел на Ruby. Теперь желание заключалось в том, чтобы посетить Ruby секцию на той же <a href="http://devconf.ru/">DevConf</a>. И вот, наконец, минимечта сбылась, и я на конференции.</p>
+
+<p>К сожалению, пришлось немного опоздать из-за того, что любовь ко сну немного пересилила любовь к получению новых знаний.</p>
+
+<h3>Доклады</h3>
+
+<p><img class="image" src="/images/posts/2013-06-devconf/2013-06-14_11.16.27.jpg"></p>
+
+<p>И вот регистрация и начало нового доклада, который не хотелось пропускать, ведь выступал чел, забаненный на Github'е, специалист по безопасности <a href="https://twitter.com/homakov" title="@homakov">Егор Хомяков</a> со своим докладом &ldquo;Безопасный сайт на примере Rails&rdquo;. Его рассказал про всевозможные атаки в web'е, как с ними бороться нужно и как эти проблемы решают (или как не решают) нами любимые рельсы. Узнал много нового о типах атаках и способов защиты с ними. <a href="http://f.cl.ly/items/2G3g462j2T0o1w0g3K2o/rails%20and%20security.pdf" title="Безопасный сайт на примере Rails">Презентацию</a> помог достать из интернетов товарищ <a href="https://twitter.com/milushov">roma</a>, за что ему отдельное спасибо.</p>
+
+<p><img class="image" src="/images/posts/2013-06-devconf/2013-06-14_11.04.56.jpg"></p>
+
+<p>Дальше был кофебрейк, на котором было сложно протиснуться, поэтому кофе попить не удалось, ну, хоть, водички попили.</p>
+
+<p>После кофебрейка удалось таки занять сидячие места и спокойно с интересом послушать очередного докладчика, которым оказался разработчик из Питера Николай Рыжиков, рассказавший нам о <a href="http://ru.wikipedia.org/wiki/%D0%9F%D1%80%D0%BE%D0%B1%D0%BB%D0%B5%D0%BC%D0%BD%D0%BE-%D0%BE%D1%80%D0%B8%D0%B5%D0%BD%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%BD%D0%BE%D0%B5_%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5" title="Проблемно-ориантированное проектирование">DDD</a> в <a href="http://f.cl.ly/items/2b3C0H3S0n2a473x1M3Z/DDD%20on%20rails.pdf">докладе</a> под названием <strong>&ldquo;Domain Driven Design on Rails&rdquo;</strong>. Я очень часто слышал эту аббревиатуру, но так до конца и не понимал что это, как это готовить и как использовать в своих проектах (и сейчас не понимаю, но я научусь).</p>
+
+<p>После очередного интересного доклада, после которого захотелось освоить эти забавные, но еще так непонятные 3D, мы послушали <a href="http://www.slideshare.net/profyclub_ru/13-20022107">доклад</a> с громким названием <strong>&ldquo;Быстрое тестирование Ruby on Rails&rdquo;</strong> от Александра Балашова, из компании-спонсора DevConf Evrone. Рассказ получился очень поверхностным, который можно уложить в одно приложение: <em>&ldquo;Используйте поменьше обращений к БД и юзайте <a href="https://github.com/jonleighton/spring">Spring</a>, <a href="https://github.com/burke/zeus">Zeus</a> или <a href="https://github.com/sporkrb/spork">spork</a> для ускорения запуска приложения&rdquo;</em>.</p>
+
+<p><img class="image" src="/images/posts/2013-06-devconf/2013-06-14_13.57.20.jpg"></p>
+
+<p>Следующий доклад <strong>&ldquo;Проектирование API&rdquo;</strong> прочитал <a href="https://twitter.com/igkuz" title="@igkuz">Игорь Кузнецов</a> &ndash; Ruby разработчик из Undev.ru. Этот доклад я очень хотел послушать, потому что реализовывать API самому не приходилось,  а очень хотелось попробовать написать что-то подобное, наступая на &ldquo;подводные камни&rdquo;. Но, к сожалению, вопросов, которые я бы хотел услышать в докладе не освещалось, а именно аутентификация и больше практических советов, аля как использовать rails-api в связке с гемом devise, какие есть костыли и прочее. Но автор коснулся лишь теоретических основ проектирования API, что тоже было очень интересно послушать, кое-что я занес в заметки, чтобы в дальнейшем посмотреть. Интересно было рассказано про версионирование: отличие мажорной и минорной версии, какие изменения должно увеличивать мажорную, а какие минорную версию. И, конечно же стоит отметить упоминания автором доклада темы <a href="http://json-schema.org/">JSON Schema</a>, которая одновременно является и документацией для API, и валидатором.</p>
+
+<p><img class="image" src="/images/posts/2013-06-devconf/2013-06-14_14.40.35.jpg"></p>
+
+<p>После доклада, который закончился немного раньше мы двинули на обед, благо, что нас отпустили немного раньше положенного времени, ибо, когда мы уходили с обеда очередь за едой была километровая. Покормили знатно, как в Египте прям, шведский стол, куча блюд и куча сладостей с фондю. В общем обед придал новых сил и мы двинули на очередной доклад.</p>
+
+<p>Александров Игорь из компании JetRockets рассказал нам о <a href="https://speakerdeck.com/alexandrov/billing-in-rails-saas-applications">&ldquo;Биллинге в SaaS-системах на Rails&rdquo;</a>. Перед каждым, кто принимает платежи в своих проектах обязательно встает вопрос отдавать биллинг на аутсорс или реализовывать свою систему оплаты. Игорь рассказал и про плюсы, и про минусы обеих систем. Дальше рассказал про путь, в котором вы разрабатывает свою систему: биллинговый интервал и страшное название <strong>PCI-compliant</strong>, являющееся набором требований для организаций, сервисов, которые работают с платежными данными пользователей. Специально для Devconf 2013 было разработано приложение <a href="https://github.com/igor-alexandrov/spaceship" title="Demo application for DevConf 2013">SpaceShip</a>, показывающее все, что сказал автор доклада: биллинговые периоды, тарифы и пр.</p>
+
+<p><img class="image" src="/images/posts/2013-06-devconf/2013-06-14_16.48.29.jpg"></p>
+
+<p>Ну а дальше был апофеоз всего Devconf'а, доклад, ради которого стоило пойти на конференцию, даже если бы не было вкусного обеда  и остальных докладчиков. <a href="http://kaize.ru/" title="ортодоксальный приверженец SOLID-принципа">Кирилл Мокевнин</a>, известный и php мире, и в мире Ruby on Rails, превосходный докладчик и специалист, разбирающийся в своем деле. Доклад назывался <a href="https://speakerdeck.com/mokevnin/arkhitiekturnyie-praktiki-v-rails">&ldquo;Архитектурные практики в Rails&rdquo;</a>, где Кирилл поделился со слушателями своим опытом разработки, рассказал о проблемах, с которыми сталкивался и как их решал сам.
+Были описаны следующие проблемы:</p>
+
+<ul>
+<li>Организация иерархии в  папках с контроллерами и моделями, <a href="http://habrahabr.ru/post/136461/" title="Ссылка автора на свой пост на Хабрахабре">наименования модулей</a> и написание удобных правил в <code>config/routes.rb</code>.</li>
+<li>Ссылки в js, замечатели ли вы что очень часто пишем в javascript-coffescript файлах, нечто похожее на &ldquo;/posts/#{post.slug}&rdquo;, Кирилл рекомендует использовать для этих целей гем <a href="https://github.com/railsware/js-routes/" title="Bringing Rails named routes to javascript">js-routes</a>.</li>
+<li>Использовать для фильрации и сортировки гем <a href="https://github.com/ernie/ransack" title="Object-based searching. The successor to MetaSearch">ransack</a>. Данный гем не пробовал, поэтому ничего пока сказать не могу.</li>
+<li>Также автор затронул вопрос DDD, чем однозначно убедил прочитать в ближайшее время книгу Эрика Эванса &ldquo;Domain-Driven Design. Tackling Complexity in the Heart of Software&rdquo;</li>
+<li>Также несколько примеров, которые приводит Кирилл
+
+<ul>
+<li><a href="http://blog.codeclimate.com/blog/2012/10/17/7-ways-to-decompose-fat-activerecord-models/" title="7 Patterns to Refactor Fat ActiveRecord Models">7 Patterns to Refactor Fat ActiveRecord Models</a></li>
+<li><a href="https://github.com/kaize/nastachku">Проект nastachku.ru на Github'е</a></li>
+<li>не стесняйтесь использовать custom inputs в simple_form</li>
+<li>используйте gem версии популярных js библиотек, иначе вы забываете их обновлять :) <a href="https://github.com/grosser/vendorer" title="Vendorer keeps your dependencies documented, cached and up to date">Gem Vendorer, если нет гема для библиотеки, которую вы используете</a></li>
+<li>before фильтры, а также before_validate &ndash; зло</li>
+</ul>
+</li>
+</ul>
+
+
+<p>К сожалению, после этого доклада пришлось покинуть конференцию, сожалея только о том, что пропущу очередной доклад Кирилла Мокевнина &ldquo;Ментальное программирование&rdquo;, но его по техническим причинам прервали. Сам Кирилл, предлагает посмотреть <a href="http://www.youtube.com/watch?v=eEEHWQNuCLQ" title="Ментальное программирование">видео</a> на Youtube'e с его предыдущим выступлением, которое называется также.</p>
+
+<h3>Подводя итоги</h3>
+
+<p>… хочется сказать, что конференция была очень поучительна, но почему-то я ожидал от нее большего. Многие вопросы, которые освещались были мне знакомы, поэтому я прослушал их как чужое мнение на вопросы, с которыми приходилось иметь дело.
+Но, вцелом, хочется поблагодарить спонсоров и огранизаторов конференции за такую замечательную конференцию, которая дает &ldquo;волшебный пендель&rdquo;, прививает очередную порцию любви к программированию и дает пообщаться с коллегами по цеху о методах решения тех или иных вопросов :)</p>
+
+<h3>P.S.</h3>
+
+<p>Несколько дней писал данный пост, вносил кучу дополнений и изменений, но, думаю, что на этом достаточно, иначе пост никогда не увидит свет.</p>
+
+<h3>P.S. №2</h3>
+
+<p>Презентации с доклада, которые пропустил:</p>
+
+<ul>
+<li>от <a href="https://twitter.com/makaroni4" title="@makaroni4">Анаталия Макаревича</a> <a href="http://www.slideshare.net/profyclub_ru/12-20022066">&ldquo;Рефакторинг Ruby кода&rdquo;</a></li>
+<li>от <a href="https://twitter.com/killthekitten" title="@killthekitten">Николая Шебанова</a> <a href="http://www.slideshare.net/profyclub_ru/14-20022236">&ldquo;Спасение утопающих &ndash; покрываем тестами взрослый Ruby on Rails проект&rdquo;</a></li>
+</ul>
+
+
+<h3>P.S. №3</h3>
+
+<p>Зарабатываю кружечку от Reg.ru, поднимая тяжести. <img class="image" src="/images/posts/2013-06-devconf/13.jpg"></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Парсим news.ycombinator.com или не рельсами едиными жив человек (Sinatra, DataMapper)]]></title>
@@ -35,7 +122,7 @@
 <p>Gemfile:</p>
 
 <p><div>
-  <pre><code class='ruby'>source &amp;lsquo;&lt;a href=&quot;https://rubygems.org&quot;&gt;https://rubygems.org&lt;/a&gt;&amp;rsquo;&lt;/p&gt;
+  <pre><code class='ruby'>source &amp;lsquo;https://rubygems.org&amp;rsquo;&lt;/p&gt;
 
 &lt;p&gt;gem &amp;lsquo;sinatra&amp;rsquo;
 gem &amp;lsquo;data_mapper&amp;rsquo;&lt;/p&gt;
@@ -226,7 +313,7 @@ require &lsquo;open-uri&rsquo;</p>
 
 <p>desc &lsquo;Parse all articles&rsquo;
 task :parse do
-  doc = Nokogiri::HTML(open(&lsquo;<a href="http://news.ycombinator.com/">http://news.ycombinator.com/</a>&rsquo;))
+  doc = Nokogiri::HTML(open(&lsquo;http://news.ycombinator.com/&rsquo;))
   links = doc.css(&lsquo;td.title a&rsquo;)
   next_page_link = links.pop</p>
 
@@ -312,17 +399,17 @@ $(this).parent('li').remove()
 
 <p>head
   title Ycombinator
-  script src=&ldquo;<a href="http://zudochkin.ru//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js">http://zudochkin.ru//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js</a>&rdquo;
-  script src=&ldquo;<a href="http://zudochkin.ru/application.js">http://zudochkin.ru/application.js</a>&rdquo;</p>
+  script src=&ldquo;http://zudochkin.ru//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js&rdquo;
+  script src=&ldquo;http://zudochkin.ru/application.js&rdquo;</p>
 
 <p>body
-  a{ href=&ldquo;<a href="http://zudochkin.ru/all">http://zudochkin.ru/all</a>&rdquo; } All
+  a{ href=&ldquo;http://zudochkin.ru/all&rdquo; } All
   br
-  a{ href=&ldquo;<a href="http://zudochkin.ru/all/read">http://zudochkin.ru/all/read</a>&rdquo; } All read
+  a{ href=&ldquo;http://zudochkin.ru/all/read&rdquo; } All read
   br
-  a{ href=&ldquo;<a href="http://zudochkin.ru/all/unread">http://zudochkin.ru/all/unread</a>&rdquo; } All unread
+  a{ href=&ldquo;http://zudochkin.ru/all/unread&rdquo; } All unread
   br
-  a{ href=&ldquo;<a href="http://zudochkin.ru/">http://zudochkin.ru/</a>&rdquo; } Home
+  a{ href=&ldquo;http://zudochkin.ru/&rdquo; } Home
   hr
   == yield</p>
 
@@ -345,7 +432,7 @@ form{ method=&ldquo;get&rdquo; action=&ldquo;&rdquo; }
 
 <ul>
 <li>if @search_term
-a{ href=&ldquo;<a href="http://zudochkin.ru/">http://zudochkin.ru/</a>&rdquo; } Home</li>
+a{ href=&ldquo;http://zudochkin.ru/&rdquo; } Home</li>
 </ul>
 
 
@@ -384,7 +471,7 @@ a{ href=&ldquo;<a href="http://zudochkin.ru/">http://zudochkin.ru/</a>&rdquo; } 
 
 <p>Дальше нам нужно скопировать нашу sqlite базу данных в postgres, для этого достаточно запустить одну команду:</p>
 
-<p><code>taps pull postgres://zudochkin@localhost/project_development http://user:pass@localhost:5000</code>, где postgres &ndash; это адаптер базы данных, вы можете смело использовать mysql, zudochkin &ndash; имя пользователя для postgres, project_development &ndash; имя базы данных, куда я собираюсь импортировать данные, <a href="http://user:pass@localhost:5000">http://user:pass@localhost:5000</a> &ndash; коннектимся к нашему серверу, где в качестве имени пользователя указали user, в качестве пароля pass, а крутится все это дело по умолчанию на 5000 порте.</p>
+<p><code>taps pull postgres://zudochkin@localhost/project_development http://user:pass@localhost:5000</code>, где postgres &ndash; это адаптер базы данных, вы можете смело использовать mysql, zudochkin &ndash; имя пользователя для postgres, project_development &ndash; имя базы данных, куда я собираюсь импортировать данные, http://user:pass@localhost:5000 &ndash; коннектимся к нашему серверу, где в качестве имени пользователя указали user, в качестве пароля pass, а крутится все это дело по умолчанию на 5000 порте.</p>
 
 <p>Теперь, если зайти и посмотреть через pgAdmin в нашу postgres базу данных, то мы увидим данные, скопированные из sqlite3.</p>
 
