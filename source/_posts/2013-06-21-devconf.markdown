@@ -18,6 +18,10 @@ tags:
 - devconf
 - ruby on rails
 - ruby
+
+keywords: devconf 2013, devconf ruby, devconf ruby on rails
+
+description: Несколько слов и моих мыслей о прошедшей 14 июня 2013 года конференции Devconf. Полезные ссылки на некоторые презентации и на интересные гемы.
 ---
 
 
