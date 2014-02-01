@@ -37,13 +37,13 @@ end
 require 'psych'
 
 def replace_code(old_code)
-  code_finder_regexp = /\[cc lang="([^"]+)"\](.*?)\[\/cc\]/m # finds [cc lang="?"]code[/cc] blocks
+  code_finder_regexp = /\[cc(?: lang="([^"]+)")?\](.*?)\[\/cc\]/m # finds [cc(?: lang="?")?]code[/cc] blocks
 
   return old_code if old_code !~ code_finder_regexp
 
   puts 'code changed'
 
-  old_code.gsub(code_finder_regexp, "``` \\1\n\\2\n```")
+  old_code.gsub(code_finder_regexp, "``` \\1\\2\n```")
 end
 
 def replace_permalink(content)
