@@ -1,0 +1,321 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Оповещение после выполнения "тяжелой" фоновой задачи с помощью faye и PrivatePub - Записки Вредного программиста</title>
+  <meta name="author" content="Зудочкин Дима">
+
+  
+  <meta name="description" content="Допустим нам необоходимо после выполнения большой задачи в фоновом режиме сообщить об этом пользователю и совершить что-нибудь, например, показать &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://vredniy.github.io/2013/01/resque-with-private-pub-and-rails">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Записки Вредного программиста" type="application/atom+xml">
+  <link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <div id="logo">
+  	<div id="logoLeft">{</div>
+  	<div id="logoText">Zudochkin Dmitry</div>
+  	<div id="logoRight">}</div>
+  	<div class="clear"></div>
+  </div>
+  <h1><a href="/">Записки Вредного программиста</a></h1>
+  
+    <h2>enjoy, motherfuckers ;)</h2>
+  
+  <div class="clear"></div>
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:vredniy.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Главная</a></li>
+  <li><a href="/blog/archives">Архив</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      
+        <h1 class="entry-title">Оповещение после выполнения "тяжелой" фоновой задачи с помощью Faye и PrivatePub</h1>
+      
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-21T22:45:24+04:00" pubdate data-updated="true">21.01.2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Допустим нам необоходимо после выполнения большой задачи в фоновом режиме сообщить об этом пользователю и совершить что-нибудь, например, показать ему какой-нибудь popup. <!-- more -->
+Для этого по-старинке, можно с интервалом, скажем в 1 секунду опрашивать сервер и смотреть не завершилась ли наша задача, но в пору HTML5  делать это, по крайней мере, не престижно. Будем использовать для этих целей инструмент по обмену сообщениями между сервером и клиентом <strong>Faye</strong>.</p>
+
+<h3>Инструменты</h3>
+
+<p>Нам понадобится Rails приложение, к которому мы и будем привязывать всю эту функциональность. Также будем использовать <strong>Resque</strong> для выполнений фоновых задач &ndash; инструмент, зарекомендовавший себя, как надежный и стабильный помощник, спасающий всегда, когда нужно выполнить тяжелые задачи в фоне. Вместе с <strong>faye</strong> воспользуемся оберткой для него от Ryan Bates <strong>Private Pub</strong>, который мне очень облегчил жизнь, надеюсь, и облегчит вам.</p>
+
+<h3>Реализация</h3>
+
+<p>Для начала установим redis и обновим наш Gemfile, дополнив его необходимыми гемами resque, faye, private_pub, thin.</p>
+
+<p>Я буду рассказать все на примере Mac OS, установка подобного инструментарий, скажем, на Ubuntu, не должна вызвать вопросов, потому что инструменты очень распространенные.</p>
+
+<p>Устанавливал redis я с помощью всем известного пакетного менеджера Homebrew, напечатав в терминале всего одну команду <code>brew install redis</code></p>
+
+<p>Допустим у нас имеется какой-нибудь тяжелый объект с несколькими картинками, которые лежат в Amazon S3 и, чтобы создать копию этого объекта нам понадобится скачать все эти картинки, чтобы вновь их туда загрузить,  привязав в новому объекту. Не спрашивайте почему так сложно, так работает CarrierWave или я просто не нашел лучшего решения.</p>
+
+<p>Если у нас раньше был метод в контролле, к примеру, clone, которй вызывал метод из модели, делающий всю грязную работу, то сейчас нам нужно лишь добавить новую задачу для resque, выглядеть это будет примерно так</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">clone</span>
+</span><span class='line'>  <span class="no">Resque</span><span class="o">.</span><span class="n">enqueue</span><span class="p">(</span><span class="no">CloneProfileWorker</span><span class="p">,</span> <span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Теперь тяжелая задача будет добавляться в очередь всякий раз, когда мы пройдем по ссылке <strong>/profiles/#{ id }/clone</strong>.</p>
+
+<p>Давайте поставим и настроим PrivatePub, который будет со стороны клиента подписываться на определенные события, и со стороны сервера, после наступления определенного события (в нашем примере это, когда resque job отработает) делать нужные нам вещи.</p>
+
+<p>Для этого в консоли нужно запустить <code>rails g private_pub:install</code></p>
+
+<p>и добавить в файл app/assets/javascripts/application.js[.cofeee] строчку
+<code>#= require private_pub</code>, если вы используете cofeeScript или же <code>//= require private_pub</code>, если js</p>
+
+<p>и дальше во вьюхе <strong>/profile/clone.html.haml</strong> (я использую haml в данном проекте)</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">=</span> <span class="n">subscribe_to</span> <span class="s2">&quot;/profile_cloning_</span><span class="si">#{</span> <span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span> <span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="ss">:javascript</span>
+</span><span class='line'>  <span class="no">PrivatePub</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="s1">&#39;/profile_cloning_#{ params[:id] }&#39;</span><span class="p">,</span> <span class="n">function</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">location</span><span class="o">.</span><span class="n">href</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">url</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Первая строчка это метод из гема, который инициализует объект необходимыми параметрами из файла /config/private_pub.yml, а после мы &ldquo;подписываемся на событие &lsquo;/profile_cloning_#{ params[:id] }&rsquo;, где в params[:id] содержится текущий id профиля. При наступлении данного события, мы перенаправляем пользователя на страницу &lsquo;/profile/#{ new_id }/edit&rdquo;, полный урл мы получим после того, как resque job отработает.</p>
+
+<p><strong>app/workers/clone_profile_worker.rb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;resque&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">CloneProfileWorker</span>
+</span><span class='line'>  <span class="vi">@queue</span> <span class="o">=</span> <span class="ss">:default</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">perform</span><span class="p">(</span><span class="n">profile_id</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">c</span> <span class="o">=</span> <span class="no">Profile</span><span class="o">.</span><span class="n">find</span> <span class="n">profile_id</span>
+</span><span class='line'>    <span class="n">new_profile</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">clone_self</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="n">new_profile</span><span class="o">.</span><span class="n">is_a?</span> <span class="no">Profile</span>
+</span><span class='line'>      <span class="no">PrivatePub</span><span class="o">.</span><span class="n">publish_to</span> <span class="s2">&quot;/profile_cloning_</span><span class="si">#{</span> <span class="n">profile_id</span> <span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="ss">:url</span> <span class="o">=&gt;</span> <span class="s2">&quot;/profiles/</span><span class="si">#{</span> <span class="n">new_profile</span><span class="o">.</span><span class="n">id</span> <span class="si">}</span><span class="s2">/edit&quot;</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>В данном воркере нет ничего магического: сначала мы клонируем наш профиль и если все прошло успешно, то оповещаем нашего клиента и передаем туда url, на который он перенаправится.</p>
+
+<p>Проверяем работоспособность</p>
+
+<p>Запускаем в разных окнах терминала:</p>
+
+<ul>
+<li><code>rails s</code></li>
+<li><code>redis-server /usr/local/etc/redis.conf</code> (у меня MacOs, на других ОС должно быть нечто подобное)</li>
+<li><code>VERBOSE=1 rake resque:work QUEUE=*</code> (запускаем все очереди, устанвливаем verbose=1 для того, чтобы видеть что происходит внутри resque)</li>
+<li><code>rackup private_pub.ru -s thin -E production</code> (сервер для PrivatePub и Faye)</li>
+</ul>
+
+
+<p>Проходим по ссылке наподобие <strong>/profiles/73/clone</strong> и смотрим в терминале как отрабатывает наш resque job и мы перенаправляемся на редактирование уже склонированного профиля, если все отработало без ошибок. Если же возникли ошибки, то они отобразятся в терминале, если произойдет что-то невообразимое и непредвиденное, пишите в комментариях, я попробую помочь вам.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-21T22:45:24+04:00" pubdate data-updated="true">21.01.2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ruby/'>Ruby</a>, <a class='category' href='/blog/categories/ruby-on-rails/'>Ruby On Rails</a>, <a class='category' href='/blog/categories/proghrammirovaniie/'>программирование</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://vredniy.github.io/2013/01/resque-with-private-pub-and-rails" data-via="" data-counturl="http://vredniy.github.io/2013/01/resque-with-private-pub-and-rails" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+      
+        <a class="basic-alignment right articlenav" href="/2013/01/slite3-to-posgres-migration" title="Next Post: Перенос sqlite3 базы данных в Postgres (Heroku)">Перенос sqlite3 базы данных в Postgres (Heroku) &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2013/03/sinatra-datamapper-news-combinator">Парсим news.ycombinator.com или не рельсами едиными жив человек (Sinatra, DataMapper)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/03/unicorn-rbenv-nginx-postgresql">Разворачиваем Rails приложение вместе с Capistrano</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/01/slite3-to-posgres-migration">Перенос Sqlite3 базы данных в Postgres (Heroku)</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Зудочкин Дима -
+  <span class="credit">Powered by <a rel="nofollow" href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

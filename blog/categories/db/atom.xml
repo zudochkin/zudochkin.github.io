@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: db | Записки Вредного программиста]]></title>
+  <link href="http://vredniy.github.io/blog/categories/db/atom.xml" rel="self"/>
+  <link href="http://vredniy.github.io/"/>
+  <updated>2014-02-01T16:23:26+04:00</updated>
+  <id>http://vredniy.github.io/</id>
+  <author>
+    <name><![CDATA[Зудочкин Дима]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Перенос sqlite3 базы данных в Postgres (Heroku)]]></title>
+    <link href="http://vredniy.github.io/2013/01/slite3-to-posgres-migration"/>
+    <updated>2013-01-25T12:12:16+04:00</updated>
+    <id>http://vredniy.github.io/2013/01/slite3-to-posgres-migration</id>
+    <content type="html"><![CDATA[<p>Иногда бывает крайне необходимо конвертировать имеющуюся базу данных в одном формате в формат другой. Сегодня я расскажу вам как это быстро и безболезненно (почти) сделать.<!-- more --></p>
+
+<p>Для начала нам понадобится замечательный <a href="https://github.com/ricardochimal/taps">gem taps</a> и запущенный с его помощью локальный сервер с бекендом из Sinatra.</p>
+
+<p>Т.к. часто создавая новый проект, не хочется особо заморачиваться и создавать для этого отдельную базу данных в Postgres, я обычно использую базу данных по умолчанинию, в рельсах это, как вам известно, sqlite. Но бывает иногда необходимо скопировать данные с локальной базы данных в удаленную, к примеру, если вы хостите проект на heroku, где по умолчанию используется postgres.</p>
+
+<p>Итак, поехали, для начала создаем сервер:</p>
+
+<p><code>taps server sqlite://db/development.sqlite3 user pass</code>, где user &ndash; это имя пользователя для доступа к нашему серверу (серверу taps), pass соответственно пароль.</p>
+
+<p>Дальше нам нужно скопировать нашу sqlite базу данных в postgres, для этого достаточно запустить одну команду:</p>
+
+<p><code>taps pull postgres://zudochkin@localhost/project_development http://user:pass@localhost:5000</code>, где postgres &ndash; это адаптер базы данных, вы можете смело использовать mysql, zudochkin &ndash; имя пользователя для postgres, project_development &ndash; имя базы данных, куда я собираюсь импортировать данные, <a href="http://user:pass@localhost:5000">http://user:pass@localhost:5000</a> &ndash; коннектимся к нашему серверу, где в качестве имени пользователя указали user, в качестве пароля pass, а крутится все это дело по умолчанию на 5000 порте.</p>
+
+<p>Теперь, если зайти и посмотреть через pgAdmin в нашу postgres базу данных, то мы увидим данные, скопированные из sqlite3.</p>
+
+<p>Дальше необходимо сделать postgres дамп, для того, чтобы импортировать его в heroku базу данных.</p>
+
+<p><code>pg_dump -Fc --no-acl --no-owner -h localhost -U zudochkin project_development &gt; project_development.dump</code></p>
+
+<p>Загружаем дамп куда-нибудь в интернет: подойдет любой фтп или что-нибудь наподобие <a href="http://getcloudapp.com">CloudApp</a>, я использую последнее, потому что есть нативный клиент под Mac и он удобен в работе.</p>
+
+<p>Дальше получаем URL для доступа к postgres базе данных heroku, для этого в папке с приложением выполнеяем (или из любой папке, но дописав к команде <code>--app app_name</code>) <code>heroku config | grep DATABASE_URL</code> и увидим длинный адрес, это и есть ссылка для доступа к БД. Если вы, как я используете cloudApp, то знайте, что, когда вы копируете ссылку на файл, это, не прямая ссылка и поэтому загрузить на heroku дамп у вас не получится, для того, чтобы увидеть реально прямую ссылку необходимо набрать следующее <code>curl -I http://cl.ly/2h1k1X3Z2j4f/project_development.dump | grep Location</code> и вы увидите прямую ссылку после слова <strong>&ldquo;Location: &rdquo;</strong>. Длинный и запутанный адрес это ссылка, которую вам дал cloudApp для доступа к файлу.</p>
+
+<p><img class="image" src="/images/posts/2013-01-slite3-to-posgres-migration/Screen-Shot-2013-01-25-at-12.05.28-PM1-300x146.png"></p>
+
+<p>После этих манипуляций давайте запустим импорт базы данных из папки с проектом <code>heroku pgbackups:restore DATABASE 'http://f.cl.ly/items/4G2u393d432U3V0u2X1d/project_development.dump'</code> если все прошло нормально, то мы увидим</p>
+
+<p><code>
+Retrieving... done
+Restoring... done
+</code></p>
+
+<p>если же что-то пошло не так и вы увидели сообщение об ошибке, напишите <code>heroku logs --ps pgbackups</code> и вы увидите что именно пошло не так.</p>
+
+<p>Надеюсь, данная заметка вам поможет перенести локальные данные на heroku или просто сделать из sqlite3 базы данных postgres или mysql.</p>
+]]></content>
+  </entry>
+  
+</feed>
