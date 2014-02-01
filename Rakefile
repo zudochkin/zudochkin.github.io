@@ -95,7 +95,7 @@ namespace :my do
   desc 'Right permalink for wordpress consistency'
   task :transform do
     Dir.glob('./source/_posts/*.markdown').each do |source_post|
-      post_content = IO.read source_post
+      post_content = old_post_content = IO.read source_post
 
       yaml_object = Psych.load post_content
 
@@ -107,7 +107,7 @@ namespace :my do
 
       post_content = replace_images post_content, yaml_object
 
-      IO.write source_post, post_content
+      IO.write source_post, post_content if old_post_content != post_content
     end
   end
 end
