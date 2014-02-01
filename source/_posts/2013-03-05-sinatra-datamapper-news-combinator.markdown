@@ -66,7 +66,8 @@ gem 'unicorn'
 
 ./app.rb
 
-[cc lang="ruby"]
+``` ruby
+
 require 'sinatra'
 require 'slim'
 
@@ -167,7 +168,8 @@ end
 get '/*' do
   do_process
 end
-[/cc]
+
+```
 
 А теперь немного комментариев:
 
@@ -218,7 +220,8 @@ end
 
 теперь Rakefile, который будет парсить news.ycombinator.com каждый час
 
-[cc lang="ruby"]
+``` ruby
+
 require './app'
 
 require 'nokogiri'
@@ -249,12 +252,14 @@ task :update_interesting do
     puts "#{a.id} updated"
   end
 end
-[/cc]
+
+```
 
 В нем всего две задачи: первая - парсит новости, вторая нужна для того, что если вдруг изменися интересные ключевые слова, то вы сможете легко обновить список инетересных вам новостей.
 
 Файл, который отвечает за частоту выполнения определенных тасков ./config/shedule.rb
-[cc lang="ruby"]
+``` ruby
+
 set :output, '/home/deployer/projects/ycombinator/shared/log/shedule.log'
 
 job_type :rake, "cd :path && RACK_ENV=:environment bundle exec rake :task --silent :output"
@@ -262,19 +267,22 @@ job_type :rake, "cd :path && RACK_ENV=:environment bundle exec rake :task --sile
 every :hour do
   rake 'parse'
 end
-[/cc]
+
+```
 
 В первой строчке я указываю путь до файла с логами, чтобы каждый раз при запуске rake task'а в конец добавлялось время последнего обновления. В блоке с every можно очень гибко указать как часто выполняться, смотрите документацию к гему whenever.
 
 Также я добавил несколько строк к файлу, выполняющего деплой из [Разворачиваем Rails приложение вместе с Capistrano](/unicorn-rbenv-nginx-postgresql/). ./config/deploy.rb
 
-[cc lang="ruby"]
+``` ruby
+
 ...
 set :application, 'ycombinator'
 set :whenever_command, "bundle exec whenever"
 require "whenever/capistrano"
 ...
-[/cc]
+
+```
 
 Теперь мы можем запустить обновления cron'а deployer'а командой `cap whenever:update_crontab`
 
@@ -283,15 +291,18 @@ require "whenever/capistrano"
 Без комментариев оставлю вьюхи, но текст их приведу.
 
 ./views/application.coffee
-[cc lang="coffeescript"]
+``` coffeescript
+
 $ ->
   $(".article").click ->
     $.post "/" + $(this).attr("id") + "/read", ->
     $(this).parent('li').remove()
-[/cc]
+
+```
 
 ./views/layout.slim
-[cc lang="ruby"]
+``` ruby
+
 doctype html
 
 head
@@ -309,10 +320,12 @@ body
   a{ href="/" } Home
   hr
   == yield
-[/cc]
+
+```
 
 И наконец, ./views/index.slim
-[cc lang="ruby"]
+``` ruby
+
 h1
   ' Unread articles
   - if @search_term
@@ -331,7 +344,8 @@ ul
     li
       a{ href="#{ article.url }" id="#{ article.id }" class="article" target="_blank" }
         = article.title
-[/cc]
+
+```
 
 Получислось такое незамысловатое и некрасивое приложение :).
 
