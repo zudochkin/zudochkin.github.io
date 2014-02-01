@@ -36,33 +36,40 @@ end
 # My rake tasks
 require 'psych'
 
+def replace_code(old_code)
+  code_finder_regexp = /\[cc lang="([^"]+)"\](.*?)\[\/cc\]/m # finds [cc lang="?"]code[/cc] blocks
+
+  return old_code if old_code !~ code_finder_regexp
+
+  puts 'code changed'
+
+  old_code.gsub(code_finder_regexp, "``` \\1\n\\2\n```")
+end
+
+def replace_permalink(content)
+  yaml_object = Psych.load content
+
+  return content if yaml_object['permalink']
+
+  slug = yaml_object['slug']
+  date = yaml_object['date']
+
+  permalink = "/#{date.to_s.split(' ').first.split('-')[0..1].join('/')}/#{slug}"
+
+
+  content.sub("slug: #{slug}", "slug: #{slug}\n\npermalink: #{permalink}\n")
+end
+
 namespace :my do
   desc 'Right permalink for wordpress consistency'
-  task :transform_permalink do
+  task :transform do
     Dir.glob('./source/_posts/*.markdown').each do |source_post|
       post_content = IO.read source_post
-      yaml_object = Psych.load post_content
 
-      slug = yaml_object['slug']
-      date = yaml_object['date']
+      post_content = replace_code post_content
+      post_content = replace_permalink post_content
 
-      code_finder_regexp = /\[cc lang="([^"]+)"\](.*?)\[\/cc\]/m # finds [cc lang="?"]code[/cc] blocks
-
-      next if post_content !~ code_finder_regexp
-
-      puts post_content.gsub(code_finder_regexp, "``` \\1\n\\2\n```")
-
-      require 'pry'; binding.pry
-
-      next if yaml_object['permalink']
-
-
-
-      permalink = "/#{date.to_s.split(' ').first.split('-')[0..1].join('/')}/#{slug}"
-
-      puts permalink
-
-      IO.write source_post, post_content.sub("slug: #{slug}", "slug: #{slug}\n\npermalink: #{permalink}\n")
+      IO.write source_post, post_content
     end
   end
 end
