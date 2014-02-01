@@ -2,7 +2,7 @@
 #      Main Configs       #
 # ----------------------- #
 
-url: http://vredniy.github.io
+url: http://zudochkin.ru
 title: Записки Вредного программиста
 subtitle: "enjoy, motherfuckers ;)"
 author: Зудочкин Дима
@@ -94,7 +94,7 @@ disqus_short_name:
 disqus_show_comment_count: false
 
 # Google Analytics
-google_analytics_tracking_id:
+google_analytics_tracking_id: UA-11803166-9
 
 # Facebook Like
 facebook_like: false
