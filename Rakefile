@@ -35,6 +35,7 @@ end
 
 # My rake tasks
 require 'psych'
+require 'open-uri'
 
 def replace_code(old_code)
   code_finder_regexp = /\[cc(?: lang="([^"]+)")?\](.*?)\[\/cc\]/m # finds [cc(?: lang="?")?]code[/cc] blocks
@@ -46,9 +47,39 @@ def replace_code(old_code)
   old_code.gsub(code_finder_regexp, "``` \\1\\2\n```")
 end
 
-def replace_permalink(content)
-  yaml_object = Psych.load content
+def replace_images(content, yaml_object)
+  # finds images with title
+  image_finder_regexp = /!
+      \[
+        ([^\]]*)
+      \]
+      \(
+        ([^\)]*?)(?:\s"(.*)")*
+      \)/mx
 
+  return content if content !~ image_finder_regexp
+
+
+  relative_path = '/images/posts/' + yaml_object['permalink'][1..-1].split('/').join('-')
+  folder_path = './source/' + relative_path
+
+  FileUtils.mkdir_p folder_path
+
+  content.gsub image_finder_regexp do |match|
+    filename = File.basename $2
+
+    File.open("#{folder_path}/#{filename}", 'wb') do |saved_file|
+      open($2, 'rb') do |read_file|
+        saved_file.write(read_file.read)
+      end
+    end
+
+    # "<img src=\"#{relative_path}/#{filename}\" title=\"#{$3}\" alt=\"#{$1}\">"
+    "{% img image #{relative_path}/#{filename} %}"
+  end
+end
+
+def replace_permalink(content, yaml_object)
   return content if yaml_object['permalink']
 
   slug = yaml_object['slug']
@@ -66,8 +97,15 @@ namespace :my do
     Dir.glob('./source/_posts/*.markdown').each do |source_post|
       post_content = IO.read source_post
 
+      yaml_object = Psych.load post_content
+
       post_content = replace_code post_content
-      post_content = replace_permalink post_content
+      post_content = replace_permalink post_content, yaml_object
+
+      # need updated permalink
+      yaml_object = Psych.load post_content
+
+      post_content = replace_images post_content, yaml_object
 
       IO.write source_post, post_content
     end
