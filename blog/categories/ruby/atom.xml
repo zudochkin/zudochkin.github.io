@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ruby | Записки Вредного программиста]]></title>
   <link href="http://vredniy.github.io/blog/categories/ruby/atom.xml" rel="self"/>
   <link href="http://vredniy.github.io/"/>
-  <updated>2014-02-01T03:48:21+04:00</updated>
+  <updated>2014-02-01T04:37:50+04:00</updated>
   <id>http://vredniy.github.io/</id>
   <author>
     <name><![CDATA[Зудочкин Дима]]></name>
@@ -65,8 +65,9 @@ gem &amp;lsquo;whenever&amp;rsquo;, :require =&gt; false&lt;/p&gt;
 
 <p>./app.rb</p>
 
-<p>[cc lang=&ldquo;ruby&rdquo;]
-require &lsquo;sinatra&rsquo;
+<p>``` ruby</p>
+
+<p>require &lsquo;sinatra&rsquo;
 require &lsquo;slim&rsquo;</p>
 
 <p>require &lsquo;coffee-script&rsquo;
@@ -187,8 +188,9 @@ end</p>
 
 <p>get &lsquo;/*&rsquo; do
   do_process
-end
-[/cc]</p>
+end</p>
+
+<p>```</p>
 
 <p>А теперь немного комментариев:</p>
 
@@ -215,8 +217,9 @@ end
 
 <p>теперь Rakefile, который будет парсить news.ycombinator.com каждый час</p>
 
-<p>[cc lang=&ldquo;ruby&rdquo;]
-require &lsquo;./app&rsquo;</p>
+<p>``` ruby</p>
+
+<p>require &lsquo;./app&rsquo;</p>
 
 <p>require &lsquo;nokogiri&rsquo;
 require &lsquo;open-uri&rsquo;</p>
@@ -251,33 +254,38 @@ puts "#{a.id} updated"
 </code></pre>
 
 <p>  end
-end
-[/cc]</p>
+end</p>
+
+<p>```</p>
 
 <p>В нем всего две задачи: первая &ndash; парсит новости, вторая нужна для того, что если вдруг изменися интересные ключевые слова, то вы сможете легко обновить список инетересных вам новостей.</p>
 
 <p>Файл, который отвечает за частоту выполнения определенных тасков ./config/shedule.rb
-[cc lang=&ldquo;ruby&rdquo;]
-set :output, &lsquo;/home/deployer/projects/ycombinator/shared/log/shedule.log&rsquo;</p>
+``` ruby</p>
+
+<p>set :output, &lsquo;/home/deployer/projects/ycombinator/shared/log/shedule.log&rsquo;</p>
 
 <p>job_type :rake, &ldquo;cd :path &amp;&amp; RACK_ENV=:environment bundle exec rake :task &mdash;silent :output&rdquo;</p>
 
 <p>every :hour do
   rake &lsquo;parse&rsquo;
-end
-[/cc]</p>
+end</p>
+
+<p>```</p>
 
 <p>В первой строчке я указываю путь до файла с логами, чтобы каждый раз при запуске rake task'а в конец добавлялось время последнего обновления. В блоке с every можно очень гибко указать как часто выполняться, смотрите документацию к гему whenever.</p>
 
 <p>Также я добавил несколько строк к файлу, выполняющего деплой из <a href="/unicorn-rbenv-nginx-postgresql/">Разворачиваем Rails приложение вместе с Capistrano</a>. ./config/deploy.rb</p>
 
-<p>[cc lang=&ldquo;ruby&rdquo;]
-&hellip;
+<p>``` ruby</p>
+
+<p>&hellip;
 set :application, &lsquo;ycombinator&rsquo;
 set :whenever_command, &ldquo;bundle exec whenever&rdquo;
 require &ldquo;whenever/capistrano&rdquo;
-&hellip;
-[/cc]</p>
+&hellip;</p>
+
+<p>```</p>
 
 <p>Теперь мы можем запустить обновления cron'а deployer'а командой <code>cap whenever:update_crontab</code></p>
 
@@ -286,19 +294,21 @@ require &ldquo;whenever/capistrano&rdquo;
 <p>Без комментариев оставлю вьюхи, но текст их приведу.</p>
 
 <p>./views/application.coffee
-[cc lang=&ldquo;coffeescript&rdquo;]
-$ &ndash;>
+``` coffeescript</p>
+
+<p>$ &ndash;>
   $(&ldquo;.article&rdquo;).click &ndash;></p>
 
 <pre><code>$.post "/" + $(this).attr("id") + "/read", -&gt;
 $(this).parent('li').remove()
 </code></pre>
 
-<p>[/cc]</p>
+<p>```</p>
 
 <p>./views/layout.slim
-[cc lang=&ldquo;ruby&rdquo;]
-doctype html</p>
+``` ruby</p>
+
+<p>doctype html</p>
 
 <p>head
   title Ycombinator
@@ -314,12 +324,14 @@ doctype html</p>
   br
   a{ href=&ldquo;<a href="http://vredniy.github.io/">http://vredniy.github.io/</a>&rdquo; } Home
   hr
-  == yield
-[/cc]</p>
+  == yield</p>
+
+<p>```</p>
 
 <p>И наконец, ./views/index.slim
-[cc lang=&ldquo;ruby&rdquo;]
-h1
+``` ruby</p>
+
+<p>h1
   &lsquo; Unread articles
   &ndash; if @search_term</p>
 
@@ -345,7 +357,7 @@ a{ href=&ldquo;<a href="http://vredniy.github.io/">http://vredniy.github.io/</a>
     = article.title
 </code></pre>
 
-<p>[/cc]</p>
+<p>```</p>
 
 <p>Получислось такое незамысловатое и некрасивое приложение :).</p>
 

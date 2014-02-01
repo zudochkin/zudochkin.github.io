@@ -2,18 +2,14 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
         <loc>http://vredniy.github.io/2013/03/sinatra-datamapper-news-combinator</loc>
-        <lastmod>2014-02-01T02:34:45+04:00</lastmod>
-    </url>
-    <url>
-        <loc>http://vredniy.github.io/404.html</loc>
-        <lastmod>2014-02-01T01:27:48+04:00</lastmod>
+        <lastmod>2014-02-01T04:32:07+04:00</lastmod>
     </url>
     <url>
         <loc>http://vredniy.github.io/blog/archives/</loc>
-        <lastmod>2014-02-01T02:34:45+04:00</lastmod>
+        <lastmod>2014-02-01T04:32:07+04:00</lastmod>
     </url>
     <url>
         <loc>http://vredniy.github.io/</loc>
-        <lastmod>2014-02-01T02:34:45+04:00</lastmod>
+        <lastmod>2014-02-01T04:32:07+04:00</lastmod>
     </url>
 </urlset>

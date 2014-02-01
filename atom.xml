@@ -4,7 +4,7 @@
   <title><![CDATA[Записки Вредного программиста]]></title>
   <link href="http://vredniy.github.io/atom.xml" rel="self"/>
   <link href="http://vredniy.github.io/"/>
-  <updated>2014-02-01T03:48:21+04:00</updated>
+  <updated>2014-02-01T04:37:50+04:00</updated>
   <id>http://vredniy.github.io/</id>
   <author>
     <name><![CDATA[Зудочкин Дима]]></name>
@@ -65,130 +65,208 @@ gem &#39;unicorn&#39;</code></pre>
 
 <p>./app.rb</p>
 
-<p>[cc lang=&ldquo;ruby&rdquo;]
-require &lsquo;sinatra&rsquo;
-require &lsquo;slim&rsquo;</p>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;sinatra&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;slim&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;coffee-script&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;data_mapper&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="ss">DataMapper</span><span class="p">:</span><span class="ss">:Property</span><span class="o">::</span><span class="nb">String</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="mi">400</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">configure</span> <span class="ss">:development</span> <span class="k">do</span>
+</span><span class='line'>  <span class="no">DataMapper</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="ss">:default</span><span class="p">,</span> <span class="s1">&#39;sqlite3:./db/articles.db&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">configure</span> <span class="ss">:production</span> <span class="k">do</span>
+</span><span class='line'>  <span class="no">DataMapper</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="ss">:default</span><span class="p">,</span> <span class="s1">&#39;postgres://deployer:funnydb@localhost/ycombinator&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Article</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="ss">DataMapper</span><span class="p">:</span><span class="ss">:Resource</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="no">INTERESTING_KEYWORDS</span> <span class="o">=</span> <span class="sx">%w(ruby rails coffee js javascript ember angular</span>
+</span><span class='line'><span class="sx">    backbone tdd rspec shoulda gem unicorn nginx sinatra vim mac)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">property</span> <span class="ss">:id</span><span class="p">,</span> <span class="no">Serial</span>
+</span><span class='line'>  <span class="n">property</span> <span class="ss">:url</span><span class="p">,</span> <span class="nb">String</span><span class="p">,</span> <span class="ss">:unique_index</span> <span class="o">=&gt;</span> <span class="ss">:u</span><span class="p">,</span> <span class="ss">:required</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:format</span> <span class="o">=&gt;</span> <span class="ss">:url</span>
+</span><span class='line'>  <span class="n">property</span> <span class="ss">:title</span><span class="p">,</span> <span class="nb">String</span><span class="p">,</span> <span class="ss">:required</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:index</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">property</span> <span class="ss">:interesting</span><span class="p">,</span> <span class="no">Boolean</span><span class="p">,</span> <span class="ss">:default</span> <span class="o">=&gt;</span> <span class="kp">false</span>
+</span><span class='line'>  <span class="n">property</span> <span class="ss">:read_at</span><span class="p">,</span> <span class="no">DateTime</span>
+</span><span class='line'>  <span class="n">timestamps</span> <span class="ss">:created_at</span><span class="p">,</span> <span class="ss">:updated_on</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">interesting?</span>
+</span><span class='line'>    <span class="o">!!</span><span class="p">(</span><span class="n">title</span> <span class="o">=~</span> <span class="no">Regexp</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="no">INTERESTING_KEYWORDS</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">),</span> <span class="ss">Regexp</span><span class="p">:</span><span class="ss">:IGNORECASE</span><span class="p">))</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">interesting_to_me</span>
+</span><span class='line'>    <span class="n">all</span><span class="p">(</span><span class="ss">:interesting</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">unread</span>
+</span><span class='line'>    <span class="n">all</span><span class="p">(</span><span class="ss">:read_at</span> <span class="o">=&gt;</span> <span class="kp">nil</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">read</span>
+</span><span class='line'>    <span class="n">all</span><span class="p">(</span><span class="ss">:read_at</span><span class="o">.</span><span class="n">not</span> <span class="o">=&gt;</span> <span class="kp">nil</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">search</span><span class="p">(</span><span class="n">term</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">if</span> <span class="no">DataMapper</span><span class="o">.</span><span class="n">repository</span><span class="o">.</span><span class="n">adapter</span><span class="o">.</span><span class="n">options</span><span class="o">[</span><span class="ss">:scheme</span><span class="o">]</span> <span class="o">==</span> <span class="s1">&#39;sqlite3&#39;</span>
+</span><span class='line'>      <span class="n">all</span><span class="p">(</span><span class="ss">:title</span><span class="o">.</span><span class="n">like</span> <span class="o">=&gt;</span> <span class="s2">&quot;%</span><span class="si">#{</span><span class="n">term</span><span class="o">.</span><span class="n">to_s</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">else</span>
+</span><span class='line'>      <span class="n">all</span><span class="p">(</span><span class="ss">:conditions</span> <span class="o">=&gt;</span> <span class="o">[</span> <span class="s1">&#39;title ILIKE ?&#39;</span><span class="p">,</span> <span class="s2">&quot;%</span><span class="si">#{</span><span class="n">term</span><span class="o">.</span><span class="n">to_s</span><span class="si">}</span><span class="s2">%&quot;</span> <span class="o">]</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">DataMapper</span><span class="o">.</span><span class="n">finalize</span>
+</span><span class='line'><span class="c1">#DataMapper.auto_migrate!</span>
+</span><span class='line'><span class="no">DataMapper</span><span class="o">.</span><span class="n">auto_upgrade!</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">helpers</span> <span class="k">do</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">do_process</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="kp">nil</span><span class="p">)</span>
+</span><span class='line'>    <span class="vi">@search_term</span> <span class="o">=</span> <span class="n">params</span><span class="o">[</span><span class="ss">:term</span><span class="o">].</span><span class="n">nil?</span> <span class="p">?</span> <span class="kp">nil</span> <span class="p">:</span> <span class="n">params</span><span class="o">[</span><span class="ss">:term</span><span class="o">]</span>
+</span><span class='line'>    <span class="vi">@articles</span> <span class="o">=</span> <span class="k">case</span> <span class="n">scope</span>
+</span><span class='line'>                <span class="k">when</span> <span class="ss">:all</span>
+</span><span class='line'>                  <span class="no">Article</span>
+</span><span class='line'>                <span class="k">when</span> <span class="ss">:all_read</span>
+</span><span class='line'>                  <span class="no">Article</span><span class="o">.</span><span class="n">read</span>
+</span><span class='line'>                <span class="k">when</span> <span class="ss">:all_unread</span>
+</span><span class='line'>                  <span class="no">Article</span><span class="o">.</span><span class="n">unread</span>
+</span><span class='line'>                <span class="k">else</span>
+</span><span class='line'>                  <span class="no">Article</span><span class="o">.</span><span class="n">interesting_to_me</span><span class="o">.</span><span class="n">unread</span>
+</span><span class='line'>                <span class="k">end</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="vi">@search_term</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">slim</span> <span class="ss">:index</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">get</span> <span class="s1">&#39;/application.js&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">coffee</span> <span class="ss">:application</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">post</span> <span class="s1">&#39;/:id/read&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="vi">@article</span> <span class="o">=</span> <span class="no">Article</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>  <span class="vi">@article</span><span class="o">.</span><span class="n">read_at</span> <span class="o">=</span> <span class="no">Time</span><span class="o">.</span><span class="n">now</span>
+</span><span class='line'>  <span class="vi">@article</span><span class="o">.</span><span class="n">save</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">get</span> <span class="s1">&#39;/all&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">do_process</span> <span class="ss">:all</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">get</span> <span class="s1">&#39;/all/read&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">do_process</span> <span class="ss">:all_read</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">get</span> <span class="s1">&#39;/all/unread&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">do_process</span> <span class="ss">:all_unread</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">get</span> <span class="s1">&#39;/*&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">do_process</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
 
-<p>require &lsquo;coffee-script&rsquo;
-require &lsquo;data_mapper&rsquo;</p>
-
-<p>DataMapper::Property::String.length(400)</p>
-
-<p>configure :development do
-  DataMapper.setup(:default, &lsquo;sqlite3:./db/articles.db&rsquo;)
-end</p>
-
-<p>configure :production do
-  DataMapper.setup(:default, &lsquo;postgres://deployer:funnydb@localhost/ycombinator&rsquo;)
-end</p>
-
-<p>class Article
-  include DataMapper::Resource</p>
-
-<p>  INTERESTING_KEYWORDS = %w(ruby rails coffee js javascript ember angular</p>
-
-<pre><code>backbone tdd rspec shoulda gem unicorn nginx sinatra vim mac)
-</code></pre>
-
-<p>  property :id, Serial
-  property :url, String, :unique_index => :u, :required => true, :format => :url
-  property :title, String, :required => true, :index => true
-  property :interesting, Boolean, :default => false
-  property :read_at, DateTime
-  timestamps :created_at, :updated_on</p>
-
-<p>  def interesting?</p>
-
-<pre><code>!!(title =~ Regexp.new(INTERESTING_KEYWORDS.join('|'), Regexp::IGNORECASE))
-</code></pre>
-
-<p>  end</p>
-
-<p>  def self.interesting_to_me</p>
-
-<pre><code>all(:interesting =&gt; true)
-</code></pre>
-
-<p>  end</p>
-
-<p>  def self.unread</p>
-
-<pre><code>all(:read_at =&gt; nil)
-</code></pre>
-
-<p>  end</p>
-
-<p>  def self.read</p>
-
-<pre><code>all(:read_at.not =&gt; nil)
-</code></pre>
-
-<p>  end</p>
-
-<p>  def self.search(term=&lsquo;&rsquo;)</p>
-
-<pre><code>if DataMapper.repository.adapter.options[:scheme] == 'sqlite3'
-  all(:title.like =&gt; "%#{term.to_s}%")
-else
-  all(:conditions =&gt; [ 'title ILIKE ?', "%#{term.to_s}%" ])
-end
-</code></pre>
-
-<p>  end
-end</p>
-
-<p>DataMapper.finalize</p>
-
-<h1>DataMapper.auto_migrate!</h1>
-
-<p>DataMapper.auto_upgrade!</p>
-
-<p>helpers do
-  def do_process(scope=nil)</p>
-
-<pre><code>@search_term = params[:term].nil? ? nil : params[:term]
-@articles = case scope
-            when :all
-              Article
-            when :all_read
-              Article.read
-            when :all_unread
-              Article.unread
-            else
-              Article.interesting_to_me.unread
-            end.search(@search_term)
-slim :index
-</code></pre>
-
-<p>  end
-end</p>
-
-<p>get &lsquo;/application.js&rsquo; do
-  coffee :application
-end</p>
-
-<p>post &lsquo;/:id/read&rsquo; do
-  @article = Article.get(params[:id])
-  @article.read_at = Time.now
-  @article.save
-end</p>
-
-<p>get &lsquo;/all&rsquo; do
-  do_process :all
-end</p>
-
-<p>get &lsquo;/all/read&rsquo; do
-  do_process :all_read
-end</p>
-
-<p>get &lsquo;/all/unread&rsquo; do
-  do_process :all_unread
-end</p>
-
-<p>get &lsquo;/*&rsquo; do
-  do_process
-end
-[/cc]</p>
 
 <p>А теперь немного комментариев:</p>
 
@@ -215,69 +293,106 @@ end
 
 <p>теперь Rakefile, который будет парсить news.ycombinator.com каждый час</p>
 
-<p>[cc lang=&ldquo;ruby&rdquo;]
-require &lsquo;./app&rsquo;</p>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;./app&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;nokogiri&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;open-uri&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">desc</span> <span class="s1">&#39;Parse all articles&#39;</span>
+</span><span class='line'><span class="n">task</span> <span class="ss">:parse</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">doc</span> <span class="o">=</span> <span class="ss">Nokogiri</span><span class="p">:</span><span class="ss">:HTML</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s1">&#39;http://news.ycombinator.com/&#39;</span><span class="p">))</span>
+</span><span class='line'>  <span class="n">links</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">css</span><span class="p">(</span><span class="s1">&#39;td.title a&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">next_page_link</span> <span class="o">=</span> <span class="n">links</span><span class="o">.</span><span class="n">pop</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">links</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">link</span><span class="o">|</span>
+</span><span class='line'>    <span class="n">href</span> <span class="o">=</span> <span class="n">link</span><span class="o">[</span><span class="ss">:href</span><span class="o">]</span>
+</span><span class='line'>    <span class="n">text</span> <span class="o">=</span> <span class="n">link</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">text</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">unless</span> <span class="no">Article</span><span class="o">.</span><span class="n">first</span><span class="p">(</span><span class="ss">:url</span> <span class="o">=&gt;</span> <span class="n">href</span><span class="p">)</span>
+</span><span class='line'>      <span class="no">Article</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:url</span> <span class="o">=&gt;</span> <span class="n">href</span><span class="p">,</span> <span class="ss">:title</span> <span class="o">=&gt;</span> <span class="n">text</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nb">puts</span> <span class="no">Time</span><span class="o">.</span><span class="n">now</span><span class="o">.</span><span class="n">to_s</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">desc</span> <span class="s1">&#39;Update Interesting tasks&#39;</span>
+</span><span class='line'><span class="n">task</span> <span class="ss">:update_interesting</span> <span class="k">do</span>
+</span><span class='line'>  <span class="no">Article</span><span class="o">.</span><span class="n">all</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">a</span><span class="o">|</span>
+</span><span class='line'>    <span class="n">a</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="ss">:interesting</span> <span class="o">=&gt;</span> <span class="n">a</span><span class="o">.</span><span class="n">interesting?</span><span class="p">)</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="n">a</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> updated&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
 
-<p>require &lsquo;nokogiri&rsquo;
-require &lsquo;open-uri&rsquo;</p>
-
-<p>desc &lsquo;Parse all articles&rsquo;
-task :parse do
-  doc = Nokogiri::HTML(open(&lsquo;<a href="http://news.ycombinator.com/">http://news.ycombinator.com/</a>&rsquo;))
-  links = doc.css(&lsquo;td.title a&rsquo;)
-  next_page_link = links.pop</p>
-
-<p>  links.each do |link|</p>
-
-<pre><code>href = link[:href]
-text = link.children.text
-
-unless Article.first(:url =&gt; href)
-  Article.create(:url =&gt; href, :title =&gt; text)
-end
-</code></pre>
-
-<p>  end</p>
-
-<p>  puts Time.now.to_s
-end</p>
-
-<p>desc &lsquo;Update Interesting tasks&rsquo;
-task :update_interesting do
-  Article.all.each do |a|</p>
-
-<pre><code>a.update(:interesting =&gt; a.interesting?)
-puts "#{a.id} updated"
-</code></pre>
-
-<p>  end
-end
-[/cc]</p>
 
 <p>В нем всего две задачи: первая &ndash; парсит новости, вторая нужна для того, что если вдруг изменися интересные ключевые слова, то вы сможете легко обновить список инетересных вам новостей.</p>
 
-<p>Файл, который отвечает за частоту выполнения определенных тасков ./config/shedule.rb
-[cc lang=&ldquo;ruby&rdquo;]
-set :output, &lsquo;/home/deployer/projects/ycombinator/shared/log/shedule.log&rsquo;</p>
+<p>Файл, который отвечает за частоту выполнения определенных тасков ./config/shedule.rb</p>
 
-<p>job_type :rake, &ldquo;cd :path &amp;&amp; RACK_ENV=:environment bundle exec rake :task &mdash;silent :output&rdquo;</p>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">set</span> <span class="ss">:output</span><span class="p">,</span> <span class="s1">&#39;/home/deployer/projects/ycombinator/shared/log/shedule.log&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">job_type</span> <span class="ss">:rake</span><span class="p">,</span> <span class="s2">&quot;cd :path &amp;&amp; RACK_ENV=:environment bundle exec rake :task --silent :output&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">every</span> <span class="ss">:hour</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">rake</span> <span class="s1">&#39;parse&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
 
-<p>every :hour do
-  rake &lsquo;parse&rsquo;
-end
-[/cc]</p>
 
 <p>В первой строчке я указываю путь до файла с логами, чтобы каждый раз при запуске rake task&#8217;а в конец добавлялось время последнего обновления. В блоке с every можно очень гибко указать как часто выполняться, смотрите документацию к гему whenever.</p>
 
 <p>Также я добавил несколько строк к файлу, выполняющего деплой из <a href="http://vredniy.github.io/unicorn-rbenv-nginx-postgresql/">Разворачиваем Rails приложение вместе с Capistrano</a>. ./config/deploy.rb</p>
 
-<p>[cc lang=&ldquo;ruby&rdquo;]
-&hellip;
-set :application, &lsquo;ycombinator&rsquo;
-set :whenever_command, &ldquo;bundle exec whenever&rdquo;
-require &ldquo;whenever/capistrano&rdquo;
-&hellip;
-[/cc]</p>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">.</span><span class="n">.</span><span class="o">.</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:application</span><span class="p">,</span> <span class="s1">&#39;ycombinator&#39;</span>
+</span><span class='line'><span class="n">set</span> <span class="ss">:whenever_command</span><span class="p">,</span> <span class="s2">&quot;bundle exec whenever&quot;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s2">&quot;whenever/capistrano&quot;</span>
+</span><span class='line'><span class="o">.</span><span class="n">.</span><span class="o">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
 
 <p>Теперь мы можем запустить обновления cron&#8217;а deployer&#8217;а командой <code>cap whenever:update_crontab</code></p>
 
@@ -285,67 +400,98 @@ require &ldquo;whenever/capistrano&rdquo;
 
 <p>Без комментариев оставлю вьюхи, но текст их приведу.</p>
 
-<p>./views/application.coffee
-[cc lang=&ldquo;coffeescript&rdquo;]
-$ &ndash;>
-  $(&ldquo;.article&rdquo;).click &ndash;></p>
+<p>./views/application.coffee</p>
 
-<pre><code>$.post "/" + $(this).attr("id") + "/read", -&gt;
-$(this).parent('li').remove()
-</code></pre>
-
-<p>[/cc]</p>
-
-<p>./views/layout.slim
-[cc lang=&ldquo;ruby&rdquo;]
-doctype html</p>
-
-<p>head
-  title Ycombinator
-  script src=&ldquo;//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js&rdquo;
-  script src=&ldquo;/application.js&rdquo;</p>
-
-<p>body
-  a{ href=&ldquo;/all&rdquo; } All
-  br
-  a{ href=&ldquo;/all/read&rdquo; } All read
-  br
-  a{ href=&ldquo;/all/unread&rdquo; } All unread
-  br
-  a{ href=&ldquo;/&rdquo; } Home
-  hr
-  == yield
-[/cc]</p>
-
-<p>И наконец, ./views/index.slim
-[cc lang=&ldquo;ruby&rdquo;]
-h1
-  &lsquo; Unread articles
-  &ndash; if @search_term</p>
-
-<pre><code>= "searched by: '#{ @search_term }'"
-</code></pre>
-
-<p>p Search form
-form{ method=&ldquo;get&rdquo; action=&ldquo;&rdquo; }
-  input{ type=&ldquo;text&rdquo; name=&ldquo;term&rdquo; value=&ldquo;#{ @search_term }&rdquo; }
-  input{ type=&ldquo;submit&rdquo; value=&ldquo;Find&rdquo; }</p>
-
-<ul>
-<li>if @search_term
-a{ href=&ldquo;/&rdquo; } Home</li>
-</ul>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nx">$</span> <span class="nf">-&gt;</span>
+</span><span class='line'>  <span class="nx">$</span><span class="p">(</span><span class="s">&quot;.article&quot;</span><span class="p">).</span><span class="nx">click</span> <span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="nx">$</span><span class="p">.</span><span class="nx">post</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;/read&quot;</span><span class="p">,</span> <span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">parent</span><span class="p">(</span><span class="s">&#39;li&#39;</span><span class="p">).</span><span class="nx">remove</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
-<p>ul
-  &ndash; @articles.each do |article|</p>
+<p>./views/layout.slim</p>
 
-<pre><code>li
-  a{ href="#{ article.url }" id="#{ article.id }" class="article" target="_blank" }
-    = article.title
-</code></pre>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">doctype</span> <span class="n">html</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">head</span>
+</span><span class='line'>  <span class="n">title</span> <span class="no">Ycombinator</span>
+</span><span class='line'>  <span class="n">script</span> <span class="n">src</span><span class="o">=</span><span class="s2">&quot;//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js&quot;</span>
+</span><span class='line'>  <span class="n">script</span> <span class="n">src</span><span class="o">=</span><span class="s2">&quot;/application.js&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">body</span>
+</span><span class='line'>  <span class="n">a</span><span class="p">{</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;/all&quot;</span> <span class="p">}</span> <span class="no">All</span>
+</span><span class='line'>  <span class="n">br</span>
+</span><span class='line'>  <span class="n">a</span><span class="p">{</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;/all/read&quot;</span> <span class="p">}</span> <span class="no">All</span> <span class="n">read</span>
+</span><span class='line'>  <span class="n">br</span>
+</span><span class='line'>  <span class="n">a</span><span class="p">{</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;/all/unread&quot;</span> <span class="p">}</span> <span class="no">All</span> <span class="n">unread</span>
+</span><span class='line'>  <span class="n">br</span>
+</span><span class='line'>  <span class="n">a</span><span class="p">{</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;/&quot;</span> <span class="p">}</span> <span class="no">Home</span>
+</span><span class='line'>  <span class="n">hr</span>
+</span><span class='line'>  <span class="o">==</span> <span class="k">yield</span>
+</span></code></pre></td></tr></table></div></figure>
 
-<p>[/cc]</p>
+
+<p>И наконец, ./views/index.slim</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">h1</span>
+</span><span class='line'>  <span class="s1">&#39; Unread articles</span>
+</span><span class='line'><span class="s1">  - if @search_term</span>
+</span><span class='line'><span class="s1">    = &quot;searched by: &#39;</span><span class="c1">#{ @search_term }&#39;&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">p</span> <span class="no">Search</span> <span class="n">form</span>
+</span><span class='line'><span class="n">form</span><span class="p">{</span> <span class="nb">method</span><span class="o">=</span><span class="s2">&quot;get&quot;</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;&quot;</span> <span class="p">}</span>
+</span><span class='line'>  <span class="n">input</span><span class="p">{</span> <span class="n">type</span><span class="o">=</span><span class="s2">&quot;text&quot;</span> <span class="nb">name</span><span class="o">=</span><span class="s2">&quot;term&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">#{</span> <span class="vi">@search_term</span> <span class="si">}</span><span class="s2">&quot;</span> <span class="p">}</span>
+</span><span class='line'>  <span class="n">input</span><span class="p">{</span> <span class="n">type</span><span class="o">=</span><span class="s2">&quot;submit&quot;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;Find&quot;</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">-</span> <span class="k">if</span> <span class="vi">@search_term</span>
+</span><span class='line'>  <span class="n">a</span><span class="p">{</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;/&quot;</span> <span class="p">}</span> <span class="no">Home</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">ul</span>
+</span><span class='line'>  <span class="o">-</span> <span class="vi">@articles</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">article</span><span class="o">|</span>
+</span><span class='line'>    <span class="n">li</span>
+</span><span class='line'>      <span class="n">a</span><span class="p">{</span> <span class="n">href</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">#{</span> <span class="n">article</span><span class="o">.</span><span class="n">url</span> <span class="si">}</span><span class="s2">&quot;</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">#{</span> <span class="n">article</span><span class="o">.</span><span class="n">id</span> <span class="si">}</span><span class="s2">&quot;</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;article&quot;</span> <span class="n">target</span><span class="o">=</span><span class="s2">&quot;_blank&quot;</span> <span class="p">}</span>
+</span><span class='line'>        <span class="o">=</span> <span class="n">article</span><span class="o">.</span><span class="n">title</span>
+</span></code></pre></td></tr></table></div></figure>
+
 
 <p>Получислось такое незамысловатое и некрасивое приложение :).</p>
 
