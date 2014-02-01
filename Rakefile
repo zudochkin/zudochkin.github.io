@@ -54,7 +54,7 @@ def replace_images(content, yaml_object)
         ([^\]]*)
       \]
       \(
-        ([^\)]*?)(?:\s"(.*)")*
+        ([^\)]*?)(?:\s"(.*?)")*
       \)/mx
 
   return content if content !~ image_finder_regexp
