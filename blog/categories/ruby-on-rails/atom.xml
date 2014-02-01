@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Ruby On Rails | Записки Вредного программиста]]></title>
-  <link href="http://vredniy.github.io/blog/categories/ruby-on-rails/atom.xml" rel="self"/>
-  <link href="http://vredniy.github.io/"/>
-  <updated>2014-02-01T17:02:39+04:00</updated>
-  <id>http://vredniy.github.io/</id>
+  <link href="http://zudochkin.ru/blog/categories/ruby-on-rails/atom.xml" rel="self"/>
+  <link href="http://zudochkin.ru/"/>
+  <updated>2014-02-01T18:01:49+04:00</updated>
+  <id>http://zudochkin.ru/</id>
   <author>
     <name><![CDATA[Зудочкин Дима]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Разворачиваем rails приложение вместе с capistrano]]></title>
-    <link href="http://vredniy.github.io/2013/03/unicorn-rbenv-nginx-postgresql"/>
+    <link href="http://zudochkin.ru/2013/03/unicorn-rbenv-nginx-postgresql"/>
     <updated>2013-03-03T16:13:05+04:00</updated>
-    <id>http://vredniy.github.io/2013/03/unicorn-rbenv-nginx-postgresql</id>
+    <id>http://zudochkin.ru/2013/03/unicorn-rbenv-nginx-postgresql</id>
     <content type="html"><![CDATA[<p>Здравствуйте, дорогие друзья, сегодня я расскажу вам как быстро развернуть Ruby on Rails приложение на сервере. Если у вас маленькое приложение, которое посещает 10 человек в день, то вам достаточно будет задеплоить его на heroku (имею в виду бесплатный тариф) и не читать все то, что написано ниже. Если же у вас приложение побольше, то милости прошу на огонек.<!-- more --></p>
 
 <h3>Сервер</h3>
@@ -332,9 +332,9 @@ break;
   
   <entry>
     <title type="html"><![CDATA[Оповещение после выполнения "тяжелой" фоновой задачи с помощью faye и PrivatePub]]></title>
-    <link href="http://vredniy.github.io/2013/01/resque-with-private-pub-and-rails"/>
+    <link href="http://zudochkin.ru/2013/01/resque-with-private-pub-and-rails"/>
     <updated>2013-01-21T22:45:24+04:00</updated>
-    <id>http://vredniy.github.io/2013/01/resque-with-private-pub-and-rails</id>
+    <id>http://zudochkin.ru/2013/01/resque-with-private-pub-and-rails</id>
     <content type="html"><![CDATA[<p>Допустим нам необоходимо после выполнения большой задачи в фоновом режиме сообщить об этом пользователю и совершить что-нибудь, например, показать ему какой-нибудь popup. <!-- more -->
 Для этого по-старинке, можно с интервалом, скажем в 1 секунду опрашивать сервер и смотреть не завершилась ли наша задача, но в пору HTML5  делать это, по крайней мере, не престижно. Будем использовать для этих целей инструмент по обмену сообщениями между сервером и клиентом <strong>Faye</strong>.</p>
 

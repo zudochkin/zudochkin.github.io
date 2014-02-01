@@ -1,27 +1,27 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
-        <loc>http://vredniy.github.io/2013/01/resque-with-private-pub-and-rails</loc>
+        <loc>http://zudochkin.ru/2013/01/resque-with-private-pub-and-rails</loc>
         <lastmod>2014-02-01T16:17:25+04:00</lastmod>
     </url>
     <url>
-        <loc>http://vredniy.github.io/2013/01/slite3-to-posgres-migration</loc>
+        <loc>http://zudochkin.ru/2013/01/slite3-to-posgres-migration</loc>
         <lastmod>2014-02-01T16:17:25+04:00</lastmod>
     </url>
     <url>
-        <loc>http://vredniy.github.io/2013/03/unicorn-rbenv-nginx-postgresql</loc>
+        <loc>http://zudochkin.ru/2013/03/unicorn-rbenv-nginx-postgresql</loc>
         <lastmod>2014-02-01T16:17:25+04:00</lastmod>
     </url>
     <url>
-        <loc>http://vredniy.github.io/2013/03/sinatra-datamapper-news-combinator</loc>
+        <loc>http://zudochkin.ru/2013/03/sinatra-datamapper-news-combinator</loc>
         <lastmod>2014-02-01T16:17:25+04:00</lastmod>
     </url>
     <url>
-        <loc>http://vredniy.github.io/blog/archives/</loc>
+        <loc>http://zudochkin.ru/blog/archives/</loc>
         <lastmod>2014-02-01T16:17:25+04:00</lastmod>
     </url>
     <url>
-        <loc>http://vredniy.github.io/</loc>
+        <loc>http://zudochkin.ru/</loc>
         <lastmod>2014-02-01T16:17:25+04:00</lastmod>
     </url>
 </urlset>

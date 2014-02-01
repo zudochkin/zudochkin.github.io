@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Записки Вредного программиста]]></title>
-  <link href="http://vredniy.github.io/atom.xml" rel="self"/>
-  <link href="http://vredniy.github.io/"/>
-  <updated>2014-02-01T17:02:39+04:00</updated>
-  <id>http://vredniy.github.io/</id>
+  <link href="http://zudochkin.ru/atom.xml" rel="self"/>
+  <link href="http://zudochkin.ru/"/>
+  <updated>2014-02-01T18:01:49+04:00</updated>
+  <id>http://zudochkin.ru/</id>
   <author>
     <name><![CDATA[Зудочкин Дима]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Парсим news.ycombinator.com или не рельсами едиными жив человек (Sinatra, DataMapper)]]></title>
-    <link href="http://vredniy.github.io/2013/03/sinatra-datamapper-news-combinator"/>
+    <link href="http://zudochkin.ru/2013/03/sinatra-datamapper-news-combinator"/>
     <updated>2013-03-05T23:29:26+04:00</updated>
-    <id>http://vredniy.github.io/2013/03/sinatra-datamapper-news-combinator</id>
+    <id>http://zudochkin.ru/2013/03/sinatra-datamapper-news-combinator</id>
     <content type="html"><![CDATA[<p>Дело было вечером, делать было нечего и решил я написать небольшое приложение на Sinatra с Datamapper&#8217;ом. За идеей далеко ходить также не пришлось: решил написать небольшой &ldquo;фильтратор&rdquo; интересного для меня контента из новостей news.ycombinator.ru.<!-- more --> Не стал изобретать велосипед на этот раз и интересными буду считать новости, названия которых содержат определенные слова. Будем отображать список прочитанных и непрочитанных новостей. Список новостей каждый час будет обновляться по cron&#8217;у &ndash; вот и вся задача.</p>
 
 <p>Начнем с реализации: для этого нам понадобится:</p>
@@ -379,7 +379,7 @@ gem &#39;unicorn&#39;</code></pre>
 
 <p>В первой строчке я указываю путь до файла с логами, чтобы каждый раз при запуске rake task&#8217;а в конец добавлялось время последнего обновления. В блоке с every можно очень гибко указать как часто выполняться, смотрите документацию к гему whenever.</p>
 
-<p>Также я добавил несколько строк к файлу, выполняющего деплой из <a href="http://vredniy.github.io/unicorn-rbenv-nginx-postgresql/">Разворачиваем Rails приложение вместе с Capistrano</a>. ./config/deploy.rb</p>
+<p>Также я добавил несколько строк к файлу, выполняющего деплой из <a href="http://zudochkin.ru/unicorn-rbenv-nginx-postgresql/">Разворачиваем Rails приложение вместе с Capistrano</a>. ./config/deploy.rb</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -495,7 +495,7 @@ gem &#39;unicorn&#39;</code></pre>
 
 <p>Получислось такое незамысловатое и некрасивое приложение :).</p>
 
-<p><img class="image" src="http://vredniy.github.io/images/posts/2013-03-sinatra-datamapper-news-combinator/Screen-Shot-2013-03-05-at-10.33.43-PM.png"></p>
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-03-sinatra-datamapper-news-combinator/Screen-Shot-2013-03-05-at-10.33.43-PM.png"></p>
 
 <p>Вместо заключения: чтобы мозги не были напичканы только рельсами (читать как одним фреймворком), мне кажется, необходимо покидать зону комфорта и писать небольшые приложения для души на смежных технологиях. Скажу честно, для того, чтобы реализовать это несложное приложение у меня ушло масса времени на чтение мануалов к Sinatra, DataMapper&#8217;у, нежели на написание кода. Но мне понравилось, практической ценности, конечно, приложение почти не имеет, но мозги размялись однозначно. Разминай мозги, коллега :)</p>
 ]]></content>
@@ -503,9 +503,9 @@ gem &#39;unicorn&#39;</code></pre>
   
   <entry>
     <title type="html"><![CDATA[Разворачиваем rails приложение вместе с capistrano]]></title>
-    <link href="http://vredniy.github.io/2013/03/unicorn-rbenv-nginx-postgresql"/>
+    <link href="http://zudochkin.ru/2013/03/unicorn-rbenv-nginx-postgresql"/>
     <updated>2013-03-03T16:13:05+04:00</updated>
-    <id>http://vredniy.github.io/2013/03/unicorn-rbenv-nginx-postgresql</id>
+    <id>http://zudochkin.ru/2013/03/unicorn-rbenv-nginx-postgresql</id>
     <content type="html"><![CDATA[<p>Здравствуйте, дорогие друзья, сегодня я расскажу вам как быстро развернуть Ruby on Rails приложение на сервере. Если у вас маленькое приложение, которое посещает 10 человек в день, то вам достаточно будет задеплоить его на heroku (имею в виду бесплатный тариф) и не читать все то, что написано ниже. Если же у вас приложение побольше, то милости прошу на огонек.<!-- more --></p>
 
 <h3>Сервер</h3>
@@ -936,9 +936,9 @@ update: &mdash;no-ri &mdash;no-rdoc</p>
   
   <entry>
     <title type="html"><![CDATA[Перенос sqlite3 базы данных в Postgres (Heroku)]]></title>
-    <link href="http://vredniy.github.io/2013/01/slite3-to-posgres-migration"/>
+    <link href="http://zudochkin.ru/2013/01/slite3-to-posgres-migration"/>
     <updated>2013-01-25T12:12:16+04:00</updated>
-    <id>http://vredniy.github.io/2013/01/slite3-to-posgres-migration</id>
+    <id>http://zudochkin.ru/2013/01/slite3-to-posgres-migration</id>
     <content type="html"><![CDATA[<p>Иногда бывает крайне необходимо конвертировать имеющуюся базу данных в одном формате в формат другой. Сегодня я расскажу вам как это быстро и безболезненно (почти) сделать.<!-- more --></p>
 
 <p>Для начала нам понадобится замечательный <a href="https://github.com/ricardochimal/taps">gem taps</a> и запущенный с его помощью локальный сервер с бекендом из Sinatra.</p>
@@ -963,7 +963,7 @@ update: &mdash;no-ri &mdash;no-rdoc</p>
 
 <p>Дальше получаем URL для доступа к postgres базе данных heroku, для этого в папке с приложением выполнеяем (или из любой папке, но дописав к команде <code>--app app_name</code>) <code>heroku config | grep DATABASE_URL</code> и увидим длинный адрес, это и есть ссылка для доступа к БД. Если вы, как я используете cloudApp, то знайте, что, когда вы копируете ссылку на файл, это, не прямая ссылка и поэтому загрузить на heroku дамп у вас не получится, для того, чтобы увидеть реально прямую ссылку необходимо набрать следующее <code>curl -I http://cl.ly/2h1k1X3Z2j4f/project_development.dump | grep Location</code> и вы увидите прямую ссылку после слова <strong>&ldquo;Location: &rdquo;</strong>. Длинный и запутанный адрес это ссылка, которую вам дал cloudApp для доступа к файлу.</p>
 
-<p><img class="image" src="http://vredniy.github.io/images/posts/2013-01-slite3-to-posgres-migration/Screen-Shot-2013-01-25-at-12.05.28-PM1-300x146.png"></p>
+<p><img class="image" src="http://zudochkin.ru/images/posts/2013-01-slite3-to-posgres-migration/Screen-Shot-2013-01-25-at-12.05.28-PM1-300x146.png"></p>
 
 <p>После этих манипуляций давайте запустим импорт базы данных из папки с проектом <code>heroku pgbackups:restore DATABASE 'http://f.cl.ly/items/4G2u393d432U3V0u2X1d/project_development.dump'</code> если все прошло нормально, то мы увидим</p>
 
@@ -981,9 +981,9 @@ update: &mdash;no-ri &mdash;no-rdoc</p>
   
   <entry>
     <title type="html"><![CDATA[Оповещение после выполнения "тяжелой" фоновой задачи с помощью faye и PrivatePub]]></title>
-    <link href="http://vredniy.github.io/2013/01/resque-with-private-pub-and-rails"/>
+    <link href="http://zudochkin.ru/2013/01/resque-with-private-pub-and-rails"/>
     <updated>2013-01-21T22:45:24+04:00</updated>
-    <id>http://vredniy.github.io/2013/01/resque-with-private-pub-and-rails</id>
+    <id>http://zudochkin.ru/2013/01/resque-with-private-pub-and-rails</id>
     <content type="html"><![CDATA[<p>Допустим нам необоходимо после выполнения большой задачи в фоновом режиме сообщить об этом пользователю и совершить что-нибудь, например, показать ему какой-нибудь popup. <!-- more -->
 Для этого по-старинке, можно с интервалом, скажем в 1 секунду опрашивать сервер и смотреть не завершилась ли наша задача, но в пору HTML5  делать это, по крайней мере, не престижно. Будем использовать для этих целей инструмент по обмену сообщениями между сервером и клиентом <strong>Faye</strong>.</p>
 

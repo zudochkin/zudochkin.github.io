@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: db | Записки Вредного программиста]]></title>
-  <link href="http://vredniy.github.io/blog/categories/db/atom.xml" rel="self"/>
-  <link href="http://vredniy.github.io/"/>
-  <updated>2014-02-01T17:02:39+04:00</updated>
-  <id>http://vredniy.github.io/</id>
+  <link href="http://zudochkin.ru/blog/categories/db/atom.xml" rel="self"/>
+  <link href="http://zudochkin.ru/"/>
+  <updated>2014-02-01T18:01:49+04:00</updated>
+  <id>http://zudochkin.ru/</id>
   <author>
     <name><![CDATA[Зудочкин Дима]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Перенос sqlite3 базы данных в Postgres (Heroku)]]></title>
-    <link href="http://vredniy.github.io/2013/01/slite3-to-posgres-migration"/>
+    <link href="http://zudochkin.ru/2013/01/slite3-to-posgres-migration"/>
     <updated>2013-01-25T12:12:16+04:00</updated>
-    <id>http://vredniy.github.io/2013/01/slite3-to-posgres-migration</id>
+    <id>http://zudochkin.ru/2013/01/slite3-to-posgres-migration</id>
     <content type="html"><![CDATA[<p>Иногда бывает крайне необходимо конвертировать имеющуюся базу данных в одном формате в формат другой. Сегодня я расскажу вам как это быстро и безболезненно (почти) сделать.<!-- more --></p>
 
 <p>Для начала нам понадобится замечательный <a href="https://github.com/ricardochimal/taps">gem taps</a> и запущенный с его помощью локальный сервер с бекендом из Sinatra.</p>
