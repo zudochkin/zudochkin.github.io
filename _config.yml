@@ -4,7 +4,7 @@
 
 url: http://vredniy.github.io
 title: Записки Вредного программиста
-subtitle: "joy"
+subtitle: "enjoy, motherfuckers ;)"
 author: Зудочкин Дима
 simple_search: http://google.com/search
 description: Описание для бложика
@@ -69,7 +69,7 @@ github_show_profile_link: true
 github_skip_forks: true
 
 # Twitter
-twitter_user:
+twitter_user: vredniy
 twitter_tweet_button: true
 
 # Google +1
