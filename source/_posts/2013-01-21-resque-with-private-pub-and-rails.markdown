@@ -10,8 +10,8 @@ permalink: /2013/01/resque-with-private-pub-and-rails
 title: Оповещение после выполнения "тяжелой" фоновой задачи с помощью faye и PrivatePub
 wordpress_id: 949
 categories:
-- Ruby
-- Ruby On Rails
+- ruby
+- ruby on rails
 - программирование
 tags:
 - faye
@@ -20,6 +20,9 @@ tags:
 - redis
 - resque
 - ruby
+
+keywords: "resque, redis, faye rails, private pub, faye, private pub rails, redis ruby"
+description: "Допустим нам необоходимо после выполнения большой задачи в фоновом режиме сообщить об этом пользователю и совершить что-нибудь, например, показать ему какой-нибудь popup."
 ---
 
 Допустим нам необоходимо после выполнения большой задачи в фоновом режиме сообщить об этом пользователю и совершить что-нибудь, например, показать ему какой-нибудь popup. <!-- more -->

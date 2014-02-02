@@ -19,6 +19,9 @@ tags:
 - ruby
 - sinatra
 - whenever
+
+keywords: ruby parser, ruby whenever gem, postgresql datamapper,cron,datamapper,parser,ruby,sinatra,whenever
+description: "Дело было вечером, делать было нечего и решил я написать небольшое приложение на Sinatra с Datamapper'ом."
 ---
 
 

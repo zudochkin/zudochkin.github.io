@@ -20,6 +20,9 @@ tags:
 - ruby
 - ruby-build
 - unicorn
+
+keywords: "capistrano, ruby, rbenv, nginx, unicorn, ruby-build, ubuntu,nginx,postgresql,rbenv,ruby,ruby-build,unicorn,ruby on rails"
+description: "Сегодня я расскажу вам как быстро развернуть Ruby on Rails приложение на сервере."
 ---
 
 Здравствуйте, дорогие друзья, сегодня я расскажу вам как быстро развернуть Ruby on Rails приложение на сервере. Если у вас маленькое приложение, которое посещает 10 человек в день, то вам достаточно будет задеплоить его на heroku (имею в виду бесплатный тариф) и не читать все то, что написано ниже. Если же у вас приложение побольше, то милости прошу на огонек.<!-- more -->

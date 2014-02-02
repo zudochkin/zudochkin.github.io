@@ -11,7 +11,7 @@ permalink: /2013/08/logrotate-unicorn
 title: "Ротация логов на примере логов Unicorn"
 
 categories:
-- Бесполезные ссылки
+- ruby
 tags:
 - logrotate
 - linux
