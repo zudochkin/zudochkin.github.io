@@ -15,9 +15,12 @@ tags:
 - coffeescript
 - rails
 - simple_form
+
+keywords: "rails, coffeescript, accepts_nested_attributes_for rails,coffeescript,simple_form,ruby on rails"
+description: "Имеется, к примеру, у нас вопросы и ответы и мы, вместо того, чтобы создавать сначала вопрос и потом привязывать к нему по одному ответы, будем делать это все на одной странице."
 ---
 
-![rails nested relations](http://vredniy.ru/wp-content/uploads/2012/08/rails-nested-relations-300x243.png)
+{% img image /images/posts/2012-08-rails-has-many-relations-coffeescript/rails-nested-relations-300x243.png %}
 
 
 
@@ -31,34 +34,17 @@ tags:
 
 
 <!-- more -->
-
-
 ### Решение
-
-
-
 
 В решении нам помогут gem _simple_form_, который в разы облегчает работу с формами и _coffescript_, который хоть и транслируется в javascript, но по синтаксису очень похож на руби со своим "сахаром".
 
-
-
-
-
 #### Модели
-
-
-
 
 Как ясно из название, у нас будут две модели: Question и Answer, в них нет ничего сложного
 
-
-
-
-
 Вопрос
 
-
-[cc lang="ruby"]
+``` ruby
 class Question < ActiveRecord::Base
   attr_accessible :name, :answers_attributes
 
@@ -68,14 +54,12 @@ class Question < ActiveRecord::Base
 
   validates :name, :presence => true
 end
-[/cc]
 
-
+```
 
 Ответ
 
-
-[cc lang="ruby"]
+``` ruby
 class Answer < ActiveRecord::Base
   attr_accessible :name, :question_id
 
@@ -83,71 +67,45 @@ class Answer < ActiveRecord::Base
 
   validates :name, :presence => true
 end
-[/cc]
 
-
+```
 
 Единственное, что может показаться странным с первого взгляда, так это строка accepts_nested_attributes. Которая говорит, что модель Question может принимать атрибуты и для ответа, т.е. один post запрос может нам и вопрос создать и ответы к нему.
-
-
-
-
 
 Я для экономии времени использовал twitter-bootstrap-rails gem и scaffold, поэтому все получилось почти готовое. Лишь небольшие правки я внес в форму _app/views/questions/_form.html.erb_
 
 
-
-[cc lang="html"]
+``` html
 <%= f.input :name, :label => 'Текст вопроса' %>
 
-
-
-
+<div class="answers">
   <%= f.simple_fields_for :answers do |answers_form| %>
-    
-
-
+    <div class="answer">
       <%= answers_form.input :name, :label => 'Текст ответа' %>
 
       <%= link_to '#', :class => 'remove_answer' do %>
-        __
+        <i class="icon-minus-sign"></i>
       <% end %>
-    
-
-
+    </div>
   <% end %>
-
-
-
+</div>
 
 <%= link_to '#', :id => 'add_answer' do %>
-  __
+  <i class="icon-plus-sign"></i>
 <% end %>
-[/cc]
-
-
+```
 
 Я обернул ответы на вопрос классом .answers, чтобы они визуально отличались, добавил вложенную форму для вопросов с помощью simple_form и две кнопки: "+" - для добавления ответа и "-" - для его удаления
 
-
-
-
-
 Сейчас задача сводится к тому, чтобы динамически добавлять/удалять ответы на странице без ее перезагрузки, взглянем на генерируемый html
 
-
-
-[cc lang="html"]
-
-[/cc]
-
-
+``` html
+<input class="string required" id="question_answers_attributes_0_name" name="question[answers_attributes][0][name]" size="50" type="text">
+```
 
 При добавлении нового элемента возрастает цифра в айдишнике и в имени текстового поля. Для того, чтобы создать новый ответы мы будем действовать так: склонируем последний ответ на странице с помощью $.clone(), поменяем все элементы name и id, заменив у них цифру в середине. Заменять будем на new Date().getTime(), который генирует случайное число, хоть и большое, но оно нам подходит. Также нам нужно будет не забыть о лейблах, а то получится, что мы кликаем на лейбл, а в фокус попадает совсем не соответствующий элемент. Итак, поехали.
 
-
-
-[cc lang="coffeescript"]
+``` coffeescript
 $ ->
   # обрабатываем клик по кнопке добавления
   $('#add_answer').click ->
@@ -176,56 +134,30 @@ $ ->
     $cloned.slideDown()
 
     false
-[/cc]
 
-
+```
 
 Осталось добавить обработчик события удаления ответа
 
-
-[cc lang="coffeescript"]
+``` coffeescript
 # при клике на удаление ответа, удаляем его
 $('body').delegate '.remove_answer', 'click', ->
   $(this).closest($('.answer')).slideUp ->
     $(this).remove()
 
   false
-[/cc]
 
-
+```
 
 Метод $.closest находит ближайший элемент с классом .answer, поднимаясь вверх по дереву DOM. Находим его, скрываем, а после проигрыша анимации удаляем.
 
-
-
-
-
 ### Что можно сделать лучше
 
-
-
-
-
-	
-  * Добавить валидацию на количество ответов в модели, к примеру, validates_length_of :answers, :minimum => 1
-
-	
+  * Добавить валидацию на количество ответов в модели, к примеру, `validates_length_of :answers, :minimum => 1`
   * Добавить проверку, чтобы не удалить последний ответ, после удаления которого мы не сможем добавить новый - клонировать некого :)
-
-	
   * Не использовать скаффолд, который генерирует много ненужного мусора, по крайней мере, для данной задачи
-
-	
   * Да и вообще предела-то совершенству нет :)
 
-
-
-
-
 Надеюсь, данная неидеальная реализация кому-нибудь в жизни пригодится, вопросы, советы? - велком в комментарии.
-
-
-
-
 
 Чуть не забыл ссылку на [репозиторий на гитхабе](https://github.com/vredniy/nested-relations)
