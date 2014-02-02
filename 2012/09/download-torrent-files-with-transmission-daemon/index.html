@@ -1,0 +1,445 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Скачиваем Torrent файлы с помощью ruby и transmission - Записки Вредного программиста</title>
+  <meta name="author" content="Зудочкин Дима">
+
+  
+  <meta name="description" content="Сегодня я расскажу вам как я решил несложную, но очень акутальную для меня задачу, а именно скачивание файлов с торрентов.">
+  <meta name="keywords" content="transmission-daemon, ruby torrent, rails torrent">
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://zudochkin.ru/2012/09/download-torrent-files-with-transmission-daemon">
+
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Записки Вредного программиста" type="application/atom+xml">
+  <link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-11803166-9', 'zudochkin.ru');
+  ga('send', 'pageview');
+
+</script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <div id="logo">
+  	<div id="logoLeft">{</div>
+  	<div id="logoText">Zudochkin Dmitry</div>
+  	<div id="logoRight">}</div>
+  	<div class="clear"></div>
+  </div>
+  <h1><a href="/">Записки Вредного программиста</a></h1>
+  
+    <h2>enjoy, motherfuckers ;)</h2>
+  
+  <div class="clear"></div>
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:zudochkin.ru" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Главная</a></li>
+  <li><a href="/archives">Архив</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      
+        <h1 class="entry-title">Скачиваем Torrent файлы с помощью Ruby и Transmission</h1>
+      
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-09-10T23:51:27+04:00" pubdate data-updated="true">10.09.2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><img class="image" src="/images/posts/2012-09-download-torrent-files-with-transmission-daemon/transmission-daemon-ruby-300x172.png"></p>
+
+<p>Сегодня я расскажу вам как я решил несложную, но очень акутальную для меня задачу, а именно скачивание файлов с торрентов. Я приследовал в первую очередь цель скачивать файлы с помощью айпеда, в котором очень сложно с торрент клиентами. Задача свелась к тому, что с айпеда отправляю задание на скачку с торрентов, жду некоторое время и забирая скаченный файл. Сначала хотел реализовать вариант сложнее, а именно, чтобы скаченный файл отправлялся в дропбокс (ничего сложного тут нет, есть удобный и понятный гем), но понял что для меня задача решена и вместо того, чтобы делать какие-то &ldquo;плюшки&rdquo;, займусь чем-нибудь другим.</p>
+
+<!-- more -->
+
+
+<h3>Инструментарий</h3>
+
+<p>Нам понадобится дешевенький vps сервер, я взял у reg.ru за 128 рублей в месяц с 128 мегабайтами оперативной памяти и 2 гигабайтами жестким и хорошим интернет каналом на XEN. Для данной задачи за глаза хватит такого слабенького сервера.</p>
+
+<p>Демон <em>transmission-daemon</em> для быстрого и удобного скачивания файлов через торрент. Самое сложное тут будет правильно настроить конфиг (но и это просто).</p>
+
+<p>Rails бекенд (unicorn, nginx) для сообщения transmission, что пока заканчивать прохлаждаться и начинать скачивать файлы.</p>
+
+<h3>Поэтапная реализация</h3>
+
+<p>В данной заметке я не буду рассказывать вам, как устанавливать rvm (в данном проекте я применял его), настраивать nginx + unicorn + capistrano, мануалов полно в инете, я лишь заострю внимание на ключевых моментах. Допустим приложение, чтобы не путаться в путях у вас также как у меня находится в папке <em>/home/deployer/apps/my_site_current</em>.</p>
+
+<p>Давайте разберемся с конфигом transmission-daemon&#8217;а, который будет лежать в <em>~/.config/transmission-daemon/settings.json</em>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="s2">&quot;dht-enabled&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;download-dir&quot;</span><span class="o">:</span> <span class="s2">&quot;/home/deployer/apps/my_site/current/public/attachment/complete-downloads&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;download-queue-enabled&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;download-queue-size&quot;</span><span class="o">:</span> <span class="mi">5</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;encryption&quot;</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;idle-seeding-limit&quot;</span><span class="o">:</span> <span class="mi">30</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;idle-seeding-limit-enabled&quot;</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;incomplete-dir&quot;</span><span class="o">:</span> <span class="s2">&quot;/home/deployer/apps/my_site/current/public/attachment/incomplete-downloads&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;watch-dir&quot;</span><span class="o">:</span> <span class="s2">&quot;/home/deployer/apps/my_site/current/public/attachment/incomplete-dir&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;watch-dir-enabled&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;incomplete-dir-enabled&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;lpd-enabled&quot;</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;message-level&quot;</span><span class="o">:</span> <span class="mi">2</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;peer-congestion-algorithm&quot;</span><span class="o">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;script-torrent-done-enabled&quot;</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;script-torrent-done-filename&quot;</span><span class="o">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;start-added-torrents&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;trash-original-torrent-files&quot;</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;umask&quot;</span><span class="o">:</span> <span class="mi">18</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;upload-slots-per-torrent&quot;</span><span class="o">:</span> <span class="mi">14</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;utp-enabled&quot;</span><span class="o">:</span> <span class="kc">true</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Большинство опций использунется по умолчанию, но есть некоторые которые стоит пояснить.</p>
+
+<ul>
+<li><em>&ldquo;download-dir&rdquo;</em> &ndash; указывает в какую папку сохранять скаченные файлы</li>
+<li><em>&ldquo;incomplete-dir&rdquo;</em> &ndash; куда будет качать</li>
+<li><em>&ldquo;incomplete-dir-enabled&rdquo;</em> чтобы отделить котлеты от мух (скачиваемое и скаченное будут лежать отдельно, дабы не путаться)</li>
+<li><em>&ldquo;watch-dir&rdquo;</em> &ndash; за какой папкой будем следить, т.е. если в этой папке появляются торрент файлы, то автоматически начинаем их скачивать</li>
+<li><em>&ldquo;watch-dir-enabled&rdquo;</em> &ndash; включаем опцию &ldquo;слежения&rdquo;</li>
+</ul>
+
+
+<p>Для эксперимента будем скачивать торрент файл с tfile.ru, чтобы без регистрации. Чтобы скачать файл, необходимо поставить куку, которая ставится javascript&#8217;ом, но тут нет ничего сложного.</p>
+
+<p>Скачивать будем wget&#8217;ом, чтобы проще, а чтобы еще проще взаимодействовать с консольными утилитами будет использовать гем Cocaine от создателей Paperclip&#8217;а и FacoryGirl&#8217;ы.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Attachment</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'>  <span class="n">validates_presence_of</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">:url</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">attr_accessible</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">:status</span><span class="p">,</span> <span class="ss">:file</span><span class="p">,</span> <span class="ss">:url</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">before_create</span> <span class="ss">:download_torrent_file</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kp">private</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">download_torrent_file</span>
+</span><span class='line'>    <span class="n">response</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="nb">self</span><span class="o">.</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">read</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">cookie</span> <span class="o">=</span> <span class="n">response</span><span class="o">[</span><span class="sr">/tmbx=[^&quot;]*/</span><span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">torrent_url</span> <span class="o">=</span> <span class="n">response</span><span class="o">[</span><span class="sr">/http:\/\/[^&quot;]*/</span><span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">output_path</span> <span class="o">=</span> <span class="s1">&#39;/home/deployer/apps/my_site/current/public/attachment/incomplete-dir/&#39;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">output_file</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">#{</span> <span class="n">output_path</span> <span class="si">}#{</span> <span class="no">Date</span><span class="o">.</span><span class="n">today</span><span class="o">.</span><span class="n">to_s</span> <span class="si">}</span><span class="s2">-</span><span class="si">#{</span> <span class="nb">self</span><span class="o">.</span><span class="n">name</span> <span class="si">}</span><span class="s2">.torrent&quot;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># wget &#39;http://tfile.ru/forum/download.php?id=549501&amp;attempt;=1#r&#39; --no-cookies --header &quot;Cookie: tmbx=6df9fc90ad02d5bdf2ca7449d0cc44</span>
+</span><span class='line'>    <span class="n">line</span> <span class="o">=</span> <span class="ss">Cocaine</span><span class="p">:</span><span class="ss">:CommandLine</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;wget&#39;</span><span class="p">,</span> <span class="s2">&quot;:torrent_url --no-cookies --header &#39;Cookie: </span><span class="si">#{</span> <span class="n">cookie</span> <span class="si">}</span><span class="s2">&#39; -O :output_file&quot;</span><span class="p">,</span>
+</span><span class='line'>                                    <span class="ss">:torrent_url</span> <span class="o">=&gt;</span> <span class="n">torrent_url</span><span class="p">,</span>
+</span><span class='line'>                                    <span class="ss">:output_file</span> <span class="o">=&gt;</span> <span class="n">output_file</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">line</span><span class="o">.</span><span class="n">run</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Так мы будем скачивать наши торрент файлы. Первый запуск transmission-daemon&#8217;а попробуем не в режиме демона, чтобы не ждать до ишачьей пасхи, а видеть все ошибки воочию. Для этого запустим transmission-daemon с ключом <strong>-f</strong> и все ошибки посыпятся в stdout и мы легко их сможем исправить, если все пойдет по плану, то наш первый файл будет скачен. Если все прошло тип-топ, то можем запускать transmission-daemon без параметров и озадачивать его новыми закачками.</p>
+
+<p>Для того, чтобы отобразить результат и использовал следующее костальное решение в контроллере <strong>Attachments#index</strong>, я написал следующее:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">index</span>
+</span><span class='line'>  <span class="vi">@files</span> <span class="o">=</span> <span class="no">Dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;public/attachment/complete-downloads/*&quot;</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>во вьюхе уже выводил список файлов</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">% @files.each </span><span class="k">do</span> <span class="o">|</span><span class="n">f</span><span class="o">|</span> <span class="sx">%&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sx">* &lt;%= link_to f, f.sub(&#39;public&#39;, &#39;&#39;) %&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="sx">% end </span><span class="o">%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Так как мне нужно было лишь скачивать pdf журналы, которые распространяются одним pdf файлом, то у меня не было необходимости выводить папки в папках, достаточно было отобразить файлы в одной папке.</p>
+
+<h3>Заключение</h3>
+
+<p>Данное решение служит мне верой и правдой уже где-то с месяц и не вызывало никаких нареканий, процессы не отваливаются, журнальчики скачиваются :) Было бы неплохо, наверное, сделать так, что при скачивании торрент файла, мы получаем список файлов, которые в нем содержатся и каким-нибудь демоном проверяем все ли файлы скачались, если да, то оповещаем по имейлу пользователя. Но данная &ldquo;плюшка&rdquo; выходит за рамки данной заметки. Надеюсь, вам было интересно, до новых встреч :).</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-09-10T23:51:27+04:00" pubdate data-updated="true">10.09.2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ruby/'>Ruby</a>, <a class='category' href='/blog/categories/ruby-on-rails/'>Ruby On Rails</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://zudochkin.ru/2012/09/download-torrent-files-with-transmission-daemon" data-via="vredniy" data-counturl="http://zudochkin.ru/2012/09/download-torrent-files-with-transmission-daemon" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+      
+        <a class="basic-alignment right articlenav" href="/2012/12/new-2013-year" title="Следующий пост: Новый 2013 год">Новый 2013 год &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Комментарии</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Последние посты</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2014/01/fulltext-phones-postgresql">Полнотекстовый поиск по телефонным номерам разного формата (PostgreSQL)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/11/open-uri-progress-bar">Ruby OpenURI::open и ProgressBar</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/first-photography">Первая выездная фотосъемка (Большой Москворецкий мост)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/vim-first-plugin">Написание первого плагина для Vim</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/logrotate-unicorn">Ротация логов на примере логов Unicorn</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Зудочкин Дима -
+  <span class="credit">Powered by <a rel="nofollow" href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'zudochkinru';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://zudochkin.ru/2012/09/download-torrent-files-with-transmission-daemon';
+        var disqus_url = 'http://zudochkin.ru/2012/09/download-torrent-files-with-transmission-daemon';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

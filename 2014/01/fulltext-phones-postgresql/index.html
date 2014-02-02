@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://zudochkin.ru/2014/01/22/fulltext-phones-postgresql/">
+  <link rel="canonical" href="http://zudochkin.ru/2014/01/fulltext-phones-postgresql">
 
   <link href="/favicon.ico" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
@@ -122,7 +122,7 @@
 
 <p>Для этого запускаем <code>EXPLAIN ANALYZE SELECT number FROM phones WHERE regexp_replace(number, '\\d', '', 'g') ILIKE '%313%';</code> в результате видим примерно следующее.</p>
 
-<p><img src="http://zudochk.in/uploads/asset/image/52/huge_Screenshot_2014-01-21_20.31.34.png" alt="query plan without index" /></p>
+<p><img class="image" src="/images/posts/2014-01-fulltext-phones-postgresql/huge_Screenshot_2014-01-21_20.31.34.png"></p>
 
 <p>Что как бы намекает нам, что это очень долго, потому что поиск идет строка за строкой, просматривая каждую строку таблицы. Значит, нам нужен индекс, комплексный индекс.</p>
 
@@ -130,7 +130,7 @@
 
 <p>Проверяем, запускаем такой же запрос и получаем следующую картину.</p>
 
-<p><img src="http://zudochk.in/uploads/asset/image/53/huge_Screenshot_2014-01-21_21.48.18.png" alt="query plan with index" /></p>
+<p><img class="image" src="/images/posts/2014-01-fulltext-phones-postgresql/huge_Screenshot_2014-01-21_21.48.18.png"></p>
 
 <p>Мы видим, что сейчас начал использоваться индекс и скорость выполнения запроса возросла в 6 с небольшим раз. Магия индексов воочию.</p>
 
@@ -212,7 +212,7 @@
 
 <p>Это очень упрощенный метод, но он работает, теперь для поиска телефона, необходимо вызвать где-нибудь в коде наш метод: <code>Phone.search '313'</code> и вы получите список строк, телефоны которых содержат заданную строку.</p>
 
-<p><img src="http://zudochk.in/uploads/asset/image/54/huge_Screenshot_2014-01-21_22.39.20.png" alt="search execution" /></p>
+<p><img class="image" src="/images/posts/2014-01-fulltext-phones-postgresql/huge_Screenshot_2014-01-21_22.39.20.png"></p>
 
 <p>Надеюсь, данный пост поможет вам. Все мысли, ошибки, неточности можете оставлять в комментариях, с удовольствием их почитаю :) Мир, братья и сестры.</p>
 </div>
@@ -251,7 +251,7 @@
     
       <div class="sharing">
   
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://zudochkin.ru/2014/01/22/fulltext-phones-postgresql/" data-via="vredniy" data-counturl="http://zudochkin.ru/2014/01/22/fulltext-phones-postgresql/" >Tweet</a>
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://zudochkin.ru/2014/01/fulltext-phones-postgresql" data-via="vredniy" data-counturl="http://zudochkin.ru/2014/01/fulltext-phones-postgresql" >Tweet</a>
   
   
   
@@ -284,7 +284,7 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/2014/01/22/fulltext-phones-postgresql/">Полнотекстовый поиск по телефонным номерам разного формата (PostgreSQL)</a>
+        <a href="/2014/01/fulltext-phones-postgresql">Полнотекстовый поиск по телефонным номерам разного формата (PostgreSQL)</a>
       </li>
     
       <li class="post">
@@ -329,8 +329,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://zudochkin.ru/2014/01/22/fulltext-phones-postgresql/';
-        var disqus_url = 'http://zudochkin.ru/2014/01/22/fulltext-phones-postgresql/';
+        var disqus_identifier = 'http://zudochkin.ru/2014/01/fulltext-phones-postgresql';
+        var disqus_url = 'http://zudochkin.ru/2014/01/fulltext-phones-postgresql';
         var disqus_script = 'embed.js';
       
     (function () {

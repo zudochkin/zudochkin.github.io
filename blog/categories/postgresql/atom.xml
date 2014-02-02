@@ -4,7 +4,7 @@
   <title><![CDATA[Category: postgresql | Записки Вредного программиста]]></title>
   <link href="http://zudochkin.ru/blog/categories/postgresql/atom.xml" rel="self"/>
   <link href="http://zudochkin.ru/"/>
-  <updated>2014-02-01T23:27:47+04:00</updated>
+  <updated>2014-02-02T23:32:12+04:00</updated>
   <id>http://zudochkin.ru/</id>
   <author>
     <name><![CDATA[Зудочкин Дима]]></name>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Полнотекстовый поиск по телефонным номерам разного формата (PostgreSQL)]]></title>
-    <link href="http://zudochkin.ru/2014/01/22/fulltext-phones-postgresql/"/>
+    <link href="http://zudochkin.ru/2014/01/fulltext-phones-postgresql"/>
     <updated>2014-01-22T02:44:24+04:00</updated>
-    <id>http://zudochkin.ru/2014/01/22/fulltext-phones-postgresql</id>
+    <id>http://zudochkin.ru/2014/01/fulltext-phones-postgresql</id>
     <content type="html"><![CDATA[<p>В одном из последних своих проектов, где использовалась большая база контактов, у каждого контакта имелось несколько телефонов, понадобилось искать по номеру телефона. Недолго думая решил сделать это через встроенный ILIKE, но поиск почти ничего не находил, потому что в таблице с номерами телефонов хранились номера в совершенном разных форматов, например, +7(903)555-12-11, +46 8 52506000 и т.д. Поэтому нужно было придумать что-то более радикальное и в то же время не очень медленное. <!--more--></p>
 
 <p>Идея номер 2 заключалась в том, чтобы для каждого телефонного номера в этой же таблице сохранять номер телефона без специфических символов, т.е. 79035551211 и 46852506000 соответственно. Но идея не нравилась тем, что необходимо было почти дублировать колонку, оставил этот план про запас, на случай, если ничего более путного не придумаю.</p>
@@ -28,7 +28,7 @@
 
 <p>Для этого запускаем <code>EXPLAIN ANALYZE SELECT number FROM phones WHERE regexp_replace(number, '\\d', '', 'g') ILIKE '%313%';</code> в результате видим примерно следующее.</p>
 
-<p><img src="http://zudochk.in/uploads/asset/image/52/huge_Screenshot_2014-01-21_20.31.34.png" alt="query plan without index" /></p>
+<p><img class="image" src="/images/posts/2014-01-fulltext-phones-postgresql/huge_Screenshot_2014-01-21_20.31.34.png"></p>
 
 <p>Что как бы намекает нам, что это очень долго, потому что поиск идет строка за строкой, просматривая каждую строку таблицы. Значит, нам нужен индекс, комплексный индекс.</p>
 
@@ -36,7 +36,7 @@
 
 <p>Проверяем, запускаем такой же запрос и получаем следующую картину.</p>
 
-<p><img src="http://zudochk.in/uploads/asset/image/53/huge_Screenshot_2014-01-21_21.48.18.png" alt="query plan with index" /></p>
+<p><img class="image" src="/images/posts/2014-01-fulltext-phones-postgresql/huge_Screenshot_2014-01-21_21.48.18.png"></p>
 
 <p>Мы видим, что сейчас начал использоваться индекс и скорость выполнения запроса возросла в 6 с небольшим раз. Магия индексов воочию.</p>
 
@@ -96,7 +96,7 @@ end
 
 <p>Это очень упрощенный метод, но он работает, теперь для поиска телефона, необходимо вызвать где-нибудь в коде наш метод: <code>Phone.search '313'</code> и вы получите список строк, телефоны которых содержат заданную строку.</p>
 
-<p><img src="http://zudochk.in/uploads/asset/image/54/huge_Screenshot_2014-01-21_22.39.20.png" alt="search execution" /></p>
+<p><img class="image" src="/images/posts/2014-01-fulltext-phones-postgresql/huge_Screenshot_2014-01-21_22.39.20.png"></p>
 
 <p>Надеюсь, данный пост поможет вам. Все мысли, ошибки, неточности можете оставлять в комментариях, с удовольствием их почитаю :) Мир, братья и сестры.</p>
 ]]></content>

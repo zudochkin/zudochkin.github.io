@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ruby | Записки Вредного программиста]]></title>
   <link href="http://zudochkin.ru/blog/categories/ruby/atom.xml" rel="self"/>
   <link href="http://zudochkin.ru/"/>
-  <updated>2014-02-01T23:27:47+04:00</updated>
+  <updated>2014-02-02T23:32:12+04:00</updated>
   <id>http://zudochkin.ru/</id>
   <author>
     <name><![CDATA[Зудочкин Дима]]></name>
@@ -52,6 +52,159 @@ progress_proc: proc { |step|
 
 <iframe width="560" height="315" src="http://zudochkin.ru//www.youtube.com/embed/SIWBIl1oRrc" frameborder="0" allowfullscreen></iframe>
 
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Ротация логов на примере логов Unicorn]]></title>
+    <link href="http://zudochkin.ru/2013/08/logrotate-unicorn"/>
+    <updated>2013-08-09T03:32:24+04:00</updated>
+    <id>http://zudochkin.ru/2013/08/logrotate-unicorn</id>
+    <content type="html"><![CDATA[<p>Что-то все реже и реже находится время, чтобы написать несколько абзацев в свой новый блог. Но сегодня будет исключение. Я все же возьму себя в руки и что-нибудь напишу. Речь в сегодняшнем посте пойдет о ротации логов: с чем едят, как готовить на примере нами любимого <a href="https://github.com/defunkt/unicorn">unicorn'а</a>.<!--more--></p>
+
+<p>Думаю, что такое логи и для чего они нужны все знают. А вот что такое ротация логов многие могут не знать. Или знать, что это такое, но не использовать в повседневной жизни (к коим относился я до недавних пор).</p>
+
+<p>Ротация логов &ndash; это, если простыми словами, то простой сдвиг, после которого текущий файл логов &ldquo;обрубается&rdquo;, архивируется (по  желанию) и логи начинают писаться в чистый файл. Для ротации логов используют logrotate, конфигурационные файлы которого можно найти в <em>/etc/logrotate.d/</em>. Скорее всего, у вас на сервере эта папка не пуста и можно найти конфиги для postgresql'а, nginx'а и много чего еще.</p>
+
+<p>Мы же с вами рассмотрим настройку ротации логов для unicorn'а. Если ваш ресурс посещает множество людей, то лог файл (production.log) становится нескромно большим, т.к. хранит все обращения ко всем страницам, все произошедшие ошибки и прочую информацию. Для того, чтобы этого избежать, создадим файл <em>/etc/logrorate.d/#{your_app_name}</em></p>
+
+<p>```
+&ldquo;/home/deployer/projects/#{your_app_name}/shared/log/production.log&rdquo;
+{
+  daily
+  missingok
+  rotate 180
+  compress
+  dateext</p>
+
+<p>  delaycompress</p>
+
+<p>  lastaction</p>
+
+<pre><code>pid=/home/deployer/projects/#{your_app_name}/shared/pids/unicorn.pid
+test -s $pid &amp;&amp; kill -USR1 "$(cat $pid)"
+</code></pre>
+
+<p>  endscript
+}
+```</p>
+
+<p>Теперь по порядку:</p>
+
+<ul>
+<li>в кавычках мы указываем какие файлы будут &ldquo;вращаться&rdquo;, можно использовать &ldquo;*&rdquo; для нескольких файлов</li>
+<li><strong>daily</strong> &ndash; сообщает logrotate &ldquo;прокручивать&rdquo; файл(ы) логов раз в день.</li>
+<li><strong>missingok</strong> &ndash; не выдавать ошибочное сообщение, если файл логов отсутствует.</li>
+<li><strong>rotate</strong> &ndash; лог будет &ldquo;сдвинут&rdquo; 180 раз, прежде, чем будет удален.</li>
+<li><strong>compress</strong> &ndash; старые файлы будут заархивированы (gzip по умолчанию) для того, чтобы занимать меньше места.</li>
+<li><strong>dateext</strong> &ndash; полезная опция, которая дописывает в название файла дату, формат можно изменить опцией <strong>dateformat</strong> вместо скучных названий, вроде (blog.log.1)</li>
+<li><strong>delaycompress</strong> &ndash; откладывает сжатие на один цикл</li>
+<li><strong>lastaction и endscript</strong> &ndash; строки между данными директивами будут выполнены (с применением /bin/sh) после каждой ротации. Мы используем их, чтобы сообщить unicorn'у и всем его воркерам (USR1 сигнал) заново открыть файлы логов.</li>
+</ul>
+
+
+<p>После того, как мы написали конфиг, мы должны сообщить logrotate об этом, я предпочитаю сделать это с флагом <strong>-f (force)</strong>, который заново считывает свои конфиги делает один &ldquo;оборот&rdquo; логов.</p>
+
+<p><code>sudo logrotate -f /etc/logrotate.d/#{your_app_name}</code></p>
+
+<p>Как вы, наверное, уже догадались, #{your_app_name} необходимо заменить именем вашего приложения. После прочтения данного поста, вы с легкостью сможете настроить ротацию логов для чего угодно. Удачи вам и не теряйте свои логи :)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Оповещение после выполнения "тяжелой" фоновой задачи с помощью faye и PrivatePub]]></title>
+    <link href="http://zudochkin.ru/2013/01/resque-with-private-pub-and-rails"/>
+    <updated>2013-01-21T22:45:24+04:00</updated>
+    <id>http://zudochkin.ru/2013/01/resque-with-private-pub-and-rails</id>
+    <content type="html"><![CDATA[<p>Допустим нам необоходимо после выполнения большой задачи в фоновом режиме сообщить об этом пользователю и совершить что-нибудь, например, показать ему какой-нибудь popup. <!-- more -->
+Для этого по-старинке, можно с интервалом, скажем в 1 секунду опрашивать сервер и смотреть не завершилась ли наша задача, но в пору HTML5  делать это, по крайней мере, не престижно. Будем использовать для этих целей инструмент по обмену сообщениями между сервером и клиентом <strong>Faye</strong>.</p>
+
+<h3>Инструменты</h3>
+
+<p>Нам понадобится Rails приложение, к которому мы и будем привязывать всю эту функциональность. Также будем использовать <strong>Resque</strong> для выполнений фоновых задач &ndash; инструмент, зарекомендовавший себя, как надежный и стабильный помощник, спасающий всегда, когда нужно выполнить тяжелые задачи в фоне. Вместе с <strong>faye</strong> воспользуемся оберткой для него от Ryan Bates <strong>Private Pub</strong>, который мне очень облегчил жизнь, надеюсь, и облегчит вам.</p>
+
+<h3>Реализация</h3>
+
+<p>Для начала установим redis и обновим наш Gemfile, дополнив его необходимыми гемами resque, faye, private_pub, thin.</p>
+
+<p>Я буду рассказать все на примере Mac OS, установка подобного инструментарий, скажем, на Ubuntu, не должна вызвать вопросов, потому что инструменты очень распространенные.</p>
+
+<p>Устанавливал redis я с помощью всем известного пакетного менеджера Homebrew, напечатав в терминале всего одну команду <code>brew install redis</code></p>
+
+<p>Допустим у нас имеется какой-нибудь тяжелый объект с несколькими картинками, которые лежат в Amazon S3 и, чтобы создать копию этого объекта нам понадобится скачать все эти картинки, чтобы вновь их туда загрузить,  привязав в новому объекту. Не спрашивайте почему так сложно, так работает CarrierWave или я просто не нашел лучшего решения.</p>
+
+<p>Если у нас раньше был метод в контролле, к примеру, clone, которй вызывал метод из модели, делающий всю грязную работу, то сейчас нам нужно лишь добавить новую задачу для resque, выглядеть это будет примерно так</p>
+
+<p><code>ruby
+def clone
+  Resque.enqueue(CloneProfileWorker, params[:id])
+end
+</code></p>
+
+<p>Теперь тяжелая задача будет добавляться в очередь всякий раз, когда мы пройдем по ссылке <strong>/profiles/#{ id }/clone</strong>.</p>
+
+<p>Давайте поставим и настроим PrivatePub, который будет со стороны клиента подписываться на определенные события, и со стороны сервера, после наступления определенного события (в нашем примере это, когда resque job отработает) делать нужные нам вещи.</p>
+
+<p>Для этого в консоли нужно запустить <code>rails g private_pub:install</code></p>
+
+<p>и добавить в файл app/assets/javascripts/application.js[.cofeee] строчку
+<code>#= require private_pub</code>, если вы используете cofeeScript или же <code>//= require private_pub</code>, если js</p>
+
+<p>и дальше во вьюхе <strong>/profile/clone.html.haml</strong> (я использую haml в данном проекте)</p>
+
+<p>``` ruby
+= subscribe_to &ldquo;/profile_cloning_#{ params[:id] }&rdquo;</p>
+
+<p>:javascript
+  PrivatePub.subscribe(&lsquo;/profile_cloning_#{ params[:id] }&rsquo;, function(data, channel) {</p>
+
+<pre><code>location.href = data.url;
+</code></pre>
+
+<p>  });</p>
+
+<p>```</p>
+
+<p>Первая строчка это метод из гема, который инициализует объект необходимыми параметрами из файла /config/private_pub.yml, а после мы &ldquo;подписываемся на событие &lsquo;/profile_cloning_#{ params[:id] }&rsquo;, где в params[:id] содержится текущий id профиля. При наступлении данного события, мы перенаправляем пользователя на страницу &lsquo;/profile/#{ new_id }/edit&rdquo;, полный урл мы получим после того, как resque job отработает.</p>
+
+<p><strong>app/workers/clone_profile_worker.rb</strong></p>
+
+<p>``` ruby
+require &lsquo;resque&rsquo;</p>
+
+<p>class CloneProfileWorker
+  @queue = :default</p>
+
+<p>  def self.perform(profile_id)</p>
+
+<pre><code>c = Profile.find profile_id
+new_profile = c.clone_self
+
+if new_profile.is_a? Profile
+  PrivatePub.publish_to "/profile_cloning_#{ profile_id }", :url =&gt; "/profiles/#{ new_profile.id }/edit"
+end
+</code></pre>
+
+<p>  end
+end</p>
+
+<p>```</p>
+
+<p>В данном воркере нет ничего магического: сначала мы клонируем наш профиль и если все прошло успешно, то оповещаем нашего клиента и передаем туда url, на который он перенаправится.</p>
+
+<p>Проверяем работоспособность</p>
+
+<p>Запускаем в разных окнах терминала:</p>
+
+<ul>
+<li><code>rails s</code></li>
+<li><code>redis-server /usr/local/etc/redis.conf</code> (у меня MacOs, на других ОС должно быть нечто подобное)</li>
+<li><code>VERBOSE=1 rake resque:work QUEUE=*</code> (запускаем все очереди, устанвливаем verbose=1 для того, чтобы видеть что происходит внутри resque)</li>
+<li><code>rackup private_pub.ru -s thin -E production</code> (сервер для PrivatePub и Faye)</li>
+</ul>
+
+
+<p>Проходим по ссылке наподобие <strong>/profiles/73/clone</strong> и смотрим в терминале как отрабатывает наш resque job и мы перенаправляемся на редактирование уже склонированного профиля, если все отработало без ошибок. Если же возникли ошибки, то они отобразятся в терминале, если произойдет что-то невообразимое и непредвиденное, пишите в комментариях, я попробую помочь вам.</p>
 ]]></content>
   </entry>
   

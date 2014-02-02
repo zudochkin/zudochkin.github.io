@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Бесполезные ссылки | Записки Вредного программиста]]></title>
   <link href="http://zudochkin.ru/blog/categories/biespolieznyie-ssylki/atom.xml" rel="self"/>
   <link href="http://zudochkin.ru/"/>
-  <updated>2014-02-01T23:27:47+04:00</updated>
+  <updated>2014-02-02T23:32:12+04:00</updated>
   <id>http://zudochkin.ru/</id>
   <author>
     <name><![CDATA[Зудочкин Дима]]></name>
@@ -12,62 +12,6 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
-  <entry>
-    <title type="html"><![CDATA[Ротация логов на примере логов Unicorn]]></title>
-    <link href="http://zudochkin.ru/2013/08/logrotate-unicorn"/>
-    <updated>2013-08-09T03:32:24+04:00</updated>
-    <id>http://zudochkin.ru/2013/08/logrotate-unicorn</id>
-    <content type="html"><![CDATA[<p>Что-то все реже и реже находится время, чтобы написать несколько абзацев в свой новый блог. Но сегодня будет исключение. Я все же возьму себя в руки и что-нибудь напишу. Речь в сегодняшнем посте пойдет о ротации логов: с чем едят, как готовить на примере нами любимого <a href="https://github.com/defunkt/unicorn">unicorn'а</a>.<!--more--></p>
-
-<p>Думаю, что такое логи и для чего они нужны все знают. А вот что такое ротация логов многие могут не знать. Или знать, что это такое, но не использовать в повседневной жизни (к коим относился я до недавних пор).</p>
-
-<p>Ротация логов &ndash; это, если простыми словами, то простой сдвиг, после которого текущий файл логов &ldquo;обрубается&rdquo;, архивируется (по  желанию) и логи начинают писаться в чистый файл. Для ротации логов используют logrotate, конфигурационные файлы которого можно найти в <em>/etc/logrotate.d/</em>. Скорее всего, у вас на сервере эта папка не пуста и можно найти конфиги для postgresql'а, nginx'а и много чего еще.</p>
-
-<p>Мы же с вами рассмотрим настройку ротации логов для unicorn'а. Если ваш ресурс посещает множество людей, то лог файл (production.log) становится нескромно большим, т.к. хранит все обращения ко всем страницам, все произошедшие ошибки и прочую информацию. Для того, чтобы этого избежать, создадим файл <em>/etc/logrorate.d/#{your_app_name}</em></p>
-
-<p>```
-&ldquo;/home/deployer/projects/#{your_app_name}/shared/log/production.log&rdquo;
-{
-  daily
-  missingok
-  rotate 180
-  compress
-  dateext</p>
-
-<p>  delaycompress</p>
-
-<p>  lastaction</p>
-
-<pre><code>pid=/home/deployer/projects/#{your_app_name}/shared/pids/unicorn.pid
-test -s $pid &amp;&amp; kill -USR1 "$(cat $pid)"
-</code></pre>
-
-<p>  endscript
-}
-```</p>
-
-<p>Теперь по порядку:</p>
-
-<ul>
-<li>в кавычках мы указываем какие файлы будут &ldquo;вращаться&rdquo;, можно использовать &ldquo;*&rdquo; для нескольких файлов</li>
-<li><strong>daily</strong> &ndash; сообщает logrotate &ldquo;прокручивать&rdquo; файл(ы) логов раз в день.</li>
-<li><strong>missingok</strong> &ndash; не выдавать ошибочное сообщение, если файл логов отсутствует.</li>
-<li><strong>rotate</strong> &ndash; лог будет &ldquo;сдвинут&rdquo; 180 раз, прежде, чем будет удален.</li>
-<li><strong>compress</strong> &ndash; старые файлы будут заархивированы (gzip по умолчанию) для того, чтобы занимать меньше места.</li>
-<li><strong>dateext</strong> &ndash; полезная опция, которая дописывает в название файла дату, формат можно изменить опцией <strong>dateformat</strong> вместо скучных названий, вроде (blog.log.1)</li>
-<li><strong>delaycompress</strong> &ndash; откладывает сжатие на один цикл</li>
-<li><strong>lastaction и endscript</strong> &ndash; строки между данными директивами будут выполнены (с применением /bin/sh) после каждой ротации. Мы используем их, чтобы сообщить unicorn'у и всем его воркерам (USR1 сигнал) заново открыть файлы логов.</li>
-</ul>
-
-
-<p>После того, как мы написали конфиг, мы должны сообщить logrotate об этом, я предпочитаю сделать это с флагом <strong>-f (force)</strong>, который заново считывает свои конфиги делает один &ldquo;оборот&rdquo; логов.</p>
-
-<p><code>sudo logrotate -f /etc/logrotate.d/#{your_app_name}</code></p>
-
-<p>Как вы, наверное, уже догадались, #{your_app_name} необходимо заменить именем вашего приложения. После прочтения данного поста, вы с легкостью сможете настроить ротацию логов для чего угодно. Удачи вам и не теряйте свои логи :)</p>
-]]></content>
-  </entry>
   
   <entry>
     <title type="html"><![CDATA[(бес)Полезные ссылки #3]]></title>

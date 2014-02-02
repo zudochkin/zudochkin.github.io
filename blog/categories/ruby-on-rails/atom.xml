@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ruby on rails | Записки Вредного программиста]]></title>
   <link href="http://zudochkin.ru/blog/categories/ruby-on-rails/atom.xml" rel="self"/>
   <link href="http://zudochkin.ru/"/>
-  <updated>2014-02-01T23:27:47+04:00</updated>
+  <updated>2014-02-02T23:32:12+04:00</updated>
   <id>http://zudochkin.ru/</id>
   <author>
     <name><![CDATA[Зудочкин Дима]]></name>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Полнотекстовый поиск по телефонным номерам разного формата (PostgreSQL)]]></title>
-    <link href="http://zudochkin.ru/2014/01/22/fulltext-phones-postgresql/"/>
+    <link href="http://zudochkin.ru/2014/01/fulltext-phones-postgresql"/>
     <updated>2014-01-22T02:44:24+04:00</updated>
-    <id>http://zudochkin.ru/2014/01/22/fulltext-phones-postgresql</id>
+    <id>http://zudochkin.ru/2014/01/fulltext-phones-postgresql</id>
     <content type="html"><![CDATA[<p>В одном из последних своих проектов, где использовалась большая база контактов, у каждого контакта имелось несколько телефонов, понадобилось искать по номеру телефона. Недолго думая решил сделать это через встроенный ILIKE, но поиск почти ничего не находил, потому что в таблице с номерами телефонов хранились номера в совершенном разных форматов, например, +7(903)555-12-11, +46 8 52506000 и т.д. Поэтому нужно было придумать что-то более радикальное и в то же время не очень медленное. <!--more--></p>
 
 <p>Идея номер 2 заключалась в том, чтобы для каждого телефонного номера в этой же таблице сохранять номер телефона без специфических символов, т.е. 79035551211 и 46852506000 соответственно. Но идея не нравилась тем, что необходимо было почти дублировать колонку, оставил этот план про запас, на случай, если ничего более путного не придумаю.</p>
@@ -28,7 +28,7 @@
 
 <p>Для этого запускаем <code>EXPLAIN ANALYZE SELECT number FROM phones WHERE regexp_replace(number, '\\d', '', 'g') ILIKE '%313%';</code> в результате видим примерно следующее.</p>
 
-<p><img src="http://zudochk.in/uploads/asset/image/52/huge_Screenshot_2014-01-21_20.31.34.png" alt="query plan without index" /></p>
+<p><img class="image" src="/images/posts/2014-01-fulltext-phones-postgresql/huge_Screenshot_2014-01-21_20.31.34.png"></p>
 
 <p>Что как бы намекает нам, что это очень долго, потому что поиск идет строка за строкой, просматривая каждую строку таблицы. Значит, нам нужен индекс, комплексный индекс.</p>
 
@@ -36,7 +36,7 @@
 
 <p>Проверяем, запускаем такой же запрос и получаем следующую картину.</p>
 
-<p><img src="http://zudochk.in/uploads/asset/image/53/huge_Screenshot_2014-01-21_21.48.18.png" alt="query plan with index" /></p>
+<p><img class="image" src="/images/posts/2014-01-fulltext-phones-postgresql/huge_Screenshot_2014-01-21_21.48.18.png"></p>
 
 <p>Мы видим, что сейчас начал использоваться индекс и скорость выполнения запроса возросла в 6 с небольшим раз. Магия индексов воочию.</p>
 
@@ -96,9 +96,106 @@ end
 
 <p>Это очень упрощенный метод, но он работает, теперь для поиска телефона, необходимо вызвать где-нибудь в коде наш метод: <code>Phone.search '313'</code> и вы получите список строк, телефоны которых содержат заданную строку.</p>
 
-<p><img src="http://zudochk.in/uploads/asset/image/54/huge_Screenshot_2014-01-21_22.39.20.png" alt="search execution" /></p>
+<p><img class="image" src="/images/posts/2014-01-fulltext-phones-postgresql/huge_Screenshot_2014-01-21_22.39.20.png"></p>
 
 <p>Надеюсь, данный пост поможет вам. Все мысли, ошибки, неточности можете оставлять в комментариях, с удовольствием их почитаю :) Мир, братья и сестры.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Оповещение после выполнения "тяжелой" фоновой задачи с помощью faye и PrivatePub]]></title>
+    <link href="http://zudochkin.ru/2013/01/resque-with-private-pub-and-rails"/>
+    <updated>2013-01-21T22:45:24+04:00</updated>
+    <id>http://zudochkin.ru/2013/01/resque-with-private-pub-and-rails</id>
+    <content type="html"><![CDATA[<p>Допустим нам необоходимо после выполнения большой задачи в фоновом режиме сообщить об этом пользователю и совершить что-нибудь, например, показать ему какой-нибудь popup. <!-- more -->
+Для этого по-старинке, можно с интервалом, скажем в 1 секунду опрашивать сервер и смотреть не завершилась ли наша задача, но в пору HTML5  делать это, по крайней мере, не престижно. Будем использовать для этих целей инструмент по обмену сообщениями между сервером и клиентом <strong>Faye</strong>.</p>
+
+<h3>Инструменты</h3>
+
+<p>Нам понадобится Rails приложение, к которому мы и будем привязывать всю эту функциональность. Также будем использовать <strong>Resque</strong> для выполнений фоновых задач &ndash; инструмент, зарекомендовавший себя, как надежный и стабильный помощник, спасающий всегда, когда нужно выполнить тяжелые задачи в фоне. Вместе с <strong>faye</strong> воспользуемся оберткой для него от Ryan Bates <strong>Private Pub</strong>, который мне очень облегчил жизнь, надеюсь, и облегчит вам.</p>
+
+<h3>Реализация</h3>
+
+<p>Для начала установим redis и обновим наш Gemfile, дополнив его необходимыми гемами resque, faye, private_pub, thin.</p>
+
+<p>Я буду рассказать все на примере Mac OS, установка подобного инструментарий, скажем, на Ubuntu, не должна вызвать вопросов, потому что инструменты очень распространенные.</p>
+
+<p>Устанавливал redis я с помощью всем известного пакетного менеджера Homebrew, напечатав в терминале всего одну команду <code>brew install redis</code></p>
+
+<p>Допустим у нас имеется какой-нибудь тяжелый объект с несколькими картинками, которые лежат в Amazon S3 и, чтобы создать копию этого объекта нам понадобится скачать все эти картинки, чтобы вновь их туда загрузить,  привязав в новому объекту. Не спрашивайте почему так сложно, так работает CarrierWave или я просто не нашел лучшего решения.</p>
+
+<p>Если у нас раньше был метод в контролле, к примеру, clone, которй вызывал метод из модели, делающий всю грязную работу, то сейчас нам нужно лишь добавить новую задачу для resque, выглядеть это будет примерно так</p>
+
+<p><code>ruby
+def clone
+  Resque.enqueue(CloneProfileWorker, params[:id])
+end
+</code></p>
+
+<p>Теперь тяжелая задача будет добавляться в очередь всякий раз, когда мы пройдем по ссылке <strong>/profiles/#{ id }/clone</strong>.</p>
+
+<p>Давайте поставим и настроим PrivatePub, который будет со стороны клиента подписываться на определенные события, и со стороны сервера, после наступления определенного события (в нашем примере это, когда resque job отработает) делать нужные нам вещи.</p>
+
+<p>Для этого в консоли нужно запустить <code>rails g private_pub:install</code></p>
+
+<p>и добавить в файл app/assets/javascripts/application.js[.cofeee] строчку
+<code>#= require private_pub</code>, если вы используете cofeeScript или же <code>//= require private_pub</code>, если js</p>
+
+<p>и дальше во вьюхе <strong>/profile/clone.html.haml</strong> (я использую haml в данном проекте)</p>
+
+<p>``` ruby
+= subscribe_to &ldquo;/profile_cloning_#{ params[:id] }&rdquo;</p>
+
+<p>:javascript
+  PrivatePub.subscribe(&lsquo;/profile_cloning_#{ params[:id] }&rsquo;, function(data, channel) {</p>
+
+<pre><code>location.href = data.url;
+</code></pre>
+
+<p>  });</p>
+
+<p>```</p>
+
+<p>Первая строчка это метод из гема, который инициализует объект необходимыми параметрами из файла /config/private_pub.yml, а после мы &ldquo;подписываемся на событие &lsquo;/profile_cloning_#{ params[:id] }&rsquo;, где в params[:id] содержится текущий id профиля. При наступлении данного события, мы перенаправляем пользователя на страницу &lsquo;/profile/#{ new_id }/edit&rdquo;, полный урл мы получим после того, как resque job отработает.</p>
+
+<p><strong>app/workers/clone_profile_worker.rb</strong></p>
+
+<p>``` ruby
+require &lsquo;resque&rsquo;</p>
+
+<p>class CloneProfileWorker
+  @queue = :default</p>
+
+<p>  def self.perform(profile_id)</p>
+
+<pre><code>c = Profile.find profile_id
+new_profile = c.clone_self
+
+if new_profile.is_a? Profile
+  PrivatePub.publish_to "/profile_cloning_#{ profile_id }", :url =&gt; "/profiles/#{ new_profile.id }/edit"
+end
+</code></pre>
+
+<p>  end
+end</p>
+
+<p>```</p>
+
+<p>В данном воркере нет ничего магического: сначала мы клонируем наш профиль и если все прошло успешно, то оповещаем нашего клиента и передаем туда url, на который он перенаправится.</p>
+
+<p>Проверяем работоспособность</p>
+
+<p>Запускаем в разных окнах терминала:</p>
+
+<ul>
+<li><code>rails s</code></li>
+<li><code>redis-server /usr/local/etc/redis.conf</code> (у меня MacOs, на других ОС должно быть нечто подобное)</li>
+<li><code>VERBOSE=1 rake resque:work QUEUE=*</code> (запускаем все очереди, устанвливаем verbose=1 для того, чтобы видеть что происходит внутри resque)</li>
+<li><code>rackup private_pub.ru -s thin -E production</code> (сервер для PrivatePub и Faye)</li>
+</ul>
+
+
+<p>Проходим по ссылке наподобие <strong>/profiles/73/clone</strong> и смотрим в терминале как отрабатывает наш resque job и мы перенаправляемся на редактирование уже склонированного профиля, если все отработало без ошибок. Если же возникли ошибки, то они отобразятся в терминале, если произойдет что-то невообразимое и непредвиденное, пишите в комментариях, я попробую помочь вам.</p>
 ]]></content>
   </entry>
   
