@@ -1,6 +1,14 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
+        <loc>http://zudochkin.ru/2012/04/polymorphic-relations-and-token-input-jquery</loc>
+        <lastmod>2014-02-02T23:53:08+04:00</lastmod>
+    </url>
+    <url>
+        <loc>http://zudochkin.ru/2012/08/rails-has-many-relations-coffeescript</loc>
+        <lastmod>2014-02-02T23:48:34+04:00</lastmod>
+    </url>
+    <url>
         <loc>http://zudochkin.ru/2012/09/download-torrent-files-with-transmission-daemon</loc>
         <lastmod>2014-02-02T23:29:17+04:00</lastmod>
     </url>
@@ -62,7 +70,7 @@
     </url>
     <url>
         <loc>http://zudochkin.ru/archives/</loc>
-        <lastmod>2014-02-02T23:29:41+04:00</lastmod>
+        <lastmod>2014-02-02T23:53:08+04:00</lastmod>
     </url>
     <url>
         <loc>http://zudochkin.ru/books/</loc>
@@ -70,7 +78,7 @@
     </url>
     <url>
         <loc>http://zudochkin.ru/</loc>
-        <lastmod>2014-02-02T23:29:41+04:00</lastmod>
+        <lastmod>2014-02-02T23:53:08+04:00</lastmod>
     </url>
     <url>
         <loc>http://zudochkin.ru/movies/</loc>

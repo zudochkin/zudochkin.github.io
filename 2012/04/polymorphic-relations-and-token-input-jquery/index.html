@@ -1,0 +1,483 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Rails Полиморфная связь и TokenInput jQuery - Записки Вредного программиста</title>
+  <meta name="author" content="Зудочкин Дима">
+
+  
+  <meta name="description" content="Сумбурная заметка о полиморфных связях в рельсах третье версии и совместное использование оных с jQuery плагином tokenInput">
+  <meta name="keywords" content="tokeinput jquery, polymorphic relations rails, полиморфные связи rails,jquery,rails,ruby on rails">
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://zudochkin.ru/2012/04/polymorphic-relations-and-token-input-jquery">
+
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Записки Вредного программиста" type="application/atom+xml">
+  <link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-11803166-9', 'zudochkin.ru');
+  ga('send', 'pageview');
+
+</script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <div id="logo">
+  	<div id="logoLeft">{</div>
+  	<div id="logoText">Zudochkin Dmitry</div>
+  	<div id="logoRight">}</div>
+  	<div class="clear"></div>
+  </div>
+  <h1><a href="/">Записки Вредного программиста</a></h1>
+  
+    <h2>enjoy, motherfuckers ;)</h2>
+  
+  <div class="clear"></div>
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:zudochkin.ru" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Главная</a></li>
+  <li><a href="/archives">Архив</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      
+        <h1 class="entry-title">Rails Полиморфная связь и TokenInput jQuery</h1>
+      
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-18T23:26:02+04:00" pubdate data-updated="true">18.04.2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Представьте ситуацию, что у вас имеется некая модель, к которой вы хотите добавлять по средствам связей другие модели. Хорошо, когда данную связь можно описать обычным <strong>has_many</strong>, другое дело, когда нужно привязать разнородные модели, к примеру, у вас имеется модель вопросов, к которой нужно привязать город или страну <!-- more -->(не очень наглядный пример, вряд ли он вам в жизни встретится, но я поделюсь своим опытом).</p>
+
+<p>Как вы, наверное, догадались, основным инструментом будет выступать ruby an rails. Из гемов будем использовать <strong>simple_form</strong> для удобного создания форм, <strong>inherited_resources</strong>, чтобы писать намного меньше кода в контроллерах (сейчас не представляю без этого гема жизни).</p>
+
+<p>Также нам понадобится плагин для jQuery <a href="http://loopj.com/jquery-tokeninput/">tokenInput</a>, который будет отображать выпадающий список с autoComplete&#8217;ом, из которого мы сможем выбрать одно значение из стран или городов (список будет один).</p>
+
+<h3>Реализация</h3>
+
+<p>Начнем с контроллера <strong>QuestionableController</strong> (не очень, конечно, удачное название), который будет отдавать солянку из городов и стран с возможностю поиска.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">QuestionableController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">index</span>
+</span><span class='line'>    <span class="n">countries</span> <span class="o">=</span> <span class="no">Country</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="ss">:all</span><span class="p">,</span> <span class="ss">conditions</span><span class="p">:</span> <span class="o">[</span><span class="s1">&#39;name LIKE(?)&#39;</span><span class="p">,</span> <span class="s2">&quot;%</span><span class="si">#{</span> <span class="n">params</span><span class="o">[</span><span class="ss">:q</span><span class="o">]</span>
+</span><span class='line'>    <span class="n">cities</span> <span class="o">=</span> <span class="no">City</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="ss">:all</span><span class="p">,</span> <span class="ss">conditions</span><span class="p">:</span> <span class="o">[</span><span class="s1">&#39;name LIKE(?)&#39;</span><span class="p">,</span> <span class="s2">&quot;%</span><span class="si">#{</span> <span class="n">params</span><span class="o">[</span><span class="ss">:q</span><span class="o">]</span> <span class="si">}</span><span class="s2">%&quot;</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="vi">@questionable</span> <span class="o">=</span> <span class="n">countries</span> <span class="o">+</span> <span class="n">cities</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">respond_to</span> <span class="k">do</span> <span class="o">|</span><span class="nb">format</span><span class="o">|</span>
+</span><span class='line'>      <span class="nb">format</span><span class="o">.</span><span class="n">json</span> <span class="p">{</span> <span class="n">render</span> <span class="si">}</span><span class="s2"></span>
+</span><span class='line'><span class="s2">    end</span>
+</span><span class='line'><span class="s2">  end</span>
+</span><span class='line'><span class="s2">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Лучше вынести всю логику в модель, но данный пример создан исключительно для демонстрации. Что мы делаем в этом контроллере? Ищем страны и города, удовлетворяющих параметру <strong>q</strong> и заполняем инстанс переменную <strong>@questionable</strong></p>
+
+<p>Также давайте заполним нашу вьюшку <em>index.json.erb</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;%=</span> <span class="n">sanitize</span> <span class="vi">@questionable</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="nb">methods</span><span class="p">:</span> <span class="o">[</span><span class="ss">:id_with_class_name</span><span class="o">]</span><span class="p">,</span> <span class="ss">only</span><span class="p">:</span> <span class="o">[</span><span class="ss">:id</span><span class="p">,</span> <span class="ss">:name</span><span class="o">]</span><span class="p">)</span> <span class="o">%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>в которой мы рендерим наш json, т.к. нам не нужны все поля модели мы используем только необходимые <code>(only: [:id, :name])</code>, ключ methods: указывает на то, что мы помимо физических свойст, будем использовать метод модели <em>id_with_class_name</em>.</p>
+
+<p>Пока не забыл, давайте пропишем пару строк в наш <em>config/routes.rb</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">resources</span> <span class="ss">:questions</span> <span class="c1"># для того, чтобы создавать/показывать/удалять вопросы</span>
+</span><span class='line'><span class="n">resources</span> <span class="ss">:questionable</span><span class="p">,</span> <span class="ss">only</span><span class="p">:</span> <span class="ss">:index</span> <span class="c1"># для того, чтобы отображать json</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Перейдем к моделям:</p>
+
+<p><em>models/question.rb</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Question</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'>  <span class="kp">attr_accessor</span> <span class="ss">:location</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:questionable</span><span class="p">,</span> <span class="ss">polymorphic</span><span class="p">:</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">attr_accessible</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">:questionable_id</span><span class="p">,</span> <span class="ss">:questionable_type</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">before_save</span> <span class="k">do</span>
+</span><span class='line'>    <span class="k">return</span> <span class="k">unless</span> <span class="nb">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=~</span> <span class="sr">/_/</span>
+</span><span class='line'>    <span class="n">location_id</span><span class="p">,</span> <span class="n">location_type</span> <span class="o">=</span> <span class="nb">self</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="nb">self</span><span class="o">.</span><span class="n">questionable_id</span>   <span class="o">=</span> <span class="n">location_id</span>   <span class="k">unless</span> <span class="n">location_id</span><span class="o">.</span><span class="n">nil?</span>
+</span><span class='line'>    <span class="nb">self</span><span class="o">.</span><span class="n">questionable_type</span> <span class="o">=</span> <span class="n">location_type</span> <span class="k">unless</span> <span class="n">location_type</span><span class="o">.</span><span class="n">nil?</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Самая интересная строчка &ndash; это та, которая начинается с <code>belongs_to</code>, в ней мы объявляем полиморфную связь questionable. Дальше идет метод, который мы вызываем каждый раз перед сохранением в базу данных. В нем мы парсим строку из autoComplete&#8217;а, которая будет иметь вид id_ModelName и сохраняем отдельно id и ModelName.</p>
+
+<p>Модель <em>city.rb</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">City</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:questions</span><span class="p">,</span> <span class="ss">as</span><span class="p">:</span> <span class="ss">:questionable</span>
+</span><span class='line'>  <span class="n">attr_accessible</span> <span class="ss">:name</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">id_with_class_name</span>
+</span><span class='line'>    <span class="s2">&quot;</span><span class="si">#{</span> <span class="nb">id</span> <span class="si">}</span><span class="s2">_</span><span class="si">#{</span> <span class="nb">self</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">name</span> <span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>В ней объявляется связь <code>has_many</code> через questionable, который мы обявили в модели question полиморфной. Далее идем метод, который возвращает id записи и название класса модели (чтобы можно было отделить зерно от плевел).</p>
+
+<p>Модель <em>country.rb</em> почти такая же</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Country</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:questions</span><span class="p">,</span> <span class="ss">as</span><span class="p">:</span> <span class="ss">:questionable</span>
+</span><span class='line'>  <span class="n">attr_accessible</span> <span class="ss">:name</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">id_with_class_name</span>
+</span><span class='line'>    <span class="s2">&quot;</span><span class="si">#{</span> <span class="nb">id</span> <span class="si">}</span><span class="s2">_</span><span class="si">#{</span> <span class="nb">self</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">name</span> <span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Связь обявлена также как и в предыдущей модели.</p>
+
+<p>Наш маленький контроллер <em>QuestionController</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">QuestionsController</span> <span class="o">&lt;</span> <span class="ss">InheritedResources</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>где остальное спросите вы. Это все. Это все, что нам нужно для того, чтобы создавать, удалять, редактировать вопросы. Как вы, наверное, заметили наш контроллер наследуется не от ApplicationController&#8217;а, а от inherited_resources. Что это значит? А это значит, если абстрагироваться от 80% возможностей этого гема, то, что гем берет всю &ldquo;грязную&rdquo; работу на себя, предоставляя нам в пользование переменные resource и collection, хранятся в которых ссылка на текущую запись (resource) и список всех записей (collection) соответственно. Для того, чтобы мы смогли создать свой первый вопрос нам необходимы лишь вьюшки. Начнем с _form.html.erb, которую мы будем подключать и в создании вопроса, и в редактировании.</p>
+
+<p><em>app/views/questions/</em>form.html.erb_</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">%= simple_form_for resource do |f| %&gt;</span>
+</span><span class='line'><span class="sx">  &lt;% pre =</span> <span class="k">if</span> <span class="n">resource</span><span class="o">.</span><span class="n">questionable</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">    &lt;% [resource.questionable].to_json(only: [:id, :name]) %&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
+</span><span class='line'><span class="sx">  &lt;%= f.input :name %&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">%= f.input :location, input_html: { &#39;data-pre&#39; =</span><span class="o">&gt;</span> <span class="n">pre</span><span class="p">,</span> <span class="ss">class</span><span class="p">:</span> <span class="s1">&#39;token-input-questionable&#39;</span> <span class="p">}</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">  &lt;%= f.submit nil %&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sx">% end </span><span class="o">%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Как видите, почти никаких различий с нативным form_for нет. Во второй строке мы заполняем переменную pre json&#8217;ом выбранного города или страны, в предпоследней создаем инпут с атрибутом data-pre, равным json&#8217;у и классом, чтобы мы могли найти этот элемент без проблем.</p>
+
+<p><em>new.html.erb</em> и <em>edit.html.erb</em> абсолютно одинаковы и представляют собой следующее:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;%=</span> <span class="n">render</span> <span class="s1">&#39;form&#39;</span> <span class="o">%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>в них мы отрисовываем только форму.</p>
+
+<p>Далее кинем наш скачанный jquery.tokeninput.js в папку <em>app/assets/javascripts</em> и допишем в <em>application.js</em> следующее:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">$</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">$input</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.token-input-questionable&#39;</span><span class="p">);</span>
+</span><span class='line'>   <span class="nx">$input</span><span class="p">.</span><span class="nx">tokenInput</span><span class="p">(</span><span class="s1">&#39;/questionable.json&#39;</span><span class="p">,</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nx">tokenLimit</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span>
+</span><span class='line'>      <span class="nx">tokenValue</span><span class="o">:</span> <span class="s1">&#39;id_with_class_name&#39;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nx">prePopulate</span><span class="o">:</span> <span class="nx">$input</span><span class="p">.</span><span class="nx">data</span><span class="p">(</span><span class="s1">&#39;pre&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">});</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Первым параметром к tokenInput мы указываем откуда брать данные, tokenLimit:1 указывает на то, что одной записи нам будет достаточно (одного элемента из выпадающего списка), tokenValue &ndash; откуда мы будем брать имя, которое будем отображать из json&#8217;а, prePopulate используем для того, чтобы заполнить элемент, если мы его уже выбрали (редактирование).</p>
+
+<p><img class="image" src="/images/posts/2012-04-polymorphic-relations-and-token-input-jquery/rsz_1screenshot_from_2012-04-18_230555-300x209.png"></p>
+
+<p>Сумбурным получилось изложения материала, потому что для меня это в новинку и писалось это для того, чтобы не забыть полезную &ldquo;плюшку&rdquo; в дальнейшем. Если заметка кому-нибудь еще пригодится, я буду очень рад :)</p>
+
+<p>P.S.: Если данную заметку читает Александр, мало ли, то, надеюсь, он будет не против, что я позаимствовал его идею :)</p>
+
+<p>Демо проект &ldquo;лежит&rdquo; на <a href="http://vredniy-polymorphic.heroku.com/questions/">heroku</a>, репозиторий, как всегда на <a href="https://github.com/vredniy/rails-token-input">github</a> (там же лежат и миграции, нужные для запуска проекта).</p>
+
+<p>Удачи вам в любых начинаниях и до новых встреч :)</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-18T23:26:02+04:00" pubdate data-updated="true">18.04.2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ruby-on-rails/'>Ruby On Rails</a>, <a class='category' href='/blog/categories/jquery/'>jQuery</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://zudochkin.ru/2012/04/polymorphic-relations-and-token-input-jquery" data-via="vredniy" data-counturl="http://zudochkin.ru/2012/04/polymorphic-relations-and-token-input-jquery" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+      
+        <a class="basic-alignment right articlenav" href="/2012/08/rails-has-many-relations-coffeescript" title="Следующий пост: Один вопрос и несколько ответов">Один вопрос и несколько ответов &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Комментарии</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Последние посты</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2014/01/fulltext-phones-postgresql">Полнотекстовый поиск по телефонным номерам разного формата (PostgreSQL)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/11/open-uri-progress-bar">Ruby OpenURI::open и ProgressBar</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/first-photography">Первая выездная фотосъемка (Большой Москворецкий мост)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/vim-first-plugin">Написание первого плагина для Vim</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/logrotate-unicorn">Ротация логов на примере логов Unicorn</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Зудочкин Дима -
+  <span class="credit">Powered by <a rel="nofollow" href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'zudochkinru';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://zudochkin.ru/2012/04/polymorphic-relations-and-token-input-jquery';
+        var disqus_url = 'http://zudochkin.ru/2012/04/polymorphic-relations-and-token-input-jquery';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

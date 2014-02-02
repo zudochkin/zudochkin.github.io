@@ -4,7 +4,7 @@
   <title><![CDATA[Записки Вредного программиста]]></title>
   <link href="http://zudochkin.ru/atom.xml" rel="self"/>
   <link href="http://zudochkin.ru/"/>
-  <updated>2014-02-02T23:32:12+04:00</updated>
+  <updated>2014-02-02T23:53:57+04:00</updated>
   <id>http://zudochkin.ru/</id>
   <author>
     <name><![CDATA[Зудочкин Дима]]></name>
@@ -1914,6 +1914,437 @@ update: &mdash;no-ri &mdash;no-rdoc</p>
 <h3>Заключение</h3>
 
 <p>Данное решение служит мне верой и правдой уже где-то с месяц и не вызывало никаких нареканий, процессы не отваливаются, журнальчики скачиваются :) Было бы неплохо, наверное, сделать так, что при скачивании торрент файла, мы получаем список файлов, которые в нем содержатся и каким-нибудь демоном проверяем все ли файлы скачались, если да, то оповещаем по имейлу пользователя. Но данная &ldquo;плюшка&rdquo; выходит за рамки данной заметки. Надеюсь, вам было интересно, до новых встреч :).</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Один вопрос и несколько ответов]]></title>
+    <link href="http://zudochkin.ru/2012/08/rails-has-many-relations-coffeescript"/>
+    <updated>2012-08-18T20:52:03+04:00</updated>
+    <id>http://zudochkin.ru/2012/08/rails-has-many-relations-coffeescript</id>
+    <content type="html"><![CDATA[<p><img class="image" src="http://zudochkin.ru/images/posts/2012-08-rails-has-many-relations-coffeescript/rails-nested-relations-300x243.png"></p>
+
+<p>Давно что-то я не писал, а тут выдался свободный денек, чтобы рассказать еще об одной плюшке, которую я узнал. Все приведенное ниже не претендует на ортодоксальную правильность, это лишь мое мнение и мое решение.</p>
+
+<p>Имеется, к примеру, у нас вопросы и ответы и мы, вместо того, чтобы создавать сначала вопрос и потом привязывать к нему по одному ответы, будем делать это все на одной странице.</p>
+
+<!-- more -->
+
+
+<h3>Решение</h3>
+
+<p>В решении нам помогут gem <em>simple_form</em>, который в разы облегчает работу с формами и <em>coffescript</em>, который хоть и транслируется в javascript, но по синтаксису очень похож на руби со своим &ldquo;сахаром&rdquo;.</p>
+
+<h4>Модели</h4>
+
+<p>Как ясно из название, у нас будут две модели: Question и Answer, в них нет ничего сложного</p>
+
+<p>Вопрос</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Question</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'>  <span class="n">attr_accessible</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">:answers_attributes</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:answers</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">accepts_nested_attributes_for</span> <span class="ss">:answers</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">validates</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ответ</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Answer</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'>  <span class="n">attr_accessible</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">:question_id</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:question</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">validates</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Единственное, что может показаться странным с первого взгляда, так это строка accepts_nested_attributes. Которая говорит, что модель Question может принимать атрибуты и для ответа, т.е. один post запрос может нам и вопрос создать и ответы к нему.</p>
+
+<p>Я для экономии времени использовал twitter-bootstrap-rails gem и scaffold, поэтому все получилось почти готовое. Лишь небольшие правки я внес в форму <em>app/views/questions/</em>form.html.erb_</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="err">&lt;</span>%= f.input :name, :label =&gt; &#39;Текст вопроса&#39; %&gt;
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;answers&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="err">&lt;</span>%= f.simple_fields_for :answers do |answers_form| %&gt;
+</span><span class='line'>    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;answer&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>      <span class="err">&lt;</span>%= answers_form.input :name, :label =&gt; &#39;Текст ответа&#39; %&gt;
+</span><span class='line'>
+</span><span class='line'>      <span class="err">&lt;</span>%= link_to &#39;#&#39;, :class =&gt; &#39;remove_answer&#39; do %&gt;
+</span><span class='line'>        <span class="nt">&lt;i</span> <span class="na">class=</span><span class="s">&quot;icon-minus-sign&quot;</span><span class="nt">&gt;&lt;/i&gt;</span>
+</span><span class='line'>      <span class="err">&lt;</span>% end %&gt;
+</span><span class='line'>    <span class="nt">&lt;/div&gt;</span>
+</span><span class='line'>  <span class="err">&lt;</span>% end %&gt;
+</span><span class='line'><span class="nt">&lt;/div&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">&lt;</span>%= link_to &#39;#&#39;, :id =&gt; &#39;add_answer&#39; do %&gt;
+</span><span class='line'>  <span class="nt">&lt;i</span> <span class="na">class=</span><span class="s">&quot;icon-plus-sign&quot;</span><span class="nt">&gt;&lt;/i&gt;</span>
+</span><span class='line'><span class="err">&lt;</span>% end %&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Я обернул ответы на вопрос классом .answers, чтобы они визуально отличались, добавил вложенную форму для вопросов с помощью simple_form и две кнопки: &ldquo;+&rdquo; &ndash; для добавления ответа и &ldquo;&ndash;&rdquo; &ndash; для его удаления</p>
+
+<p>Сейчас задача сводится к тому, чтобы динамически добавлять/удалять ответы на странице без ее перезагрузки, взглянем на генерируемый html</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;input</span> <span class="na">class=</span><span class="s">&quot;string required&quot;</span> <span class="na">id=</span><span class="s">&quot;question_answers_attributes_0_name&quot;</span> <span class="na">name=</span><span class="s">&quot;question[answers_attributes][0][name]&quot;</span> <span class="na">size=</span><span class="s">&quot;50&quot;</span> <span class="na">type=</span><span class="s">&quot;text&quot;</span><span class="nt">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>При добавлении нового элемента возрастает цифра в айдишнике и в имени текстового поля. Для того, чтобы создать новый ответы мы будем действовать так: склонируем последний ответ на странице с помощью $.clone(), поменяем все элементы name и id, заменив у них цифру в середине. Заменять будем на new Date().getTime(), который генирует случайное число, хоть и большое, но оно нам подходит. Также нам нужно будет не забыть о лейблах, а то получится, что мы кликаем на лейбл, а в фокус попадает совсем не соответствующий элемент. Итак, поехали.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nx">$</span> <span class="nf">-&gt;</span>
+</span><span class='line'>  <span class="c1"># обрабатываем клик по кнопке добавления</span>
+</span><span class='line'>  <span class="nx">$</span><span class="p">(</span><span class="s">&#39;#add_answer&#39;</span><span class="p">).</span><span class="nx">click</span> <span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="nv">$last = </span><span class="nx">$</span><span class="p">(</span><span class="s">&#39;.answer:last&#39;</span><span class="p">)</span> <span class="c1"># последний ответ на странице</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nv">$cloned = </span><span class="nx">$last</span><span class="p">.</span><span class="nx">clone</span><span class="p">()</span> <span class="c1"># клонируем его</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># получаем рандомное число</span>
+</span><span class='line'>    <span class="nv">randValue = </span><span class="k">new</span> <span class="nb">Date</span><span class="p">().</span><span class="nx">getTime</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># пробегаемся по всем элементам, у которых есть атрибут name или for</span>
+</span><span class='line'>    <span class="nx">$</span><span class="p">(</span><span class="s">&#39;[name], [for]&#39;</span><span class="p">,</span> <span class="nx">$cloned</span><span class="p">).</span><span class="nx">each</span> <span class="nf">(index, item) -&gt;</span>
+</span><span class='line'>      <span class="nv">$item = </span><span class="nx">$</span><span class="p">(</span><span class="nx">item</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="c1"># если это текстовое поле, заменяем id и name</span>
+</span><span class='line'>      <span class="k">if</span> <span class="nx">$item</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">nodeName</span> <span class="o">is</span> <span class="s">&#39;INPUT&#39;</span>
+</span><span class='line'>        <span class="nx">$item</span><span class="p">.</span><span class="nx">attr</span> <span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="nx">$item</span><span class="p">.</span><span class="nx">attr</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">).</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\d+/</span><span class="p">,</span> <span class="nx">randValue</span><span class="p">)</span>
+</span><span class='line'>        <span class="nx">$item</span><span class="p">.</span><span class="nx">attr</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="nx">$item</span><span class="p">.</span><span class="nx">attr</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">).</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\d+/</span><span class="p">,</span> <span class="nx">randValue</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="c1"># если это лейбл, то заменяем атрибут for</span>
+</span><span class='line'>      <span class="nx">$item</span><span class="p">.</span><span class="nx">attr</span> <span class="s">&#39;for&#39;</span><span class="p">,</span> <span class="nx">$item</span><span class="p">.</span><span class="nx">attr</span><span class="p">(</span><span class="s">&#39;for&#39;</span><span class="p">).</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\d+/</span><span class="p">,</span> <span class="nx">randValue</span><span class="p">)</span>  <span class="k">if</span> <span class="nx">$item</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">nodeName</span> <span class="o">is</span> <span class="s">&#39;LABEL&#39;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># скрываем добавляемый ответ, чтобы красиво появиться</span>
+</span><span class='line'>    <span class="nx">$cloned</span><span class="p">.</span><span class="nx">hide</span><span class="p">()</span>
+</span><span class='line'>    <span class="nx">$cloned</span><span class="p">.</span><span class="nx">appendTo</span> <span class="nx">$last</span><span class="p">.</span><span class="nx">parent</span><span class="p">()</span>
+</span><span class='line'>    <span class="nx">$cloned</span><span class="p">.</span><span class="nx">slideDown</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kc">false</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Осталось добавить обработчик события удаления ответа</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="c1"># при клике на удаление ответа, удаляем его</span>
+</span><span class='line'><span class="nx">$</span><span class="p">(</span><span class="s">&#39;body&#39;</span><span class="p">).</span><span class="nx">delegate</span> <span class="s">&#39;.remove_answer&#39;</span><span class="p">,</span> <span class="s">&#39;click&#39;</span><span class="p">,</span> <span class="nf">-&gt;</span>
+</span><span class='line'>  <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">closest</span><span class="p">(</span><span class="nx">$</span><span class="p">(</span><span class="s">&#39;.answer&#39;</span><span class="p">)).</span><span class="nx">slideUp</span> <span class="nf">-&gt;</span>
+</span><span class='line'>    <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">remove</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kc">false</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Метод $.closest находит ближайший элемент с классом .answer, поднимаясь вверх по дереву DOM. Находим его, скрываем, а после проигрыша анимации удаляем.</p>
+
+<h3>Что можно сделать лучше</h3>
+
+<ul>
+<li>Добавить валидацию на количество ответов в модели, к примеру, <code>validates_length_of :answers, :minimum =&gt; 1</code></li>
+<li>Добавить проверку, чтобы не удалить последний ответ, после удаления которого мы не сможем добавить новый &ndash; клонировать некого :)</li>
+<li>Не использовать скаффолд, который генерирует много ненужного мусора, по крайней мере, для данной задачи</li>
+<li>Да и вообще предела-то совершенству нет :)</li>
+</ul>
+
+
+<p>Надеюсь, данная неидеальная реализация кому-нибудь в жизни пригодится, вопросы, советы? &ndash; велком в комментарии.</p>
+
+<p>Чуть не забыл ссылку на <a href="https://github.com/vredniy/nested-relations">репозиторий на гитхабе</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Rails Полиморфная связь и TokenInput jQuery]]></title>
+    <link href="http://zudochkin.ru/2012/04/polymorphic-relations-and-token-input-jquery"/>
+    <updated>2012-04-18T23:26:02+04:00</updated>
+    <id>http://zudochkin.ru/2012/04/polymorphic-relations-and-token-input-jquery</id>
+    <content type="html"><![CDATA[<p>Представьте ситуацию, что у вас имеется некая модель, к которой вы хотите добавлять по средствам связей другие модели. Хорошо, когда данную связь можно описать обычным <strong>has_many</strong>, другое дело, когда нужно привязать разнородные модели, к примеру, у вас имеется модель вопросов, к которой нужно привязать город или страну <!-- more -->(не очень наглядный пример, вряд ли он вам в жизни встретится, но я поделюсь своим опытом).</p>
+
+<p>Как вы, наверное, догадались, основным инструментом будет выступать ruby an rails. Из гемов будем использовать <strong>simple_form</strong> для удобного создания форм, <strong>inherited_resources</strong>, чтобы писать намного меньше кода в контроллерах (сейчас не представляю без этого гема жизни).</p>
+
+<p>Также нам понадобится плагин для jQuery <a href="http://loopj.com/jquery-tokeninput/">tokenInput</a>, который будет отображать выпадающий список с autoComplete&#8217;ом, из которого мы сможем выбрать одно значение из стран или городов (список будет один).</p>
+
+<h3>Реализация</h3>
+
+<p>Начнем с контроллера <strong>QuestionableController</strong> (не очень, конечно, удачное название), который будет отдавать солянку из городов и стран с возможностю поиска.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">QuestionableController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">index</span>
+</span><span class='line'>    <span class="n">countries</span> <span class="o">=</span> <span class="no">Country</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="ss">:all</span><span class="p">,</span> <span class="ss">conditions</span><span class="p">:</span> <span class="o">[</span><span class="s1">&#39;name LIKE(?)&#39;</span><span class="p">,</span> <span class="s2">&quot;%</span><span class="si">#{</span> <span class="n">params</span><span class="o">[</span><span class="ss">:q</span><span class="o">]</span>
+</span><span class='line'>    <span class="n">cities</span> <span class="o">=</span> <span class="no">City</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="ss">:all</span><span class="p">,</span> <span class="ss">conditions</span><span class="p">:</span> <span class="o">[</span><span class="s1">&#39;name LIKE(?)&#39;</span><span class="p">,</span> <span class="s2">&quot;%</span><span class="si">#{</span> <span class="n">params</span><span class="o">[</span><span class="ss">:q</span><span class="o">]</span> <span class="si">}</span><span class="s2">%&quot;</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="vi">@questionable</span> <span class="o">=</span> <span class="n">countries</span> <span class="o">+</span> <span class="n">cities</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">respond_to</span> <span class="k">do</span> <span class="o">|</span><span class="nb">format</span><span class="o">|</span>
+</span><span class='line'>      <span class="nb">format</span><span class="o">.</span><span class="n">json</span> <span class="p">{</span> <span class="n">render</span> <span class="si">}</span><span class="s2"></span>
+</span><span class='line'><span class="s2">    end</span>
+</span><span class='line'><span class="s2">  end</span>
+</span><span class='line'><span class="s2">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Лучше вынести всю логику в модель, но данный пример создан исключительно для демонстрации. Что мы делаем в этом контроллере? Ищем страны и города, удовлетворяющих параметру <strong>q</strong> и заполняем инстанс переменную <strong>@questionable</strong></p>
+
+<p>Также давайте заполним нашу вьюшку <em>index.json.erb</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;%=</span> <span class="n">sanitize</span> <span class="vi">@questionable</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="nb">methods</span><span class="p">:</span> <span class="o">[</span><span class="ss">:id_with_class_name</span><span class="o">]</span><span class="p">,</span> <span class="ss">only</span><span class="p">:</span> <span class="o">[</span><span class="ss">:id</span><span class="p">,</span> <span class="ss">:name</span><span class="o">]</span><span class="p">)</span> <span class="o">%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>в которой мы рендерим наш json, т.к. нам не нужны все поля модели мы используем только необходимые <code>(only: [:id, :name])</code>, ключ methods: указывает на то, что мы помимо физических свойст, будем использовать метод модели <em>id_with_class_name</em>.</p>
+
+<p>Пока не забыл, давайте пропишем пару строк в наш <em>config/routes.rb</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">resources</span> <span class="ss">:questions</span> <span class="c1"># для того, чтобы создавать/показывать/удалять вопросы</span>
+</span><span class='line'><span class="n">resources</span> <span class="ss">:questionable</span><span class="p">,</span> <span class="ss">only</span><span class="p">:</span> <span class="ss">:index</span> <span class="c1"># для того, чтобы отображать json</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Перейдем к моделям:</p>
+
+<p><em>models/question.rb</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Question</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'>  <span class="kp">attr_accessor</span> <span class="ss">:location</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:questionable</span><span class="p">,</span> <span class="ss">polymorphic</span><span class="p">:</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">attr_accessible</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">:questionable_id</span><span class="p">,</span> <span class="ss">:questionable_type</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">before_save</span> <span class="k">do</span>
+</span><span class='line'>    <span class="k">return</span> <span class="k">unless</span> <span class="nb">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=~</span> <span class="sr">/_/</span>
+</span><span class='line'>    <span class="n">location_id</span><span class="p">,</span> <span class="n">location_type</span> <span class="o">=</span> <span class="nb">self</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="nb">self</span><span class="o">.</span><span class="n">questionable_id</span>   <span class="o">=</span> <span class="n">location_id</span>   <span class="k">unless</span> <span class="n">location_id</span><span class="o">.</span><span class="n">nil?</span>
+</span><span class='line'>    <span class="nb">self</span><span class="o">.</span><span class="n">questionable_type</span> <span class="o">=</span> <span class="n">location_type</span> <span class="k">unless</span> <span class="n">location_type</span><span class="o">.</span><span class="n">nil?</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Самая интересная строчка &ndash; это та, которая начинается с <code>belongs_to</code>, в ней мы объявляем полиморфную связь questionable. Дальше идет метод, который мы вызываем каждый раз перед сохранением в базу данных. В нем мы парсим строку из autoComplete&#8217;а, которая будет иметь вид id_ModelName и сохраняем отдельно id и ModelName.</p>
+
+<p>Модель <em>city.rb</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">City</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:questions</span><span class="p">,</span> <span class="ss">as</span><span class="p">:</span> <span class="ss">:questionable</span>
+</span><span class='line'>  <span class="n">attr_accessible</span> <span class="ss">:name</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">id_with_class_name</span>
+</span><span class='line'>    <span class="s2">&quot;</span><span class="si">#{</span> <span class="nb">id</span> <span class="si">}</span><span class="s2">_</span><span class="si">#{</span> <span class="nb">self</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">name</span> <span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>В ней объявляется связь <code>has_many</code> через questionable, который мы обявили в модели question полиморфной. Далее идем метод, который возвращает id записи и название класса модели (чтобы можно было отделить зерно от плевел).</p>
+
+<p>Модель <em>country.rb</em> почти такая же</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Country</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:questions</span><span class="p">,</span> <span class="ss">as</span><span class="p">:</span> <span class="ss">:questionable</span>
+</span><span class='line'>  <span class="n">attr_accessible</span> <span class="ss">:name</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">id_with_class_name</span>
+</span><span class='line'>    <span class="s2">&quot;</span><span class="si">#{</span> <span class="nb">id</span> <span class="si">}</span><span class="s2">_</span><span class="si">#{</span> <span class="nb">self</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">name</span> <span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Связь обявлена также как и в предыдущей модели.</p>
+
+<p>Наш маленький контроллер <em>QuestionController</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">QuestionsController</span> <span class="o">&lt;</span> <span class="ss">InheritedResources</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>где остальное спросите вы. Это все. Это все, что нам нужно для того, чтобы создавать, удалять, редактировать вопросы. Как вы, наверное, заметили наш контроллер наследуется не от ApplicationController&#8217;а, а от inherited_resources. Что это значит? А это значит, если абстрагироваться от 80% возможностей этого гема, то, что гем берет всю &ldquo;грязную&rdquo; работу на себя, предоставляя нам в пользование переменные resource и collection, хранятся в которых ссылка на текущую запись (resource) и список всех записей (collection) соответственно. Для того, чтобы мы смогли создать свой первый вопрос нам необходимы лишь вьюшки. Начнем с _form.html.erb, которую мы будем подключать и в создании вопроса, и в редактировании.</p>
+
+<p><em>app/views/questions/</em>form.html.erb_</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">%= simple_form_for resource do |f| %&gt;</span>
+</span><span class='line'><span class="sx">  &lt;% pre =</span> <span class="k">if</span> <span class="n">resource</span><span class="o">.</span><span class="n">questionable</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">    &lt;% [resource.questionable].to_json(only: [:id, :name]) %&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">% end %&gt;</span>
+</span><span class='line'><span class="sx">  &lt;%= f.input :name %&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sx">%= f.input :location, input_html: { &#39;data-pre&#39; =</span><span class="o">&gt;</span> <span class="n">pre</span><span class="p">,</span> <span class="ss">class</span><span class="p">:</span> <span class="s1">&#39;token-input-questionable&#39;</span> <span class="p">}</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">  &lt;%= f.submit nil %&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sx">% end </span><span class="o">%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Как видите, почти никаких различий с нативным form_for нет. Во второй строке мы заполняем переменную pre json&#8217;ом выбранного города или страны, в предпоследней создаем инпут с атрибутом data-pre, равным json&#8217;у и классом, чтобы мы могли найти этот элемент без проблем.</p>
+
+<p><em>new.html.erb</em> и <em>edit.html.erb</em> абсолютно одинаковы и представляют собой следующее:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;%=</span> <span class="n">render</span> <span class="s1">&#39;form&#39;</span> <span class="o">%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>в них мы отрисовываем только форму.</p>
+
+<p>Далее кинем наш скачанный jquery.tokeninput.js в папку <em>app/assets/javascripts</em> и допишем в <em>application.js</em> следующее:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">$</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">$input</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.token-input-questionable&#39;</span><span class="p">);</span>
+</span><span class='line'>   <span class="nx">$input</span><span class="p">.</span><span class="nx">tokenInput</span><span class="p">(</span><span class="s1">&#39;/questionable.json&#39;</span><span class="p">,</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nx">tokenLimit</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span>
+</span><span class='line'>      <span class="nx">tokenValue</span><span class="o">:</span> <span class="s1">&#39;id_with_class_name&#39;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nx">prePopulate</span><span class="o">:</span> <span class="nx">$input</span><span class="p">.</span><span class="nx">data</span><span class="p">(</span><span class="s1">&#39;pre&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">});</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Первым параметром к tokenInput мы указываем откуда брать данные, tokenLimit:1 указывает на то, что одной записи нам будет достаточно (одного элемента из выпадающего списка), tokenValue &ndash; откуда мы будем брать имя, которое будем отображать из json&#8217;а, prePopulate используем для того, чтобы заполнить элемент, если мы его уже выбрали (редактирование).</p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2012-04-polymorphic-relations-and-token-input-jquery/rsz_1screenshot_from_2012-04-18_230555-300x209.png"></p>
+
+<p>Сумбурным получилось изложения материала, потому что для меня это в новинку и писалось это для того, чтобы не забыть полезную &ldquo;плюшку&rdquo; в дальнейшем. Если заметка кому-нибудь еще пригодится, я буду очень рад :)</p>
+
+<p>P.S.: Если данную заметку читает Александр, мало ли, то, надеюсь, он будет не против, что я позаимствовал его идею :)</p>
+
+<p>Демо проект &ldquo;лежит&rdquo; на <a href="http://vredniy-polymorphic.heroku.com/questions/">heroku</a>, репозиторий, как всегда на <a href="https://github.com/vredniy/rails-token-input">github</a> (там же лежат и миграции, нужные для запуска проекта).</p>
+
+<p>Удачи вам в любых начинаниях и до новых встреч :)</p>
 ]]></content>
   </entry>
   
