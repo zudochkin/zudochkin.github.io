@@ -1,0 +1,622 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Собеседование и Unobtrusive Javascript на Rails - Записки Вредного программиста</title>
+  <meta name="author" content="Зудочкин Дима">
+
+  
+  <meta name="description" content="Сегодня я расскажу вам о Unobtrusive Javascript на Rails и с чем его едят ) Также создадим работающее приложение с нуля.">
+  <meta name="keywords" content="ujs rails, unobtrusive javascript rails">
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://zudochkin.ru/2012/03/unobtrusive-javascript-rails">
+
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Записки Вредного программиста" type="application/atom+xml">
+  <link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-11803166-9', 'zudochkin.ru');
+  ga('send', 'pageview');
+
+</script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <div id="logo">
+  	<div id="logoLeft">{</div>
+  	<div id="logoText">Zudochkin Dmitry</div>
+  	<div id="logoRight">}</div>
+  	<div class="clear"></div>
+  </div>
+  <h1><a href="/">Записки Вредного программиста</a></h1>
+  
+    <h2>enjoy, motherfuckers ;)</h2>
+  
+  <div class="clear"></div>
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:zudochkin.ru" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Главная</a></li>
+  <li><a href="/archives">Архив</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      
+        <h1 class="entry-title">Собеседование и Unobtrusive Javascript на Rails</h1>
+      
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-30T14:55:02+04:00" pubdate data-updated="true">30.03.2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Приветствую всех гостей и постояльцев на своем техническом, иногда не совсем, блоге. Кто читает меня в твиттере, наверное, помнят то, что вчера у меня было первое в жизни собеседование на ruby on rails вакансию, кто не читает, милости просим <a href="http://twitter.com/vredniy">дружить в твиттере</a>.<!-- more --></p>
+
+<p><img class="image" src="/images/posts/2012-03-unobtrusive-javascript-rails/ajax-crud-150x150.jpg"></p>
+
+<p>Встретились мы сначала с генеральным директором, он рассказал о проекте, пока его не буду называть, но это компания, которая занимается развитием сайта, посвященному туризму: туры, бронирование отелей, такси и прочей смежной тематикой. Обсудили нетехнические вопросы. Затем подошел старший программист и по большей части мы уже общались непосредственно с ним. Конечно, сказывалось отсутствие большого опыта программирования на ruby и ruby on rails, но на большую часть вопросов, как мне кажется, я ответил правильно. Вопросы были следующего характера:</p>
+
+<ul>
+<li>какие виды связей и как их создать в rails</li>
+<li>чем отличается include от extend&#8217;а</li>
+<li>имеется ли множественное наследование в ruby</li>
+</ul>
+
+
+<p>Параллельно с вопросами я рассказывал о своих проектах и на ruby, и на php. Рассказал почему захотел перейти с php на ruby, как решал задачу из предыдущего поста тоже рассказал :).</p>
+
+<p>После собеседования мне дали тестовое задание, оно заключается в следующем: необходимо без сторонних гемов, плагинов и библиотек реализовать простое приложение по управлению записями (обычный CRUD), только все это дело должно располагаться на одной странице, все запросы должны происходить в фоне (ajax) с применением unobtrusive javascript&#8217;а. Еще мне нужно было засечь сколько времени займет все это дело.</p>
+
+<p>На ознакомление с мат. частью (railscasts, guides.rubyonrails и пр.), так сказать, ушло около двух часов, на реализацию проекта столько же. Что получилось и ссылку на репозиторий вы можете увидеть в конце данной заметки.</p>
+
+<p>Итак, начнем.
+Единственную &ldquo;плюшку&rdquo;, которую я применил в проекте был gem &lsquo;twitter-bootstrap-rails&rsquo; для придания &ldquo;красивости&rdquo;, на конечную функциональность он никак не повлиял.</p>
+
+<p>Сначала, как и всегда, создаем проект <strong>rails new unobtrusive &amp;&amp; unobtrusive</strong>. Вписываем в <em>Gemfile</em>, что будем использовать twitter-bootstrap-rails <strong>gem &lsquo;twitter-bootstrap-rails&rsquo;</strong> и делаем <strong>bundle</strong>, чтобы обновить <em>Gemfile.lock</em></p>
+
+<p>Далее установим нужные стили, js-файлы, написав в консоли <em>rails g bootstrap:install</em> и обновим наш шаблон <strong>application</strong> командой <em>rails g bootstrap:layout application fluid</em>.</p>
+
+<p>Скаффолдом создадим все необходимое для задачи <em>rails g scaffold item name:string description:string</em>, теперь мы можем создавать, удалять и редактировать, но без ajax&#8217;а. Также давайте добавим красоты нашим item&#8217;ам <em>rails g bootstrap:themed Items</em>. Сейчас можно зайти на /items своего приложения и увидеть что получилось. Но нам пока рано останавливаться.</p>
+
+<p>Давайте добавим валидацию, которую я упустил, в файл <strong>app/models/item.rb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Item</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'>  <span class="n">validates_presence_of</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">:description</span>
+</span><span class='line'>  <span class="n">validates_uniqueness_of</span> <span class="ss">:name</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Первой строкой мы добавляем, как, наверное, ясно из название, наличие и имени, и описания, второй мы проверям уникальность имени, чтобы не было двух айтемов с одним и тем же именем.</p>
+
+<p>Далее давайте немного изменим нашу форму <strong>app/views/items/_form.html.erb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">%= form_for @item, :remote =</span><span class="o">&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:html</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">:class</span> <span class="o">=&gt;</span> <span class="s1">&#39;form-horizontal&#39;</span> <span class="p">}</span> <span class="k">do</span> <span class="o">|</span><span class="n">f</span><span class="o">|</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">  &lt;div id=&quot;item_errors&quot; style=&quot;display:none; color: red&quot;&gt;</span><span class="o">&lt;</span><span class="sr">/div&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">  &lt;fieldset&gt;</span>
+</span><span class='line'><span class="sr">    &lt;legend&gt;&lt;%= controller.action_name.capitalize %&gt; /</span><span class="no">Item</span><span class="o">&lt;</span><span class="sr">/legend&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">    &lt;div class=&quot;control-group&quot;&gt;</span>
+</span><span class='line'><span class="sr">      &lt;%= f.label :name, :class =&gt; &#39;control-label&#39; %&gt;</span>
+</span><span class='line'><span class="sr">      &lt;div class=&quot;controls&quot;&gt;</span>
+</span><span class='line'><span class="sr">        &lt;%= f.text_field :name, :class =&gt; &#39;text_field&#39; %&gt;</span>
+</span><span class='line'><span class="sr">      &lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+</span><span class='line'>    <span class="o">&lt;</span><span class="sr">/div&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">    &lt;div class=&quot;control-group&quot;&gt;</span>
+</span><span class='line'><span class="sr">      &lt;%= f.label :description, :class =&gt; &#39;control-label&#39; %&gt;</span>
+</span><span class='line'><span class="sr">      &lt;div class=&quot;controls&quot;&gt;</span>
+</span><span class='line'><span class="sr">        &lt;%= f.text_field :description, :class =&gt; &#39;text_field&#39; %&gt;</span>
+</span><span class='line'><span class="sr">      &lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+</span><span class='line'>    <span class="o">&lt;</span><span class="sr">/div&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">    &lt;div class=&quot;form-actions&quot;&gt;</span>
+</span><span class='line'><span class="sr">      &lt;%= f.submit nil, :class =&gt; &#39;btn btn-primary&#39; %&gt;</span>
+</span><span class='line'><span class="sr">      &lt;%= link_to &#39;Cancel&#39;, items_path, :class =&gt; &#39;btn&#39; %&gt;</span>
+</span><span class='line'><span class="sr">    &lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sr">/fieldset&gt;</span>
+</span><span class='line'><span class="sr">&lt;% end %&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Небольшого изменения коснулась первоя строка, а именно добавился атрибут <strong>:remote => true</strong>, что сообщает рельсам задейстовать ujs (unobtrusive javascript). Также был добавлен тег с id item_errors, где мы будем выводить все ошибки валидации нашей модели.</p>
+
+<p>Так как у нашего приложение будет только одна страница, можно смело избавляться от других вьюшек, заодно изменим наш контроллер <strong>app/controllers/items_controller.rb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">ItemsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">before_filter</span> <span class="k">do</span>
+</span><span class='line'>    <span class="vi">@items</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">all</span>
+</span><span class='line'>    <span class="vi">@item</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">new</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">before_filter</span> <span class="ss">:find_an_item</span><span class="p">,</span> <span class="ss">:only</span> <span class="o">=&gt;</span> <span class="o">[</span><span class="ss">:edit</span><span class="p">,</span> <span class="ss">:update</span><span class="p">,</span> <span class="ss">:destroy</span><span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">index</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">create</span>
+</span><span class='line'>    <span class="vi">@item</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:item</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">if</span> <span class="vi">@item</span><span class="o">.</span><span class="n">save</span>
+</span><span class='line'>      <span class="n">flash</span><span class="o">[</span><span class="ss">:notice</span><span class="o">]</span> <span class="o">=</span> <span class="s2">&quot;Successfully created item.&quot;</span>
+</span><span class='line'>      <span class="vi">@items</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">all</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">edit</span>
+</span><span class='line'>    <span class="vi">@items</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">all</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">update</span>
+</span><span class='line'>    <span class="k">if</span> <span class="vi">@item</span><span class="o">.</span><span class="n">update_attributes</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:item</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">flash</span><span class="o">[</span><span class="ss">:notice</span><span class="o">]</span> <span class="o">=</span> <span class="s2">&quot;Successfully updated item.&quot;</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>    <span class="vi">@items</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">all</span>
+</span><span class='line'>    <span class="n">render</span> <span class="ss">:action</span> <span class="o">=&gt;</span> <span class="s1">&#39;create&#39;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">destroy</span>
+</span><span class='line'>    <span class="vi">@item</span><span class="o">.</span><span class="n">destroy</span>
+</span><span class='line'>    <span class="n">flash</span><span class="o">[</span><span class="ss">:notice</span><span class="o">]</span> <span class="o">=</span> <span class="s2">&quot;Successfully destroyed item.&quot;</span>
+</span><span class='line'>    <span class="vi">@items</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">all</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kp">protected</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">find_an_item</span>
+</span><span class='line'>      <span class="vi">@item</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Тут я, конечно, перемудрил с before_filter&#8217;ами, но это то, как смог сделать за два часа. Как видите, контроллер шан стал намного полегче от того состояния, в котором он был после скаффолдинга: мы избавились от редиректов и вынести многое в before_filter&#8217;ы.</p>
+
+<p>Далее я добавил в шаблон <strong>app/view/layouts/application.html.erb</strong> рядом с тем где выводится контент экшнов, вывод flash сообщения.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;row-fluid&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;span9&quot;</span><span class="nt">&gt;&lt;span</span> <span class="na">id=</span><span class="s">&quot;flash_notice&quot;</span> <span class="na">style=</span><span class="s">&quot;color:green&quot;</span><span class="nt">&gt;&lt;/span&gt;&lt;/div&gt;</span>
+</span><span class='line'><span class="nt">&lt;/div&gt;</span>
+</span><span class='line'><span class="err">&lt;</span>%= yield %&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Это не весь шаблон, а только измененная его часть.</p>
+
+<p>Дело за вьюшками, создадим <strong>_items.html.erb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;table</span> <span class="na">class=</span><span class="s">&quot;table table-striped&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;thead&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;tr&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;th&gt;</span>ID<span class="nt">&lt;/th&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;th&gt;</span>Name<span class="nt">&lt;/th&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;th&gt;</span>Description<span class="nt">&lt;/th&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;th&gt;</span>Actions<span class="nt">&lt;/th&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/tr&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/thead&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;tbody&gt;</span>
+</span><span class='line'>    <span class="err">&lt;</span>% @items.each do |item| %&gt;
+</span><span class='line'>      <span class="nt">&lt;tr&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;td&gt;</span><span class="err">&lt;</span>%= item.id %&gt;<span class="nt">&lt;/td&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;td&gt;</span><span class="err">&lt;</span>%= link_to item.name, item_path(item) %&gt;<span class="nt">&lt;/td&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;td&gt;</span><span class="err">&lt;</span>%= item.description %&gt;<span class="nt">&lt;/td&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;td&gt;</span>
+</span><span class='line'>          <span class="err">&lt;</span>%= link_to &#39;Edit&#39;, edit_item_path(item), :class =&gt; &#39;btn btn-mini&#39;, :remote =&gt; true %&gt;
+</span><span class='line'>          <span class="err">&lt;</span>%= link_to &#39;Destroy&#39;, item_path(item), :method =&gt; :delete, :confirm =&gt; &#39;Are you sure?&#39;, :class =&gt; &#39;btn btn-mini btn-danger&#39;, :remote =&gt; true %&gt;
+</span><span class='line'>        <span class="nt">&lt;/td&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;/tr&gt;</span>
+</span><span class='line'>    <span class="err">&lt;</span>% end %&gt;
+</span><span class='line'>  <span class="nt">&lt;/tbody&gt;</span>
+</span><span class='line'><span class="nt">&lt;/table&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Здесь нет тоже ничего необычного, кроме атрибута <strong>:remote => true</strong> у ссылок. Тем самым мы сообщаем рельсам, чтобы они инициировали ajax запрос, вместо обычного get&#8217;а.</p>
+
+<p>Так как мы создали все необходимые partial&#8217;ы, мы модем изменить наш index view.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;item_form&quot;</span><span class="nt">&gt;</span><span class="err">&lt;</span>%= render &#39;form&#39; %&gt;<span class="nt">&lt;/div&gt;</span>
+</span><span class='line'><span class="nt">&lt;h1&gt;</span>Items<span class="nt">&lt;/h1&gt;</span>
+</span><span class='line'><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;items_list&quot;</span><span class="nt">&gt;</span><span class="err">&lt;</span>%= render &#39;items&#39; %&gt;<span class="nt">&lt;/div&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Который только собирает воедино нашу форму и список айтемов. Если вы запустите сейчас приложение и попытаетесь создать что-либо или отредактировать, получите множество сообщений об ошибках, связанных с отсутствием нужных шаблонов (если вы удалили все вьюшки, кроме <strong>index.html.erb</strong>).</p>
+
+<p>Теперь переходим к магии: вмето того, чтобы отдавать html файлы, мы будем отдавать javascript, который rails вставит в нушное место. Вместо create.html.erb, у нас будет <strong>app/views/items/create.js.erb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">% if </span><span class="vi">@item</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">any?</span> <span class="o">-</span><span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">  $(&quot;#flash_notice&quot;).hide(300);</span>
+</span><span class='line'><span class="sx">  $(&quot;#item_errors&quot;).html(&quot;&lt;%= escape_javascript(@item.errors.full_messages.join &#39;</span>
+</span><span class='line'><span class="sx">&#39;).html_safe %&gt;</span><span class="s2">&quot;);</span>
+</span><span class='line'><span class="s2">  $(&quot;</span><span class="c1">#item_errors&quot;).show(300);</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sx">% else </span><span class="o">-</span><span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">  $(&quot;#item_errors&quot;).hide(300);</span>
+</span><span class='line'><span class="sx">  $(&quot;#flash_notice&quot;).html(&quot;&lt;%= escape_javascript(flash[:notice]) %&gt;</span><span class="s2">&quot;);</span>
+</span><span class='line'><span class="s2">  $(&quot;</span><span class="c1">#flash_notice&quot;).show(300);</span>
+</span><span class='line'>  <span class="err">$</span><span class="p">(</span><span class="s2">&quot;:input[type=text]&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">val</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="err">$</span><span class="p">(</span><span class="s2">&quot;#items_list&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">html</span><span class="p">(</span><span class="s2">&quot;&lt;%= escape_javascript(render &#39;items&#39;) %&gt;&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sx">% end </span><span class="o">-%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Вкратце мы делаем следующее: если есть ошибки, то выводим их, если нет, то очищаем наши текстовые поля и обновляем список айтемов.</p>
+
+<p>Самая длинная строчка в этом файле мне не очень понравилась, может можно как-то попроще, покороче?</p>
+
+<p>Если запустить наше приложение, то вы сможете создавать новые записи, видеть сообщения об успешном или неуспешном (если возникли ошибки валидации) создании.</p>
+
+<p>Также поступим с двумя оствшимися вьюшками <strong>app/views/items/edit.js.erb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span><span class="p">(</span><span class="s2">&quot;#item_form&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">html</span><span class="p">(</span><span class="s2">&quot;&lt;%= escape_javascript(render &#39;form&#39;)%&gt;&quot;</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Где мы просто обновляем наш список элементов.</p>
+
+<p>и <strong>app/views/items/destroy.js.erb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span><span class="p">(</span><span class="s2">&quot;#item_errors&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">hide</span><span class="p">();</span>
+</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="s2">&quot;#flash.notice&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">html</span><span class="p">(</span><span class="s2">&quot;&lt;%= escape_javascript(flash[:notice]) %&gt;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">();</span>
+</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="s2">&quot;#items_list&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">html</span><span class="p">(</span><span class="s2">&quot;&lt;%= escape_javascript( render &#39;items&#39;) %&gt;&quot;</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Вот и все :) Заранее хочу извиниться за сумбурное, местами беглое, изложение, но я сейчас нахожусь в ожидании ответа от работодателя и не могу спокойно сидеть на месте :).</p>
+
+<p>Репозиторий доступен, как всегда на <a href="https://github.com/vredniy/unobtrusive-javascript-rails">github</a>, работающее приложение на <a href="http://vredniy-unobtrusive.herokuapp.com/items">heroku</a></p>
+
+<p>P.S. деплой на heroku</p>
+
+<ul>
+<li>запускаем <code>RAILS_ENV=production bundle exec rake assets:precompile</code>, чтобы скомпилировать наши стили и javascript&#8217;ы</li>
+<li>заменяем в <strong>Gemfile</strong> sqlite3 на pg и далеем <em>bundle</em></li>
+<li>создаем приложение на heroku <code>heroku create --stack cedar</code> (у вас приложение должно быть под git&#8217;ом и вы должны войти в heroku аккаунт)</li>
+<li><code>git push heroku master</code> отправляем наше приложение за тысячи километров :)</li>
+<li>на heroku сайт пишут, что нужно сделать <code>heroku run rake db:migrate</code>, но у меня с этим не вышло, поэтому я запустил эту же команду в фоновом режиме <code>heroku run:detached rake db:migrate</code></li>
+<li>открываем приложение</li>
+<li>наслаждаемся</li>
+<li>и еще раз наслаждаемся :)</li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-30T14:55:02+04:00" pubdate data-updated="true">30.03.2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ruby/'>Ruby</a>, <a class='category' href='/blog/categories/ruby-on-rails/'>Ruby On Rails</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://zudochkin.ru/2012/03/unobtrusive-javascript-rails" data-via="vredniy" data-counturl="http://zudochkin.ru/2012/03/unobtrusive-javascript-rails" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left articlenav" href="/2012/03/lets-game-with-ruby-and-php" title="Предыдущий пост: Поиграем? или совместное использование ruby и php">&laquo; Поиграем? или совместное использование ruby и php</a>
+      
+      
+        <a class="basic-alignment right articlenav" href="/2012/04/polymorphic-relations-and-token-input-jquery" title="Следующий пост: Rails Полиморфная связь и TokenInput jQuery">Rails Полиморфная связь и TokenInput jQuery &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Комментарии</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Последние посты</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2014/01/fulltext-phones-postgresql">Полнотекстовый поиск по телефонным номерам разного формата (PostgreSQL)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/11/open-uri-progress-bar">Ruby OpenURI::open и ProgressBar</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/first-photography">Первая выездная фотосъемка (Большой Москворецкий мост)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/vim-first-plugin">Написание первого плагина для Vim</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/logrotate-unicorn">Ротация логов на примере логов Unicorn</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Зудочкин Дима -
+  <span class="credit">Powered by <a rel="nofollow" href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'zudochkinru';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://zudochkin.ru/2012/03/unobtrusive-javascript-rails';
+        var disqus_url = 'http://zudochkin.ru/2012/03/unobtrusive-javascript-rails';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

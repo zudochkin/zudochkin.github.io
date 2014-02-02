@@ -4,7 +4,7 @@
   <title><![CDATA[Записки Вредного программиста]]></title>
   <link href="http://zudochkin.ru/atom.xml" rel="self"/>
   <link href="http://zudochkin.ru/"/>
-  <updated>2014-02-02T23:53:57+04:00</updated>
+  <updated>2014-02-03T00:20:36+04:00</updated>
   <id>http://zudochkin.ru/</id>
   <author>
     <name><![CDATA[Зудочкин Дима]]></name>
@@ -1922,14 +1922,14 @@ update: &mdash;no-ri &mdash;no-rdoc</p>
     <link href="http://zudochkin.ru/2012/08/rails-has-many-relations-coffeescript"/>
     <updated>2012-08-18T20:52:03+04:00</updated>
     <id>http://zudochkin.ru/2012/08/rails-has-many-relations-coffeescript</id>
-    <content type="html"><![CDATA[<p><img class="image" src="http://zudochkin.ru/images/posts/2012-08-rails-has-many-relations-coffeescript/rails-nested-relations-300x243.png"></p>
-
-<p>Давно что-то я не писал, а тут выдался свободный денек, чтобы рассказать еще об одной плюшке, которую я узнал. Все приведенное ниже не претендует на ортодоксальную правильность, это лишь мое мнение и мое решение.</p>
+    <content type="html"><![CDATA[<p>Давно что-то я не писал, а тут выдался свободный денек, чтобы рассказать еще об одной плюшке, которую я узнал. Все приведенное ниже не претендует на ортодоксальную правильность, это лишь мое мнение и мое решение.</p>
 
 <p>Имеется, к примеру, у нас вопросы и ответы и мы, вместо того, чтобы создавать сначала вопрос и потом привязывать к нему по одному ответы, будем делать это все на одной странице.</p>
 
 <!-- more -->
 
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2012-08-rails-has-many-relations-coffeescript/rails-nested-relations-300x243.png"></p>
 
 <h3>Решение</h3>
 
@@ -2345,6 +2345,987 @@ update: &mdash;no-ri &mdash;no-rdoc</p>
 <p>Демо проект &ldquo;лежит&rdquo; на <a href="http://vredniy-polymorphic.heroku.com/questions/">heroku</a>, репозиторий, как всегда на <a href="https://github.com/vredniy/rails-token-input">github</a> (там же лежат и миграции, нужные для запуска проекта).</p>
 
 <p>Удачи вам в любых начинаниях и до новых встреч :)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Собеседование и Unobtrusive Javascript на Rails]]></title>
+    <link href="http://zudochkin.ru/2012/03/unobtrusive-javascript-rails"/>
+    <updated>2012-03-30T14:55:02+04:00</updated>
+    <id>http://zudochkin.ru/2012/03/unobtrusive-javascript-rails</id>
+    <content type="html"><![CDATA[<p>Приветствую всех гостей и постояльцев на своем техническом, иногда не совсем, блоге. Кто читает меня в твиттере, наверное, помнят то, что вчера у меня было первое в жизни собеседование на ruby on rails вакансию, кто не читает, милости просим <a href="http://twitter.com/vredniy">дружить в твиттере</a>.<!-- more --></p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2012-03-unobtrusive-javascript-rails/ajax-crud-150x150.jpg"></p>
+
+<p>Встретились мы сначала с генеральным директором, он рассказал о проекте, пока его не буду называть, но это компания, которая занимается развитием сайта, посвященному туризму: туры, бронирование отелей, такси и прочей смежной тематикой. Обсудили нетехнические вопросы. Затем подошел старший программист и по большей части мы уже общались непосредственно с ним. Конечно, сказывалось отсутствие большого опыта программирования на ruby и ruby on rails, но на большую часть вопросов, как мне кажется, я ответил правильно. Вопросы были следующего характера:</p>
+
+<ul>
+<li>какие виды связей и как их создать в rails</li>
+<li>чем отличается include от extend&#8217;а</li>
+<li>имеется ли множественное наследование в ruby</li>
+</ul>
+
+
+<p>Параллельно с вопросами я рассказывал о своих проектах и на ruby, и на php. Рассказал почему захотел перейти с php на ruby, как решал задачу из предыдущего поста тоже рассказал :).</p>
+
+<p>После собеседования мне дали тестовое задание, оно заключается в следующем: необходимо без сторонних гемов, плагинов и библиотек реализовать простое приложение по управлению записями (обычный CRUD), только все это дело должно располагаться на одной странице, все запросы должны происходить в фоне (ajax) с применением unobtrusive javascript&#8217;а. Еще мне нужно было засечь сколько времени займет все это дело.</p>
+
+<p>На ознакомление с мат. частью (railscasts, guides.rubyonrails и пр.), так сказать, ушло около двух часов, на реализацию проекта столько же. Что получилось и ссылку на репозиторий вы можете увидеть в конце данной заметки.</p>
+
+<p>Итак, начнем.
+Единственную &ldquo;плюшку&rdquo;, которую я применил в проекте был gem &lsquo;twitter-bootstrap-rails&rsquo; для придания &ldquo;красивости&rdquo;, на конечную функциональность он никак не повлиял.</p>
+
+<p>Сначала, как и всегда, создаем проект <strong>rails new unobtrusive &amp;&amp; unobtrusive</strong>. Вписываем в <em>Gemfile</em>, что будем использовать twitter-bootstrap-rails <strong>gem &lsquo;twitter-bootstrap-rails&rsquo;</strong> и делаем <strong>bundle</strong>, чтобы обновить <em>Gemfile.lock</em></p>
+
+<p>Далее установим нужные стили, js-файлы, написав в консоли <em>rails g bootstrap:install</em> и обновим наш шаблон <strong>application</strong> командой <em>rails g bootstrap:layout application fluid</em>.</p>
+
+<p>Скаффолдом создадим все необходимое для задачи <em>rails g scaffold item name:string description:string</em>, теперь мы можем создавать, удалять и редактировать, но без ajax&#8217;а. Также давайте добавим красоты нашим item&#8217;ам <em>rails g bootstrap:themed Items</em>. Сейчас можно зайти на /items своего приложения и увидеть что получилось. Но нам пока рано останавливаться.</p>
+
+<p>Давайте добавим валидацию, которую я упустил, в файл <strong>app/models/item.rb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Item</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'>  <span class="n">validates_presence_of</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">:description</span>
+</span><span class='line'>  <span class="n">validates_uniqueness_of</span> <span class="ss">:name</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Первой строкой мы добавляем, как, наверное, ясно из название, наличие и имени, и описания, второй мы проверям уникальность имени, чтобы не было двух айтемов с одним и тем же именем.</p>
+
+<p>Далее давайте немного изменим нашу форму <strong>app/views/items/_form.html.erb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">%= form_for @item, :remote =</span><span class="o">&gt;</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">:html</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">:class</span> <span class="o">=&gt;</span> <span class="s1">&#39;form-horizontal&#39;</span> <span class="p">}</span> <span class="k">do</span> <span class="o">|</span><span class="n">f</span><span class="o">|</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">  &lt;div id=&quot;item_errors&quot; style=&quot;display:none; color: red&quot;&gt;</span><span class="o">&lt;</span><span class="sr">/div&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">  &lt;fieldset&gt;</span>
+</span><span class='line'><span class="sr">    &lt;legend&gt;&lt;%= controller.action_name.capitalize %&gt; /</span><span class="no">Item</span><span class="o">&lt;</span><span class="sr">/legend&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">    &lt;div class=&quot;control-group&quot;&gt;</span>
+</span><span class='line'><span class="sr">      &lt;%= f.label :name, :class =&gt; &#39;control-label&#39; %&gt;</span>
+</span><span class='line'><span class="sr">      &lt;div class=&quot;controls&quot;&gt;</span>
+</span><span class='line'><span class="sr">        &lt;%= f.text_field :name, :class =&gt; &#39;text_field&#39; %&gt;</span>
+</span><span class='line'><span class="sr">      &lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+</span><span class='line'>    <span class="o">&lt;</span><span class="sr">/div&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">    &lt;div class=&quot;control-group&quot;&gt;</span>
+</span><span class='line'><span class="sr">      &lt;%= f.label :description, :class =&gt; &#39;control-label&#39; %&gt;</span>
+</span><span class='line'><span class="sr">      &lt;div class=&quot;controls&quot;&gt;</span>
+</span><span class='line'><span class="sr">        &lt;%= f.text_field :description, :class =&gt; &#39;text_field&#39; %&gt;</span>
+</span><span class='line'><span class="sr">      &lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+</span><span class='line'>    <span class="o">&lt;</span><span class="sr">/div&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">    &lt;div class=&quot;form-actions&quot;&gt;</span>
+</span><span class='line'><span class="sr">      &lt;%= f.submit nil, :class =&gt; &#39;btn btn-primary&#39; %&gt;</span>
+</span><span class='line'><span class="sr">      &lt;%= link_to &#39;Cancel&#39;, items_path, :class =&gt; &#39;btn&#39; %&gt;</span>
+</span><span class='line'><span class="sr">    &lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="sr">/fieldset&gt;</span>
+</span><span class='line'><span class="sr">&lt;% end %&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Небольшого изменения коснулась первоя строка, а именно добавился атрибут <strong>:remote => true</strong>, что сообщает рельсам задейстовать ujs (unobtrusive javascript). Также был добавлен тег с id item_errors, где мы будем выводить все ошибки валидации нашей модели.</p>
+
+<p>Так как у нашего приложение будет только одна страница, можно смело избавляться от других вьюшек, заодно изменим наш контроллер <strong>app/controllers/items_controller.rb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">ItemsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">before_filter</span> <span class="k">do</span>
+</span><span class='line'>    <span class="vi">@items</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">all</span>
+</span><span class='line'>    <span class="vi">@item</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">new</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">before_filter</span> <span class="ss">:find_an_item</span><span class="p">,</span> <span class="ss">:only</span> <span class="o">=&gt;</span> <span class="o">[</span><span class="ss">:edit</span><span class="p">,</span> <span class="ss">:update</span><span class="p">,</span> <span class="ss">:destroy</span><span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">index</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">create</span>
+</span><span class='line'>    <span class="vi">@item</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:item</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">if</span> <span class="vi">@item</span><span class="o">.</span><span class="n">save</span>
+</span><span class='line'>      <span class="n">flash</span><span class="o">[</span><span class="ss">:notice</span><span class="o">]</span> <span class="o">=</span> <span class="s2">&quot;Successfully created item.&quot;</span>
+</span><span class='line'>      <span class="vi">@items</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">all</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">edit</span>
+</span><span class='line'>    <span class="vi">@items</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">all</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">update</span>
+</span><span class='line'>    <span class="k">if</span> <span class="vi">@item</span><span class="o">.</span><span class="n">update_attributes</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:item</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">flash</span><span class="o">[</span><span class="ss">:notice</span><span class="o">]</span> <span class="o">=</span> <span class="s2">&quot;Successfully updated item.&quot;</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>    <span class="vi">@items</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">all</span>
+</span><span class='line'>    <span class="n">render</span> <span class="ss">:action</span> <span class="o">=&gt;</span> <span class="s1">&#39;create&#39;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">destroy</span>
+</span><span class='line'>    <span class="vi">@item</span><span class="o">.</span><span class="n">destroy</span>
+</span><span class='line'>    <span class="n">flash</span><span class="o">[</span><span class="ss">:notice</span><span class="o">]</span> <span class="o">=</span> <span class="s2">&quot;Successfully destroyed item.&quot;</span>
+</span><span class='line'>    <span class="vi">@items</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">all</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kp">protected</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">find_an_item</span>
+</span><span class='line'>      <span class="vi">@item</span> <span class="o">=</span> <span class="no">Item</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Тут я, конечно, перемудрил с before_filter&#8217;ами, но это то, как смог сделать за два часа. Как видите, контроллер шан стал намного полегче от того состояния, в котором он был после скаффолдинга: мы избавились от редиректов и вынести многое в before_filter&#8217;ы.</p>
+
+<p>Далее я добавил в шаблон <strong>app/view/layouts/application.html.erb</strong> рядом с тем где выводится контент экшнов, вывод flash сообщения.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;row-fluid&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;span9&quot;</span><span class="nt">&gt;&lt;span</span> <span class="na">id=</span><span class="s">&quot;flash_notice&quot;</span> <span class="na">style=</span><span class="s">&quot;color:green&quot;</span><span class="nt">&gt;&lt;/span&gt;&lt;/div&gt;</span>
+</span><span class='line'><span class="nt">&lt;/div&gt;</span>
+</span><span class='line'><span class="err">&lt;</span>%= yield %&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Это не весь шаблон, а только измененная его часть.</p>
+
+<p>Дело за вьюшками, создадим <strong>_items.html.erb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;table</span> <span class="na">class=</span><span class="s">&quot;table table-striped&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;thead&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;tr&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;th&gt;</span>ID<span class="nt">&lt;/th&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;th&gt;</span>Name<span class="nt">&lt;/th&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;th&gt;</span>Description<span class="nt">&lt;/th&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;th&gt;</span>Actions<span class="nt">&lt;/th&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/tr&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/thead&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;tbody&gt;</span>
+</span><span class='line'>    <span class="err">&lt;</span>% @items.each do |item| %&gt;
+</span><span class='line'>      <span class="nt">&lt;tr&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;td&gt;</span><span class="err">&lt;</span>%= item.id %&gt;<span class="nt">&lt;/td&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;td&gt;</span><span class="err">&lt;</span>%= link_to item.name, item_path(item) %&gt;<span class="nt">&lt;/td&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;td&gt;</span><span class="err">&lt;</span>%= item.description %&gt;<span class="nt">&lt;/td&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;td&gt;</span>
+</span><span class='line'>          <span class="err">&lt;</span>%= link_to &#39;Edit&#39;, edit_item_path(item), :class =&gt; &#39;btn btn-mini&#39;, :remote =&gt; true %&gt;
+</span><span class='line'>          <span class="err">&lt;</span>%= link_to &#39;Destroy&#39;, item_path(item), :method =&gt; :delete, :confirm =&gt; &#39;Are you sure?&#39;, :class =&gt; &#39;btn btn-mini btn-danger&#39;, :remote =&gt; true %&gt;
+</span><span class='line'>        <span class="nt">&lt;/td&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;/tr&gt;</span>
+</span><span class='line'>    <span class="err">&lt;</span>% end %&gt;
+</span><span class='line'>  <span class="nt">&lt;/tbody&gt;</span>
+</span><span class='line'><span class="nt">&lt;/table&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Здесь нет тоже ничего необычного, кроме атрибута <strong>:remote => true</strong> у ссылок. Тем самым мы сообщаем рельсам, чтобы они инициировали ajax запрос, вместо обычного get&#8217;а.</p>
+
+<p>Так как мы создали все необходимые partial&#8217;ы, мы модем изменить наш index view.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;item_form&quot;</span><span class="nt">&gt;</span><span class="err">&lt;</span>%= render &#39;form&#39; %&gt;<span class="nt">&lt;/div&gt;</span>
+</span><span class='line'><span class="nt">&lt;h1&gt;</span>Items<span class="nt">&lt;/h1&gt;</span>
+</span><span class='line'><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;items_list&quot;</span><span class="nt">&gt;</span><span class="err">&lt;</span>%= render &#39;items&#39; %&gt;<span class="nt">&lt;/div&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Который только собирает воедино нашу форму и список айтемов. Если вы запустите сейчас приложение и попытаетесь создать что-либо или отредактировать, получите множество сообщений об ошибках, связанных с отсутствием нужных шаблонов (если вы удалили все вьюшки, кроме <strong>index.html.erb</strong>).</p>
+
+<p>Теперь переходим к магии: вмето того, чтобы отдавать html файлы, мы будем отдавать javascript, который rails вставит в нушное место. Вместо create.html.erb, у нас будет <strong>app/views/items/create.js.erb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">% if </span><span class="vi">@item</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">any?</span> <span class="o">-</span><span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">  $(&quot;#flash_notice&quot;).hide(300);</span>
+</span><span class='line'><span class="sx">  $(&quot;#item_errors&quot;).html(&quot;&lt;%= escape_javascript(@item.errors.full_messages.join &#39;</span>
+</span><span class='line'><span class="sx">&#39;).html_safe %&gt;</span><span class="s2">&quot;);</span>
+</span><span class='line'><span class="s2">  $(&quot;</span><span class="c1">#item_errors&quot;).show(300);</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sx">% else </span><span class="o">-</span><span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">  $(&quot;#item_errors&quot;).hide(300);</span>
+</span><span class='line'><span class="sx">  $(&quot;#flash_notice&quot;).html(&quot;&lt;%= escape_javascript(flash[:notice]) %&gt;</span><span class="s2">&quot;);</span>
+</span><span class='line'><span class="s2">  $(&quot;</span><span class="c1">#flash_notice&quot;).show(300);</span>
+</span><span class='line'>  <span class="err">$</span><span class="p">(</span><span class="s2">&quot;:input[type=text]&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">val</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="err">$</span><span class="p">(</span><span class="s2">&quot;#items_list&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">html</span><span class="p">(</span><span class="s2">&quot;&lt;%= escape_javascript(render &#39;items&#39;) %&gt;&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sx">% end </span><span class="o">-%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Вкратце мы делаем следующее: если есть ошибки, то выводим их, если нет, то очищаем наши текстовые поля и обновляем список айтемов.</p>
+
+<p>Самая длинная строчка в этом файле мне не очень понравилась, может можно как-то попроще, покороче?</p>
+
+<p>Если запустить наше приложение, то вы сможете создавать новые записи, видеть сообщения об успешном или неуспешном (если возникли ошибки валидации) создании.</p>
+
+<p>Также поступим с двумя оствшимися вьюшками <strong>app/views/items/edit.js.erb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span><span class="p">(</span><span class="s2">&quot;#item_form&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">html</span><span class="p">(</span><span class="s2">&quot;&lt;%= escape_javascript(render &#39;form&#39;)%&gt;&quot;</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Где мы просто обновляем наш список элементов.</p>
+
+<p>и <strong>app/views/items/destroy.js.erb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span><span class="p">(</span><span class="s2">&quot;#item_errors&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">hide</span><span class="p">();</span>
+</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="s2">&quot;#flash.notice&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">html</span><span class="p">(</span><span class="s2">&quot;&lt;%= escape_javascript(flash[:notice]) %&gt;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">();</span>
+</span><span class='line'><span class="err">$</span><span class="p">(</span><span class="s2">&quot;#items_list&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">html</span><span class="p">(</span><span class="s2">&quot;&lt;%= escape_javascript( render &#39;items&#39;) %&gt;&quot;</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Вот и все :) Заранее хочу извиниться за сумбурное, местами беглое, изложение, но я сейчас нахожусь в ожидании ответа от работодателя и не могу спокойно сидеть на месте :).</p>
+
+<p>Репозиторий доступен, как всегда на <a href="https://github.com/vredniy/unobtrusive-javascript-rails">github</a>, работающее приложение на <a href="http://vredniy-unobtrusive.herokuapp.com/items">heroku</a></p>
+
+<p>P.S. деплой на heroku</p>
+
+<ul>
+<li>запускаем <code>RAILS_ENV=production bundle exec rake assets:precompile</code>, чтобы скомпилировать наши стили и javascript&#8217;ы</li>
+<li>заменяем в <strong>Gemfile</strong> sqlite3 на pg и далеем <em>bundle</em></li>
+<li>создаем приложение на heroku <code>heroku create --stack cedar</code> (у вас приложение должно быть под git&#8217;ом и вы должны войти в heroku аккаунт)</li>
+<li><code>git push heroku master</code> отправляем наше приложение за тысячи километров :)</li>
+<li>на heroku сайт пишут, что нужно сделать <code>heroku run rake db:migrate</code>, но у меня с этим не вышло, поэтому я запустил эту же команду в фоновом режиме <code>heroku run:detached rake db:migrate</code></li>
+<li>открываем приложение</li>
+<li>наслаждаемся</li>
+<li>и еще раз наслаждаемся :)</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Поиграем? или совместное использование ruby и php]]></title>
+    <link href="http://zudochkin.ru/2012/03/lets-game-with-ruby-and-php"/>
+    <updated>2012-03-17T18:14:35+04:00</updated>
+    <id>http://zudochkin.ru/2012/03/lets-game-with-ruby-and-php</id>
+    <content type="html"><![CDATA[<p>Сегодня заметка будет посвящена теме далекой от веб-программирования, она будет посвящена немного алгоритмам, немного парсингу и немного Mongodb. Будем сегодня играть в игру.<!-- more --></p>
+
+<p>Часто по вечерам мы с женой играем в приложение на iPad&#8217;е под названием Словомания.</p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2012-03-lets-game-with-ruby-and-php/slovomania.jpeg"></p>
+
+<p>Смысл в нем, как вы, наверное, заметили из названия, поиск слов. На входе матрица 4х4, можно начать из любой клетки и задействовать соседние по одному разу, чтобы отыскать имеющееся у них в словаре слово (в том словаре есть и наречия, и глаголы, и прилагательные, и конечно же существительные).</p>
+
+<p>Задача: отыскать все слова. Но я немного облегчу себе задачу, потому как по примерным подсчетам в матрице 4х4 всевозможных комбинаций поиска слова около 16 миллионов, что даже по скромным подсчетам и при словаре в ~160 тысяч слов займет около 5 часов. В данной заметке мы будем использовать матрицу 3х3, что сокращает количество комбинаций до 8 с небольшим тысяч, что вполне приемлимо, но недостаточно быстро, для одной игры, которая длится около минуты. Да и плевать, для меня главное решить задачу, хоть и читерить в игре не получится ).</p>
+
+<p>Для начала отыщем все возможные комбинации, для этого воспользуемся php-скриптом <a href="http://zudochkin.ru/2011/02/depth-first-search-php/">поиска в ширину</a>, немного его изменив для наших нужд. На выходе должны получить файл, где в каждой строке одна комбинация.</p>
+
+<p>Цифры на матрице я обозначил от 1 до 9 (3х3), поэтому в выходном файле будут строки подобного вида &ndash; 1,2,3,6,5,4,7,8,9.</p>
+
+<p>Но сначала нам пригодится небольшой скрипт, который поможет построить граф для таблицы 3х3.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">for</span> <span class="n">i</span> <span class="k">in</span> <span class="p">(</span><span class="mi">1</span><span class="o">.</span><span class="n">.</span><span class="mi">9</span><span class="p">)</span> <span class="k">do</span>
+</span><span class='line'>  <span class="nb">print</span> <span class="s2">&quot;%-2s&quot;</span> <span class="o">%</span> <span class="n">i</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">3</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">then</span> <span class="nb">print</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>На выходе получим таблицу</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span>
+</span><span class='line'><span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span>
+</span><span class='line'><span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>которая поможет нам построить граф, ключами массива которого будут вершины &ldquo;откуда&rdquo;, значениями &ndash; точки &ldquo;куда&rdquo;, мы можем попасть из данной вершины. Из таблицы следует, что из точки 1, мы можем попасть в точки: 2,5 (по диагонали тоже можно) и 4. Так нам нужно описать каждую вершину графа.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">array</span><span class="p">(</span><span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="s1">&#39;4&#39;</span><span class="p">,</span> <span class="s1">&#39;5&#39;</span><span class="p">),</span>
+</span><span class='line'>  <span class="s1">&#39;2&#39;</span> <span class="o">=&gt;</span> <span class="k">array</span><span class="p">(</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="s1">&#39;5&#39;</span><span class="p">,</span> <span class="s1">&#39;4&#39;</span><span class="p">,</span> <span class="s1">&#39;6&#39;</span><span class="p">),</span>
+</span><span class='line'>  <span class="s1">&#39;3&#39;</span> <span class="o">=&gt;</span> <span class="k">array</span><span class="p">(</span><span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="s1">&#39;5&#39;</span><span class="p">,</span> <span class="s1">&#39;6&#39;</span><span class="p">),</span>
+</span><span class='line'>  <span class="s1">&#39;4&#39;</span> <span class="o">=&gt;</span> <span class="k">array</span><span class="p">(</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="s1">&#39;7&#39;</span><span class="p">,</span> <span class="s1">&#39;8&#39;</span><span class="p">,</span> <span class="s1">&#39;5&#39;</span><span class="p">),</span>
+</span><span class='line'>  <span class="s1">&#39;5&#39;</span> <span class="o">=&gt;</span> <span class="k">array</span><span class="p">(</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="s1">&#39;4&#39;</span><span class="p">,</span> <span class="s1">&#39;6&#39;</span><span class="p">,</span> <span class="s1">&#39;7&#39;</span><span class="p">,</span> <span class="s1">&#39;8&#39;</span><span class="p">),</span>
+</span><span class='line'>  <span class="s1">&#39;6&#39;</span> <span class="o">=&gt;</span> <span class="k">array</span><span class="p">(</span><span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="s1">&#39;5&#39;</span><span class="p">,</span> <span class="s1">&#39;9&#39;</span><span class="p">,</span> <span class="s1">&#39;8&#39;</span><span class="p">),</span>
+</span><span class='line'>  <span class="s1">&#39;7&#39;</span> <span class="o">=&gt;</span> <span class="k">array</span><span class="p">(</span><span class="s1">&#39;4&#39;</span><span class="p">,</span> <span class="s1">&#39;5&#39;</span><span class="p">,</span> <span class="s1">&#39;8&#39;</span><span class="p">),</span>
+</span><span class='line'>  <span class="s1">&#39;8&#39;</span> <span class="o">=&gt;</span> <span class="k">array</span><span class="p">(</span><span class="s1">&#39;4&#39;</span><span class="p">,</span> <span class="s1">&#39;6&#39;</span><span class="p">,</span> <span class="s1">&#39;6&#39;</span><span class="p">,</span> <span class="s1">&#39;7&#39;</span><span class="p">,</span> <span class="s1">&#39;9&#39;</span><span class="p">),</span>
+</span><span class='line'>  <span class="s1">&#39;9&#39;</span> <span class="o">=&gt;</span> <span class="k">array</span><span class="p">(</span><span class="s1">&#39;5&#39;</span><span class="p">,</span> <span class="s1">&#39;6&#39;</span><span class="p">,</span> <span class="s1">&#39;8&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># циклы по всем вершинам графа,</span>
+</span><span class='line'><span class="c1"># каждая вершина может быть начальной и конечной</span>
+</span><span class='line'><span class="k">for</span><span class="p">(</span><span class="nv">$i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="nv">$i</span> <span class="o">&lt;=</span> <span class="mi">9</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">for</span><span class="p">(</span><span class="nv">$j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="nv">$j</span> <span class="o">&lt;=</span> <span class="mi">9</span><span class="p">;</span> <span class="nv">$j</span><span class="o">++</span><span class="p">)</span>
+</span><span class='line'>    <span class="nx">find_path</span><span class="p">(</span><span class="nv">$graph</span><span class="p">,</span> <span class="p">(</span><span class="nx">string</span><span class="p">)</span> <span class="nv">$i</span><span class="p">,</span> <span class="p">(</span><span class="nx">string</span><span class="p">)</span> <span class="nv">$j</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># избавляемся от дубликатов</span>
+</span><span class='line'><span class="nv">$result</span> <span class="o">=</span> <span class="nb">array_unique</span><span class="p">(</span><span class="nv">$paths</span><span class="p">);</span>
+</span><span class='line'><span class="k">echo</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">Количество комбинаций: &quot;</span><span class="p">,</span> <span class="nb">count</span><span class="p">(</span><span class="nv">$result</span><span class="p">),</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># записываем результаты в файл</span>
+</span><span class='line'><span class="nv">$fh</span> <span class="o">=</span> <span class="nb">fopen</span><span class="p">(</span><span class="s1">&#39;combinations.dat&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">);</span>
+</span><span class='line'> <span class="nb">fwrite</span><span class="p">(</span><span class="nv">$fh</span><span class="p">,</span> <span class="nb">implode</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nv">$result</span><span class="p">));</span>
+</span><span class='line'><span class="nb">fclose</span><span class="p">(</span><span class="nv">$fh</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>В коде старался комментировать каждый момент, поэтому, думаю, должно быть понятно. На выходе у нас файлы <em>combinations.dat</em> с 8175 строками из всевозможных комбинаций.</p>
+
+<p>Теперь давайте подготовим наш словарь. Я скачал какой-то орфографический словарь, каждая строка которого предствляла собой следующее <code>жопа#жопа %жопа, -ы</code></p>
+
+<p>Я решил сохранить два первых слова, точнее слово и ударение (которое в данном проекте не используется). Первое слово отделено от второго #, второе от остального %. По мере парсинга словаря, мы будем записывать все слова в нашу mongo базу данных для быстрого поиска по ней в дальнейшем.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># coding: utf-8</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;mongo&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;mongo_mapper&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">MongoMapper</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="s1">&#39;words&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Word</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="ss">MongoMapper</span><span class="p">:</span><span class="ss">:Document</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">key</span> <span class="ss">:word</span>
+</span><span class='line'>  <span class="n">key</span> <span class="ss">:word2</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">f</span> <span class="o">=</span> <span class="no">File</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;./dic.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># цикл по всем строкам словаря</span>
+</span><span class='line'><span class="n">f</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">line</span><span class="o">|</span>
+</span><span class='line'>  <span class="n">word</span><span class="p">,</span> <span class="n">word2</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)</span> <span class="c1"># отделяем первое слово</span>
+</span><span class='line'>  <span class="n">word2</span> <span class="o">=</span> <span class="n">word2</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">)</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span> <span class="c1"># и второе</span>
+</span><span class='line'>  <span class="nb">puts</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="n">word</span><span class="si">}</span><span class="s2"> </span><span class="si">#{</span><span class="n">word2</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># и сохраняем его</span>
+</span><span class='line'>  <span class="no">Word</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+</span><span class='line'>    <span class="ss">:word</span> <span class="o">=&gt;</span> <span class="n">word</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">:word2</span> <span class="o">=&gt;</span> <span class="n">word2</span>
+</span><span class='line'>  <span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Если вам лень запускать подобный скрипт, то в корне проекта лежит файл <em>words.json</em>, содержащий все слова, вы можете импортировать его в свою mongo базу командой <code>mongoimport -d DB -c COLLECTION words.json</code>.
+Далее, чтобы ускорить и без того медленное приложение, нужно создать индекс в базе на поле word, запускаем mongo-терминал, выбираем базу данных <em>use DB</em> и пишем следующее
+<code>db.COLLECTION.ensureIndex({word: 1})</code>, где DB &ndash; имя ваше базы данных, а COLLECTION &ndash; имя коллекции.</p>
+
+<p>Итак, переходим к завершающей части &ndash; моменту истины, так сказать, поиску слов.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># encoding: utf-8</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;mongo&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;mongo_mapper&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">MongoMapper</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="s1">&#39;words&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Word</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="ss">MongoMapper</span><span class="p">:</span><span class="ss">:Document</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">key</span> <span class="ss">:word</span>
+</span><span class='line'>  <span class="n">key</span> <span class="ss">:word2</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># файл с полученным в предыдущих шагах комбинациями</span>
+</span><span class='line'><span class="no">COMBINATIONS_FILE</span> <span class="o">=</span> <span class="s1">&#39;./combinations.dat&#39;</span>
+</span><span class='line'><span class="c1"># файл с результатами</span>
+</span><span class='line'><span class="no">OUTPUT_FILE</span> <span class="o">=</span> <span class="s1">&#39;./results.dat&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># наше игровое поле</span>
+</span><span class='line'><span class="n">alphabet</span> <span class="o">=</span> <span class="sx">%w{</span>
+</span><span class='line'><span class="sx">  к о ж</span>
+</span><span class='line'><span class="sx">  а п у</span>
+</span><span class='line'><span class="sx">  а р р</span>
+</span><span class='line'><span class="sx">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># поиск текущего слова в словаре</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">find_a_word</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">w</span> <span class="o">=</span> <span class="no">Word</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="ss">:word</span> <span class="o">=&gt;</span> <span class="n">word</span><span class="p">)</span><span class="o">.</span><span class="n">first</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">w</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">w</span><span class="o">.</span><span class="n">word</span>
+</span><span class='line'>  <span class="k">else</span>
+</span><span class='line'>    <span class="k">return</span> <span class="kp">nil</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># из комбинации, учитывая alphabet, составляем &quot;слово&quot;</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">number_to_letters</span><span class="p">(</span><span class="n">alphabet</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">letters</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">word</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>  <span class="n">letters</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">letter</span><span class="o">|</span>
+</span><span class='line'>    <span class="n">word</span> <span class="o">&lt;&lt;</span> <span class="n">alphabet</span><span class="o">[</span><span class="n">letter</span><span class="o">.</span><span class="n">to_i</span> <span class="o">-</span> <span class="mi">1</span><span class="o">]</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>  <span class="n">word</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># основной цикл приложение</span>
+</span><span class='line'><span class="c1"># проходимся во всему списку комбинаций</span>
+</span><span class='line'><span class="no">File</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="no">COMBINATIONS_FILE</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">f</span><span class="o">|</span>
+</span><span class='line'>  <span class="n">f</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">line</span><span class="o">|</span>
+</span><span class='line'>    <span class="c1"># составляем слово</span>
+</span><span class='line'>    <span class="n">n_t_l</span> <span class="o">=</span> <span class="n">number_to_letters</span><span class="p">(</span><span class="n">alphabet</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+</span><span class='line'>    <span class="c1"># находим в бд</span>
+</span><span class='line'>    <span class="n">result</span> <span class="o">=</span> <span class="n">find_a_word</span><span class="p">(</span><span class="n">n_t_l</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">unless</span> <span class="n">result</span><span class="o">.</span><span class="n">nil?</span> <span class="k">then</span> <span class="c1"># если нашли</span>
+</span><span class='line'>      <span class="nb">puts</span> <span class="n">n_t_l</span> <span class="c1"># выводим его</span>
+</span><span class='line'>      <span class="no">File</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="no">OUTPUT_FILE</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">output</span><span class="o">|</span>
+</span><span class='line'>        <span class="n">output</span><span class="o">.</span><span class="n">puts</span> <span class="n">n_t_l</span> <span class="c1"># и записываем в файл</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>После этого запускаем скрипт <code>ruby find-words.rb</code>, откидываемся на спинку стула и ждем результат. Начнут появляться на экране слова, которые были найдены этим скриптом, возможны повторения, потому что одно слово может быть составлено из разных комбинаций.</p>
+
+<p>Удачи в кодинге и побольше интересных задач, которые вам под силу решить :).</p>
+
+<p>P.S.: репозиторий, как всегда, доступен на <a href="https://github.com/vredniy/game-ruby-php">github</a>.</p>
+
+<hr />
+
+<p>update 25.03.2012
+Все-таки намного интереснее заставить приложение работать как задумывалось, а именно, чтобы оно находило слова из матрицы 4х4. Для этого мною были предприняты следующие меры:</p>
+
+<ul>
+<li>удаление лишних слов из словаря</li>
+<li>оптимизация самого алгоритма</li>
+<li>сужение диапазона поиска</li>
+</ul>
+
+
+<h3>Удаление лишних слов из словаря</h3>
+
+<p>Пробежался я по словарю и понял, что там много слово, содержащих дефисы, скобки, пробелы. Некоторые слова состояли из одной-двух букв. Я решил с ними попрощаться, благо mongo поддерживает регулярные выражения.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">MongoMapper</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="s1">&#39;words&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Word</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="ss">MongoMapper</span><span class="p">:</span><span class="ss">:Document</span>
+</span><span class='line'>  <span class="n">key</span> <span class="ss">:word</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">#s = Word.all(:word =&gt; /^.*[-А-Я].*$/).each do |word|</span>
+</span><span class='line'><span class="c1">#s = Word.all(:word =&gt; /^.*[ё].*$/).each do |word|</span>
+</span><span class='line'><span class="c1">#s = Word.all(:word =&gt; /^.*[\(\)\.\s+].*$/).each do |word|</span>
+</span><span class='line'><span class="n">s</span> <span class="o">=</span> <span class="no">Word</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="ss">:word</span> <span class="o">=&gt;</span> <span class="sr">/^.*[-,.:;].*$/</span><span class="p">)</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">word</span><span class="o">|</span>
+</span><span class='line'>  <span class="n">word</span><span class="o">.</span><span class="n">destroy</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Запускаем и удаляем ненужные слова, из 160 тысяч слов, останется 140 тысяч, неплохо :)</p>
+
+<h3>Оптимизация самого алгоритма</h3>
+
+<p>Самый быстрый код &ndash; это мало кода. Поэтому максимально постараемся избавиться от методов. Выбросив все лишнее получим следующее.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># encoding: utf-8</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;mongo&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;mongo_mapper&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">MongoMapper</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="s1">&#39;words&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Word</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="ss">MongoMapper</span><span class="p">:</span><span class="ss">:Document</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">key</span> <span class="ss">:word</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">COMBINATIONS_FILE</span> <span class="o">=</span> <span class="s1">&#39;./game.dat&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">Alphabet</span> <span class="o">=</span> <span class="sx">%w{</span>
+</span><span class='line'><span class="sx">ё ж е т</span>
+</span><span class='line'><span class="sx">у ч е р</span>
+</span><span class='line'><span class="sx">к о ю т</span>
+</span><span class='line'><span class="sx">р м п ь</span>
+</span><span class='line'><span class="sx">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">start</span> <span class="o">=</span> <span class="n">_start</span> <span class="o">=</span> <span class="no">Time</span><span class="o">.</span><span class="n">now</span>
+</span><span class='line'><span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">combinations</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">File</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="no">COMBINATIONS_FILE</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">f</span><span class="o">|</span>
+</span><span class='line'>    <span class="k">while</span> <span class="p">(</span><span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">gets</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span class='line'>      <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+</span><span class='line'>      <span class="k">if</span> <span class="p">(</span><span class="mi">3</span><span class="o">.</span><span class="n">.</span><span class="mi">9</span><span class="p">)</span><span class="o">.</span><span class="n">include?</span> <span class="n">line</span><span class="o">.</span><span class="n">size</span>
+</span><span class='line'>          <span class="n">w</span> <span class="o">=</span> <span class="no">Word</span><span class="o">.</span><span class="n">first</span><span class="p">(</span><span class="ss">:word</span> <span class="o">=&gt;</span> <span class="n">line</span><span class="o">.</span><span class="n">map</span><span class="p">{</span> <span class="o">|</span><span class="n">l</span><span class="o">|</span> <span class="no">Alphabet</span><span class="o">[</span><span class="n">l</span><span class="o">.</span><span class="n">to_i</span> <span class="o">-</span> <span class="mi">1</span><span class="o">]</span> <span class="p">}</span><span class="o">.</span><span class="n">join</span> <span class="p">)</span>
+</span><span class='line'>          <span class="n">line</span> <span class="o">=</span> <span class="kp">nil</span>
+</span><span class='line'>          <span class="n">combinations</span> <span class="o">&lt;&lt;</span> <span class="n">w</span><span class="o">.</span><span class="n">word</span> <span class="k">unless</span> <span class="n">w</span><span class="o">.</span><span class="n">nil?</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">if</span> <span class="n">counter</span> <span class="o">%</span> <span class="mi">100_000</span> <span class="o">==</span> <span class="mi">0</span>
+</span><span class='line'>          <span class="nb">p</span> <span class="n">combinations</span><span class="o">.</span><span class="n">join</span> <span class="s1">&#39; &#39;</span> <span class="k">unless</span> <span class="n">combinations</span><span class="o">.</span><span class="n">empty?</span>
+</span><span class='line'>          <span class="n">combinations</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>        <span class="nb">p</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="no">Time</span><span class="o">.</span><span class="n">now</span> <span class="o">-</span> <span class="n">start</span><span class="si">}</span><span class="s2"> - </span><span class="si">#{</span><span class="n">counter</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>        <span class="n">start</span> <span class="o">=</span> <span class="no">Time</span><span class="o">.</span><span class="n">now</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">p</span> <span class="p">(</span><span class="no">Time</span><span class="o">.</span><span class="n">now</span> <span class="o">-</span> <span class="n">_start</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Код получился намного &ldquo;легче&rdquo; и быстрее.</p>
+
+<h3>Сужаем диапазон поиска</h3>
+
+<p>Чтобы хоть как-то еще прибавить скорость, я сузил длину слова, теперь проверяются только строки от 3 до 9 символов, это тоже очень хорошо сужает конечную выборку.</p>
+
+<h3>Обратная связь приветствуется</h3>
+
+<p>Если вы видите, что есть какие-то неточности или гипотезы по поводу оптимизации быстродействия кода, то всегда пожалуйста, я открыт для обсуждения всегда.</p>
+
+<p>Не хочу быть излишне самоуверенным, но мне, кажется, что сейчас весь алгоритм упирается в &ldquo;железо&rdquo;, точнее скорость считывания с диска. (К сожалению, у меня нет ssd диска, чтобы это проверить).</p>
+
+<p>В заключение картинка с какой скоростью отрабатывает скрипт. Первое число на картинке &ndash; количество секунд на 100_000 строк, считанных из файла и проверенных с каждой строкой словаря, содержащего ~ 140.000 слов. Второе число &ndash; сколько строк уже просмотрено. Всего комбинаций получилось, если рассматривать поле 4х4 &ndash; 12.000.000 штук. :)</p>
+
+<p><img class="image" src="http://zudochkin.ru/images/posts/2012-03-lets-game-with-ruby-and-php/optimization.jpeg"></p>
+
+<hr />
+
+<h3>Обновление от 27.03.2012 (redis)</h3>
+
+<p>Пришла еще одна мысля по оптимизации данного приложения, вместо mongodb, я решил попробовать использовать redis &ndash; очень быстрое ключ-значение хранилище.</p>
+
+<p>Сначала нужно экспортировать базу mongo в redis, тут ничего сложного (с учетом того, что у вас и сам redis установлен, и redis gem).</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;mongo&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;mongo_mapper&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;redis&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">MongoMapper</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="s1">&#39;words&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Word</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="ss">MongoMapper</span><span class="p">:</span><span class="ss">:Document</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">key</span> <span class="ss">:word</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">redis</span> <span class="o">=</span> <span class="no">Redis</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">:host</span> <span class="o">=&gt;</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="ss">:port</span> <span class="o">=&gt;</span> <span class="mi">6379</span><span class="p">)</span>
+</span><span class='line'><span class="no">Word</span><span class="o">.</span><span class="n">all</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">w</span><span class="o">|</span>
+</span><span class='line'>  <span class="n">w</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">word</span>
+</span><span class='line'>  <span class="k">unless</span> <span class="sr">/[-А-Я\(\)]/</span><span class="o">.</span><span class="n">match</span> <span class="n">w</span>
+</span><span class='line'>    <span class="n">redis</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;word:</span><span class="si">#{</span><span class="n">w</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Пробегаемся по всем словам из коллекции mongodb и сохраняем все слова в redis под ключом word:СЛОВО, чтобы не перепутать с другими ключами.</p>
+
+<p>Теперь основной файл, только в качестве хранилища мы будем использовать redis.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># encoding: utf-8</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;redis&#39;</span>
+</span><span class='line'><span class="n">redis</span> <span class="o">=</span> <span class="no">Redis</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">:host</span> <span class="o">=&gt;</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="ss">:port</span> <span class="o">=&gt;</span> <span class="mi">6379</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">COMBINATIONS_FILE</span> <span class="o">=</span> <span class="s1">&#39;./game.dat&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">Alphabet</span> <span class="o">=</span> <span class="sx">%w{</span>
+</span><span class='line'><span class="sx">ё ж е т</span>
+</span><span class='line'><span class="sx">у ч е р</span>
+</span><span class='line'><span class="sx">к о ю т</span>
+</span><span class='line'><span class="sx">р м п ь</span>
+</span><span class='line'><span class="sx">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">for</span> <span class="n">i</span> <span class="k">in</span> <span class="p">(</span><span class="mi">1</span><span class="o">.</span><span class="n">.</span><span class="mi">16</span><span class="p">)</span> <span class="k">do</span>
+</span><span class='line'>    <span class="nb">print</span> <span class="s2">&quot;%-3s&quot;</span> <span class="o">%</span> <span class="no">Alphabet</span><span class="o">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="o">]</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">4</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">then</span> <span class="nb">print</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">start</span> <span class="o">=</span> <span class="no">Time</span><span class="o">.</span><span class="n">now</span>
+</span><span class='line'><span class="n">_start</span> <span class="o">=</span> <span class="no">Time</span><span class="o">.</span><span class="n">now</span>
+</span><span class='line'><span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">combinations</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'><span class="n">lines</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">File</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="no">COMBINATIONS_FILE</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">f</span><span class="o">|</span>
+</span><span class='line'>  <span class="n">f</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">line</span><span class="o">|</span>
+</span><span class='line'>    <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span class='line'>    <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="mi">3</span><span class="o">.</span><span class="n">.</span><span class="mi">9</span><span class="p">)</span><span class="o">.</span><span class="n">include?</span> <span class="n">line</span><span class="o">.</span><span class="n">size</span>
+</span><span class='line'>      <span class="n">w</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;word:&quot;</span> <span class="o">+</span> <span class="n">line</span><span class="o">.</span><span class="n">map</span><span class="p">{</span> <span class="o">|</span><span class="n">l</span><span class="o">|</span> <span class="no">Alphabet</span><span class="o">[</span><span class="n">l</span><span class="o">.</span><span class="n">to_i</span> <span class="o">-</span> <span class="mi">1</span><span class="o">]</span> <span class="p">}</span><span class="o">.</span><span class="n">join</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">line</span> <span class="o">=</span> <span class="kp">nil</span>
+</span><span class='line'>      <span class="n">combinations</span> <span class="o">&lt;&lt;</span> <span class="n">w</span> <span class="k">unless</span> <span class="n">w</span><span class="o">.</span><span class="n">nil?</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="n">counter</span> <span class="o">%</span> <span class="mi">100_000</span> <span class="o">==</span> <span class="mi">0</span>
+</span><span class='line'>      <span class="nb">p</span> <span class="n">combinations</span><span class="o">.</span><span class="n">uniq</span><span class="o">.</span><span class="n">join</span> <span class="s1">&#39; &#39;</span> <span class="k">unless</span> <span class="n">combinations</span><span class="o">.</span><span class="n">empty?</span>
+</span><span class='line'>      <span class="n">combinations</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>      <span class="nb">p</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="no">Time</span><span class="o">.</span><span class="n">now</span> <span class="o">-</span> <span class="n">start</span><span class="si">}</span><span class="s2"> - </span><span class="si">#{</span><span class="n">counter</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>      <span class="n">start</span> <span class="o">=</span> <span class="no">Time</span><span class="o">.</span><span class="n">now</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">p</span> <span class="p">(</span><span class="no">Time</span><span class="o">.</span><span class="n">now</span> <span class="o">-</span> <span class="n">_start</span><span class="p">)</span>
+</span><span class='line'><span class="nb">p</span> <span class="n">counter</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Вывод: приложение стало заметно быстрее (в 3-5 раз), скриншот прилагаю.
+<img class="image" src="http://zudochkin.ru/images/posts/2012-03-lets-game-with-ruby-and-php/redis-game.png"></p>
+
+<p>Надеюсь, смогу добиться скорость выполнения в раза больше, чем сейчас. Мне нужно чтобы приложение проходило по всем комбинациям, сравнивая со всем словами в словаре и тратило при этом меньше минуты, сейчас около 3х.</p>
 ]]></content>
   </entry>
   
