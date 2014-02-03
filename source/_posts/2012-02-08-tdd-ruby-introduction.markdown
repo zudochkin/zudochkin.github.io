@@ -18,6 +18,9 @@ tags:
 - ruby
 - tdd
 - unit test
+
+keywords: "tdd ruby rspec, ruby tdd,rspec,ruby,tdd,unit test,программирование"
+description: "Сегодня я коснусь немного новой для себя методологии, а именно TDD, что означает test driven development (разработка через тестирование)"
 ---
 
 Здравствуйте, уважаемые разработчики, сегодня я коснусь немного новой для себя методологии, а именно TDD, что означает test driven development (разработка через тестирование).
@@ -28,19 +31,20 @@ tags:
 
 Итак, поехали! Для начала нам понадобится gem rspec, который и будет нашим тестирующим инструментом, почему он, если есть аналоги? Потому что он первый попался мне на глаза, может есть и лучше, я пока не вникал в эту сторону вопроса, как известно - лучшее - враг хорошего.
 
-[cc lang="ruby"]gem install rspec[/cc]
+`gem install rspec`
 
 Команда установит нам необходимый гем со всеми необходимыми зависимостями.
 
 Далее создаем папку проект (.). Дерево нашего проекта будет иметь вид:
-[cc]
+
+```
 .
 ├── _
 ├── calculator.rb
 └── spec
     └── calculator_spec.rb
+```
 
-[/cc]
 **calculator.rb** - наше приложение, **spec/calculator_spec.rb** - наш файл с тестами.
 
 Создайте, если у вас еще не созданы, эти файлы, calculator.rb оставьте пустым. Начнем разработку, как уже говорилось вначале заметки с тестов, но перед этим давайте напишем небольшой план по разработке.
@@ -53,31 +57,33 @@ tags:
 * Метод div должен кидать исключение, когда пытаемся делить на 0
 * (не относящийся к делу пункт) Класс Calculator должен быть проивзодным от Calculator
 
-
 Напишем первый тест
-[cc lang="ruby"]
+
+``` ruby
 require '../calculator'
 describe 'Calculator' do
 	it 'should exists' do
 		Calculator.new
 	end
 end
-[/cc]
+```
 
 Что же мы получаем, в первой строке все просто - подключаем файл нашего приложени, ведь над ним будем проводить наши эксперименты (без него никак). Со слова **descibe** начинается контекст теста, входящая в него конструкция (it 'should exists') непосредственно сам тест. Остается только запустить тест и посмотреть на результат:
-[cc]rspec ./spec/calculator_spec.rb[/cc]
 
-![tdd ruby rspec](http://vredniy.ru/wp-content/uploads/2012/02/tdd-calculator1.jpeg)
+`rspec ./spec/calculator_spec.rb`
+
+{% img image /images/posts/2012-02-tdd-ruby-introduction/tdd-calculator1.jpeg %}
+
 Чтобы написать минимальный код, который бы прошел данный тест, нужно две строчки, а именно создать класс Calculator, так и запишем в **./calculator.rb**
-[cc lang="ruby"]
-class Calulcator
 
+``` ruby
+class Calulcator
 end
-[/cc]
+```
 
 Запускаем наш тест еще раз и убеждаемся, что тест пройден. Напишем новый тест, заключим его в тот же describe, что и предыдущий. У нас получится следующее:
 
-[cc lang="ruby"]
+``` ruby
 describe 'Calculator' do
 	it 'should exists' do
 		Calculator.new
@@ -86,39 +92,41 @@ describe 'Calculator' do
 		Calculator.new.add 2,3
 	end
 end
-[/cc]
-![tdd ruby rspec](http://vredniy.ru/wp-content/uploads/2012/02/tdd-calculator2.jpeg)
+```
+{% img image /images/posts/2012-02-tdd-ruby-introduction/tdd-calculator2.jpeg %}
+
 Тест говорит следующее: "Калькулятор должен иметь метод add, который принимает 2 параметра", запускаем наш тест и видим, что !!! тест провален, потому что у нас метода add, тем более принимающего два параметра, так в чем же дело, давайте его напишем, ведь это всего две строки кода.
 
-[cc lang="ruby"]
+``` ruby
 class Calculator
+	def add(a, b)
 
-def add(a, b)
-
+	end
 end
-
-end
-[/cc]
+```
 
 Теперь наш тест проходит и мы можем двигаться дальше. Давайте сделаем так, чтобы метод add возвращал сумму своих двух аргументов. Начнем, конечно же, с написания теста.
-![tdd ruby rspec](http://vredniy.ru/wp-content/uploads/2012/02/tdd-calculator3.jpeg)
-[cc lang="ruby"]
+
+{% img image /images/posts/2012-02-tdd-ruby-introduction/tdd-calculator3.jpeg %}
+
+``` ruby
 	it 'add() method should add two numbers' do
 		Calculator.new.add(2, 2).should_not eq(5)
 		Calculator.new.add(2, 2).should eq(4)
 	end
-[/cc]
+```
 
 И, собственно, код, данный тест проходящий:
-[cc lang="ruby"]
+
+``` ruby
 def add(a, b)
 	a+b
 end
-[/cc]
+```
 
 Остальные тесты я приведу вам без кода приложения, чтобы они выполнялись правильно вам потребуется код написать самим, благо, он совсем простой и займет всего пару минут.
 
-[cc lang="ruby"]
+``` ruby
 require '../calculator'
 
 describe 'Calculator' do
@@ -150,7 +158,7 @@ describe 'Calculator' do
 		expect { Calculator.new.div(2, 0) }.to raise_error(ZeroDivisionError)
 	end
 end
-[/cc]
+```
 
 
 ### Заключение
