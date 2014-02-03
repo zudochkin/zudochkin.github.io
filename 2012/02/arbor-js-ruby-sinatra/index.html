@@ -1,0 +1,883 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>arbor.js: красивые графы на стороне клиента с помощью Ruby - Записки Вредного программиста</title>
+  <meta name="author" content="Зудочкин Дима">
+
+  
+  <meta name="description" content="Сегодня мы займемся рисованием интерактивного графа на стороне клиента. На графе, чтобы далеко не ходить в поисках данных, будет изображать тех, кого &hellip;">
+  <meta name="keywords" content="arbor js twitter, arbor.js ruby, ruby twitter gem, twitter gem,arborjs,mongodb,ruby,sinatra">
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://zudochkin.ru/2012/02/arbor-js-ruby-sinatra">
+
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Записки Вредного программиста" type="application/atom+xml">
+  <link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-11803166-9', 'zudochkin.ru');
+  ga('send', 'pageview');
+
+</script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <div id="logo">
+  	<div id="logoLeft">{</div>
+  	<div id="logoText">Zudochkin Dmitry</div>
+  	<div id="logoRight">}</div>
+  	<div class="clear"></div>
+  </div>
+  <h1><a href="/">Записки Вредного программиста</a></h1>
+  
+    <h2>enjoy, motherfuckers ;)</h2>
+  
+  <div class="clear"></div>
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:zudochkin.ru" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Главная</a></li>
+  <li><a href="/archives">Архив</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      
+        <h1 class="entry-title">arbor.js: красивые графы на стороне клиента с помощью Ruby</h1>
+      
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-02-25T17:24:37+04:00" pubdate data-updated="true">25.02.2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Сегодня мы займемся рисованием интерактивного графа на стороне клиента. На графе, чтобы далеко не ходить в поисках данных, будет изображать тех, кого читаем в твиттере. <!--more--></p>
+
+<h3>Требования</h3>
+
+<ul>
+<li>Граф должен выглядеть привлекательно</li>
+<li>При наведении на вершину графа мы должны получать дополнительную информацию, в данном приложении &ndash; это имя твиттерянина, картинка профиля, количество дней прошедших с регистрации и дата регистрации</li>
+<li>Backend&#8217;ом будет выступать Mongo с Rack прослойкой в виде Sinatra</li>
+</ul>
+
+
+<h3>Этапы разработки</h3>
+
+<ul>
+<li>Определяемся с инструментарием</li>
+<li>Немного проектирования</li>
+<li>Регистрируем наше Twitter приложение</li>
+<li>Сохраняем всех наших друзей в Mongo</li>
+<li>Шаблоны, скрипты и стили на клиенте</li>
+</ul>
+
+
+<h5>Определяемся с инструментарием</h5>
+
+<p>В пункте с требованиями я уже сказал, что мы будем использовать Mongo в связке MongoMapper&#8217;ом, для удобного хранения наших друзей с нужной нам информацией (именем, датой регистрации, картинкой и пр.). Для удобного взимодействия с Twitter API, используем gem Twitter, который предоставляет полный контроль через Twitter приложение.</p>
+
+<h5>Немного проектирования</h5>
+
+<p>Что мы имеем? На главной странице (/) будет отображаться сам граф, данные по средством ajax-запроса к серверу будут приходить от /json (данные будем возвращать в json&#8217;е). Обновлять список пользователей мы будем по адресу /friends (получаем список всех пользователей, которых мы читаем и запрашиваем их дополнительные данные, сохраняя все в базу).</p>
+
+<h5>Регистрируем наше Twitter приложение</h5>
+
+<p><img class="image" src="/images/posts/2012-02-arbor-js-ruby-sinatra/twitter-application-800x614.png">Т.к. все взаимодействие с Twitter API происходит через Twitter приложение, нам необходимо его создать, для этого заходим в <a href="https://dev.twitter.com/apps/new">раздел для разработчиков</a>. Заполняем обязательные поля и нажимаем кнопку &ldquo;Create your twitter application&rdquo;. Спустя несколько секунд мы оказываемся на странице созданного приложения. Прокрутив вниз, мы увидим кнопку &ldquo;Create my access token&rdquo;, нажав на которую мы заполним Access token и Access token secret для нашего приложения. Полученные ключи можно лицезреть на вкладке &ldquo;OAuth tool&rdquo; под заголовком &ldquo;OAuth Settings&rdquo;. Все четыре строчки нам понадобятся чуть позже.</p>
+
+<h5>Сохраняем всех наших друзей в Mongo</h5>
+
+<p>Итак, приступим непосредственно к написанию кода. К этому моменту у вас должно быть рабочее Twitter приложение, установленный Mongo (освещение установки выходит за рамки данной заметки).</p>
+
+<p>Вначале, как всегда, стандартный <strong>./config.ru</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;./twitter.rb&#39;</span>
+</span><span class='line'><span class="n">run</span> <span class="ss">Sinatra</span><span class="p">:</span><span class="ss">:Application</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Дальше создадим <strong>./Gemfile</strong>, который будет содержать все гемы, которые мы используем</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">source</span> <span class="ss">:rubygems</span>
+</span><span class='line'><span class="n">gem</span> <span class="s1">&#39;sinatra&#39;</span>
+</span><span class='line'><span class="n">gem</span> <span class="s1">&#39;twitter&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">gem</span> <span class="s1">&#39;mongo&#39;</span>
+</span><span class='line'><span class="n">gem</span> <span class="s1">&#39;bson_ext&#39;</span>
+</span><span class='line'><span class="n">gem</span> <span class="s1">&#39;mongo_mapper&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>После этого запустим <em>bundle install</em>, что создаст нам Gemfile.lock</p>
+
+<p>А теперь наше приложение <strong>./twitter.rb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># encoding: UTF-8</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;sinatra&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;twitter&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;mongo&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;mongo_mapper&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Подключаем необходимые гемы.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Twitter</span><span class="o">.</span><span class="n">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span><span class='line'>  <span class="n">config</span><span class="o">.</span><span class="n">consumer_key</span> <span class="o">=</span> <span class="s1">&#39;YOUR_CONSUMER_KEY&#39;</span>
+</span><span class='line'>  <span class="n">config</span><span class="o">.</span><span class="n">consumer_secret</span> <span class="o">=</span> <span class="s1">&#39;YOUR_CONSUMER_SECRET&#39;</span>
+</span><span class='line'>  <span class="n">config</span><span class="o">.</span><span class="n">oauth_token</span> <span class="o">=</span> <span class="s1">&#39;YOUR_ACCESS_TOKEN&#39;</span>
+</span><span class='line'>  <span class="n">config</span><span class="o">.</span><span class="n">oauth_token_secret</span> <span class="o">=</span> <span class="s1">&#39;YOUR_ACCESS_SECRET&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Конфигурируем twitter (заполните строки выше теми данными, которые вы получили после регистрации twitter приложения), привязывая его к нашему приложению.</p>
+
+<p>Теперь настроим MongoMapper, указав ему с какими данными мы хотим работать.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">MongoMapper</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="s1">&#39;users&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">User</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="ss">MongoMapper</span><span class="p">:</span><span class="ss">:Document</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">key</span> <span class="ss">:screen_name</span>
+</span><span class='line'>  <span class="n">key</span> <span class="ss">:profile_image_url</span>
+</span><span class='line'>  <span class="n">key</span> <span class="ss">:followers_count</span>
+</span><span class='line'>  <span class="n">key</span> <span class="ss">:statuses_count</span>
+</span><span class='line'>  <span class="n">key</span> <span class="ss">:name</span>
+</span><span class='line'>  <span class="n">key</span> <span class="ss">:friends_count</span>
+</span><span class='line'>  <span class="n">key</span> <span class="ss">:lang</span>
+</span><span class='line'>  <span class="n">key</span> <span class="ss">:url</span>
+</span><span class='line'>  <span class="n">key</span> <span class="ss">:created_at</span><span class="p">,</span> <span class="no">DateTime</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># id location notifications profile_image_url profile_image_url_https profile_background_color</span>
+</span><span class='line'>  <span class="c1"># followers_count default_profile time_zone is_translator utc_offset profile_background_image_url</span>
+</span><span class='line'>  <span class="c1"># statuses_count profile_link_color name friends_count listed_count protected</span>
+</span><span class='line'>  <span class="c1"># profile_use_background_image profile_background_image_url_https contributors_enabled lang</span>
+</span><span class='line'>  <span class="c1"># profile_text_color follow_request_sent description profile_sidebar_border_color show_all_inline_media</span>
+</span><span class='line'>  <span class="c1"># url verified default_profile_image created_at profile_background_tile favourites_count id_str</span>
+</span><span class='line'>  <span class="c1"># following profile_sidebar_fill_color geo_enabled screen_name</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Сначала указываем базу данных (&lsquo;users&rsquo;), дальше описываем поля. Закомментированные строки &ndash; это дополнительные поля, которые вы можете использовать при получении данных твиттер-пользователя.</p>
+
+<p>Пришло время написать экшн, которые сохранит всех наших друзей в базе Mongo и здесь нет ничего сложного.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">get</span> <span class="s1">&#39;/friends&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="no">User</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">remove</span> <span class="c1"># очищаем коллекцию</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">friends</span> <span class="o">=</span> <span class="no">Twitter</span><span class="o">.</span><span class="n">friend_ids</span> <span class="c1"># получаем список всех друзей</span>
+</span><span class='line'>  <span class="n">friend_ids</span> <span class="o">=</span> <span class="n">friends</span><span class="o">.</span><span class="n">ids</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">friend_ids</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">f</span><span class="o">|</span> <span class="c1"># проходимся по каждому и</span>
+</span><span class='line'>    <span class="k">begin</span>
+</span><span class='line'>      <span class="n">twi_user</span> <span class="o">=</span> <span class="no">Twitter</span><span class="o">.</span><span class="n">user</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="c1"># получаем данные, отправляет запрос на сервер Twitter&#39;а</span>
+</span><span class='line'>      <span class="no">User</span><span class="o">.</span><span class="n">create</span><span class="p">(</span> <span class="c1"># заполняем поля</span>
+</span><span class='line'>        <span class="ss">:screen_name</span> <span class="o">=&gt;</span> <span class="n">twi_user</span><span class="o">.</span><span class="n">screen_name</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">:profile_image_url</span> <span class="o">=&gt;</span> <span class="n">twi_user</span><span class="o">.</span><span class="n">profile_image_url</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">:followers_count</span> <span class="o">=&gt;</span> <span class="n">twi_user</span><span class="o">.</span><span class="n">followers_count</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">:statuses_count</span> <span class="o">=&gt;</span> <span class="n">twi_user</span><span class="o">.</span><span class="n">statuses_count</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="n">twi_user</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">:friends_count</span> <span class="o">=&gt;</span> <span class="n">twi_user</span><span class="o">.</span><span class="n">friends_count</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">:lang</span> <span class="o">=&gt;</span> <span class="n">twi_user</span><span class="o">.</span><span class="n">lang</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">:url</span> <span class="o">=&gt;</span> <span class="n">twi_user</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">:created_at</span> <span class="o">=&gt;</span> <span class="n">twi_user</span><span class="o">.</span><span class="n">created_at</span>
+</span><span class='line'>      <span class="p">)</span>
+</span><span class='line'>    <span class="k">rescue</span> <span class="no">Exception</span> <span class="o">=&gt;</span> <span class="n">e</span> <span class="c1"># обрабатываем исключение</span>
+</span><span class='line'>      <span class="nb">puts</span> <span class="n">e</span><span class="o">.</span><span class="n">message</span>
+</span><span class='line'>      <span class="nb">puts</span> <span class="n">e</span><span class="o">.</span><span class="n">backtrace</span><span class="o">.</span><span class="n">inspect</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="vi">@users</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">all</span> <span class="c1"># получаем всех сохраненных пользователей</span>
+</span><span class='line'>  <span class="n">erb</span> <span class="ss">:friends</span> <span class="c1"># отображаем их</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Чтобы наш экшн отработал, на необхомо создать файл <strong>./views/friends.erb</strong> со следующим содержимым:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sx">% @users.each </span><span class="k">do</span> <span class="o">|</span><span class="n">u</span><span class="o">|</span> <span class="sx">%&gt;</span>
+</span><span class='line'><span class="sx">  &lt;h5&gt;</span><span class="o">&lt;</span><span class="sx">%= u.name %&gt; - &lt;%=</span> <span class="n">u</span><span class="o">.</span><span class="n">screen_name</span> <span class="sx">%&gt;&lt;/h5&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="n">img</span> <span class="n">src</span><span class="o">=</span><span class="s2">&quot;&lt;%= u.profile_image_url %&gt;&quot;</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;&lt;%=</span> <span class="n">u</span><span class="o">.</span><span class="n">created_at</span> <span class="sx">%&gt;&lt;/p&gt;</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="n">hr</span><span class="o">&gt;</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sx">% end </span><span class="o">%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Который не делает ничего более того, что отображает в цикле всех пользователей с картикой профиля. (Это нужно для того, чтобы убедиться в том, что все работает как ожидалось).</p>
+
+<h5>Шаблоны, скрипты и стили на клиенте</h5>
+
+<p>Сначала создадим шаблон для всех наших представлений, <strong>./views/layout.erb</strong>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;html&gt;</span>
+</span><span class='line'><span class="nt">&lt;head&gt;</span>
+</span><span class='line'>   <span class="nt">&lt;title&gt;</span>Twitter friends (arbor.js + Ruby)<span class="nt">&lt;/title&gt;</span>
+</span><span class='line'>   <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+</span><span class='line'>   <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;/js/arbor.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+</span><span class='line'>   <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;/js/application.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+</span><span class='line'>   <span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">&quot;stylesheet&quot;</span> <span class="na">type=</span><span class="s">&quot;text/css&quot;</span> <span class="na">href=</span><span class="s">&quot;/styles/application.css&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'><span class="nt">&lt;/head&gt;</span>
+</span><span class='line'><span class="nt">&lt;body&gt;</span>
+</span><span class='line'>   <span class="err">&lt;</span>%= yield %&gt;
+</span><span class='line'><span class="nt">&lt;/body&gt;</span>
+</span><span class='line'><span class="nt">&lt;/html&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>В котором мы подключаем библиотеку jQuery через Google CDN, файл arbor.js, который вы можете скачать <a href="https://github.com/samizdatco/arbor">отсюда</a> (данная библиотека используется нами для визуализации графа на стороне клиента).</p>
+
+<p>Файл arbor.js необходимо положить в папку <strong>./public/js/arbor.js</strong></p>
+
+<p>Далее напишем последний скрипт, который будет обрабатывать события отрисовки, drag&drop;&lsquo;а и загрузки данных ajax&#8217;ом. (За основу взят пример с сайта arbor.js). <strong>./js/application.js</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">$</span><span class="p">){</span>
+</span><span class='line'>    <span class="kd">var</span> <span class="nx">Renderer</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">canvas</span><span class="p">){</span>
+</span><span class='line'>      <span class="kd">var</span> <span class="nx">canvas</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="nx">canvas</span><span class="p">).</span><span class="nx">get</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>      <span class="kd">var</span> <span class="nx">ctx</span> <span class="o">=</span> <span class="nx">canvas</span><span class="p">.</span><span class="nx">getContext</span><span class="p">(</span><span class="s2">&quot;2d&quot;</span><span class="p">);</span>
+</span><span class='line'>      <span class="kd">var</span> <span class="nx">particleSystem</span>
+</span><span class='line'>      <span class="kd">var</span> <span class="nx">dom</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="nx">canvas</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="kd">var</span> <span class="nx">that</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">init</span><span class="o">:</span><span class="kd">function</span><span class="p">(</span><span class="nx">system</span><span class="p">){</span>
+</span><span class='line'>          <span class="nx">particleSystem</span> <span class="o">=</span> <span class="nx">system</span>
+</span><span class='line'>          <span class="nx">particleSystem</span><span class="p">.</span><span class="nx">screenSize</span><span class="p">(</span><span class="nx">canvas</span><span class="p">.</span><span class="nx">width</span><span class="p">,</span> <span class="nx">canvas</span><span class="p">.</span><span class="nx">height</span><span class="p">)</span>
+</span><span class='line'>          <span class="nx">particleSystem</span><span class="p">.</span><span class="nx">screenPadding</span><span class="p">(</span><span class="mi">80</span><span class="p">)</span> <span class="c1">// leave an extra 80px of whitespace per side</span>
+</span><span class='line'>          <span class="nx">that</span><span class="p">.</span><span class="nx">initMouseHandling</span><span class="p">()</span>
+</span><span class='line'>        <span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nx">redraw</span><span class="o">:</span><span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>          <span class="nx">ctx</span><span class="p">.</span><span class="nx">fillStyle</span> <span class="o">=</span> <span class="s2">&quot;white&quot;</span>
+</span><span class='line'>          <span class="nx">ctx</span><span class="p">.</span><span class="nx">fillRect</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span> <span class="nx">canvas</span><span class="p">.</span><span class="nx">width</span><span class="p">,</span> <span class="nx">canvas</span><span class="p">.</span><span class="nx">height</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="nx">particleSystem</span><span class="p">.</span><span class="nx">eachEdge</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">edge</span><span class="p">,</span> <span class="nx">pt1</span><span class="p">,</span> <span class="nx">pt2</span><span class="p">){</span>
+</span><span class='line'>            <span class="nx">ctx</span><span class="p">.</span><span class="nx">strokeStyle</span> <span class="o">=</span> <span class="s2">&quot;rgba(88,0,0, .133)&quot;</span>
+</span><span class='line'>            <span class="nx">ctx</span><span class="p">.</span><span class="nx">lineWidth</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class='line'>            <span class="nx">ctx</span><span class="p">.</span><span class="nx">beginPath</span><span class="p">()</span>
+</span><span class='line'>            <span class="nx">ctx</span><span class="p">.</span><span class="nx">moveTo</span><span class="p">(</span><span class="nx">pt1</span><span class="p">.</span><span class="nx">x</span><span class="p">,</span> <span class="nx">pt1</span><span class="p">.</span><span class="nx">y</span><span class="p">)</span>
+</span><span class='line'>            <span class="nx">ctx</span><span class="p">.</span><span class="nx">lineTo</span><span class="p">(</span><span class="nx">pt2</span><span class="p">.</span><span class="nx">x</span><span class="p">,</span> <span class="nx">pt2</span><span class="p">.</span><span class="nx">y</span><span class="p">)</span>
+</span><span class='line'>            <span class="nx">ctx</span><span class="p">.</span><span class="nx">stroke</span><span class="p">()</span>
+</span><span class='line'>          <span class="p">})</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="nx">particleSystem</span><span class="p">.</span><span class="nx">eachNode</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">node</span><span class="p">,</span> <span class="nx">pt</span><span class="p">){</span>
+</span><span class='line'>            <span class="kd">var</span> <span class="nx">w</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>   <span class="c1">//ширина квадрата</span>
+</span><span class='line'>            <span class="nx">ctx</span><span class="p">.</span><span class="nx">fillStyle</span> <span class="o">=</span> <span class="p">(</span><span class="nx">node</span><span class="p">.</span><span class="nx">name</span> <span class="o">==</span> <span class="s1">&#39;Я&#39;</span><span class="p">)</span> <span class="o">?</span> <span class="s1">&#39;yellow&#39;</span> <span class="o">:</span> <span class="nx">node</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">color</span>
+</span><span class='line'>            <span class="nx">ctx</span><span class="p">.</span><span class="nx">fillRect</span><span class="p">(</span><span class="nx">pt</span><span class="p">.</span><span class="nx">x</span><span class="o">-</span><span class="nx">w</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="nx">pt</span><span class="p">.</span><span class="nx">y</span><span class="o">-</span><span class="nx">w</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="nx">w</span><span class="p">,</span><span class="nx">w</span><span class="p">);</span> <span class="c1">//рисуем</span>
+</span><span class='line'>            <span class="nx">ctx</span><span class="p">.</span><span class="nx">fillStyle</span> <span class="o">=</span> <span class="p">(</span><span class="nx">node</span><span class="p">.</span><span class="nx">name</span> <span class="o">==</span> <span class="s1">&#39;Я&#39;</span><span class="p">)</span> <span class="o">?</span> <span class="s1">&#39;green&#39;</span> <span class="o">:</span> <span class="nx">node</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">color</span><span class="p">;</span> <span class="c1">//цвет для шрифта</span>
+</span><span class='line'>            <span class="nx">ctx</span><span class="p">.</span><span class="nx">font</span> <span class="o">=</span> <span class="p">(</span><span class="nx">node</span><span class="p">.</span><span class="nx">name</span> <span class="o">==</span> <span class="s1">&#39;Я&#39;</span><span class="p">)</span> <span class="o">?</span> <span class="s1">&#39;bold 18px sans-serif&#39;</span> <span class="o">:</span> <span class="s1">&#39;italic 13px sans-serif&#39;</span><span class="p">;</span> <span class="c1">//шрифт</span>
+</span><span class='line'>            <span class="nx">ctx</span><span class="p">.</span><span class="nx">fillText</span> <span class="p">(</span><span class="nx">node</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span> <span class="nx">pt</span><span class="p">.</span><span class="nx">x</span><span class="o">+</span><span class="mi">8</span><span class="p">,</span> <span class="nx">pt</span><span class="p">.</span><span class="nx">y</span><span class="o">+</span><span class="mi">8</span><span class="p">);</span> <span class="c1">//пишем имя у каждой точки</span>
+</span><span class='line'>          <span class="p">})</span>
+</span><span class='line'>        <span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nx">initMouseHandling</span><span class="o">:</span><span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>          <span class="kd">var</span> <span class="nx">dragged</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+</span><span class='line'>          <span class="kd">var</span> <span class="nx">handler</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nx">moved</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>                <span class="kd">var</span> <span class="nx">pos</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="nx">canvas</span><span class="p">).</span><span class="nx">offset</span><span class="p">();</span>
+</span><span class='line'>                <span class="nx">_mouseP</span> <span class="o">=</span> <span class="nx">arbor</span><span class="p">.</span><span class="nx">Point</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">pageX</span><span class="o">-</span><span class="nx">pos</span><span class="p">.</span><span class="nx">left</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nx">pageY</span><span class="o">-</span><span class="nx">pos</span><span class="p">.</span><span class="nx">top</span><span class="p">)</span>
+</span><span class='line'>                <span class="nx">nearest</span> <span class="o">=</span> <span class="nx">particleSystem</span><span class="p">.</span><span class="nx">nearest</span><span class="p">(</span><span class="nx">_mouseP</span><span class="p">);</span>
+</span><span class='line'>                <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">nearest</span><span class="p">.</span><span class="nx">node</span><span class="p">)</span> <span class="k">return</span> <span class="kc">false</span>
+</span><span class='line'>                <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#status h1&#39;</span><span class="p">).</span><span class="nx">text</span><span class="p">(</span><span class="nx">nearest</span><span class="p">.</span><span class="nx">node</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">full_name</span><span class="p">)</span>
+</span><span class='line'>                <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#status .image&#39;</span><span class="p">).</span><span class="nx">html</span><span class="p">(</span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="s1">&#39;src&#39;</span><span class="p">,</span> <span class="nx">nearest</span><span class="p">.</span><span class="nx">node</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">image</span><span class="p">));</span>
+</span><span class='line'>                <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#status .ago&#39;</span><span class="p">).</span><span class="nx">html</span><span class="p">(</span><span class="nx">nearest</span><span class="p">.</span><span class="nx">node</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">days</span> <span class="o">+</span> <span class="s1">&#39;</span>
+</span><span class='line'><span class="s1">&#39;</span> <span class="o">+</span> <span class="nx">nearest</span><span class="p">.</span><span class="nx">node</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">created_at</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="nx">clicked</span><span class="o">:</span><span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">){</span>
+</span><span class='line'>              <span class="kd">var</span> <span class="nx">pos</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="nx">canvas</span><span class="p">).</span><span class="nx">offset</span><span class="p">();</span>
+</span><span class='line'>              <span class="nx">_mouseP</span> <span class="o">=</span> <span class="nx">arbor</span><span class="p">.</span><span class="nx">Point</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">pageX</span><span class="o">-</span><span class="nx">pos</span><span class="p">.</span><span class="nx">left</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nx">pageY</span><span class="o">-</span><span class="nx">pos</span><span class="p">.</span><span class="nx">top</span><span class="p">)</span>
+</span><span class='line'>              <span class="nx">dragged</span> <span class="o">=</span> <span class="nx">particleSystem</span><span class="p">.</span><span class="nx">nearest</span><span class="p">(</span><span class="nx">_mouseP</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>              <span class="k">if</span> <span class="p">(</span><span class="nx">dragged</span> <span class="o">&amp;&amp;</span> <span class="nx">dragged</span><span class="p">.</span><span class="nx">node</span> <span class="o">!==</span> <span class="kc">null</span><span class="p">){</span>
+</span><span class='line'>                <span class="nx">dragged</span><span class="p">.</span><span class="nx">node</span><span class="p">.</span><span class="nx">fixed</span> <span class="o">=</span> <span class="kc">true</span>
+</span><span class='line'>              <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>              <span class="nx">$</span><span class="p">(</span><span class="nx">canvas</span><span class="p">).</span><span class="nx">bind</span><span class="p">(</span><span class="s1">&#39;mousemove&#39;</span><span class="p">,</span> <span class="nx">handler</span><span class="p">.</span><span class="nx">dragged</span><span class="p">)</span>
+</span><span class='line'>              <span class="nx">$</span><span class="p">(</span><span class="nb">window</span><span class="p">).</span><span class="nx">bind</span><span class="p">(</span><span class="s1">&#39;mouseup&#39;</span><span class="p">,</span> <span class="nx">handler</span><span class="p">.</span><span class="nx">dropped</span><span class="p">)</span>
+</span><span class='line'>              <span class="nx">that</span><span class="p">.</span><span class="nx">redraw</span><span class="p">();</span>
+</span><span class='line'>              <span class="k">return</span> <span class="kc">false</span>
+</span><span class='line'>            <span class="p">},</span>
+</span><span class='line'>            <span class="nx">dragged</span><span class="o">:</span><span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">){</span>
+</span><span class='line'>              <span class="kd">var</span> <span class="nx">pos</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="nx">canvas</span><span class="p">).</span><span class="nx">offset</span><span class="p">();</span>
+</span><span class='line'>              <span class="kd">var</span> <span class="nx">s</span> <span class="o">=</span> <span class="nx">arbor</span><span class="p">.</span><span class="nx">Point</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">pageX</span><span class="o">-</span><span class="nx">pos</span><span class="p">.</span><span class="nx">left</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nx">pageY</span><span class="o">-</span><span class="nx">pos</span><span class="p">.</span><span class="nx">top</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>              <span class="k">if</span> <span class="p">(</span><span class="nx">dragged</span> <span class="o">&amp;&amp;</span> <span class="nx">dragged</span><span class="p">.</span><span class="nx">node</span> <span class="o">!==</span> <span class="kc">null</span><span class="p">){</span>
+</span><span class='line'>                <span class="kd">var</span> <span class="nx">p</span> <span class="o">=</span> <span class="nx">particleSystem</span><span class="p">.</span><span class="nx">fromScreen</span><span class="p">(</span><span class="nx">s</span><span class="p">)</span>
+</span><span class='line'>                <span class="nx">dragged</span><span class="p">.</span><span class="nx">node</span><span class="p">.</span><span class="nx">p</span> <span class="o">=</span> <span class="nx">p</span>
+</span><span class='line'>              <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>              <span class="k">return</span> <span class="kc">false</span>
+</span><span class='line'>            <span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="nx">dropped</span><span class="o">:</span><span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">){</span>
+</span><span class='line'>              <span class="k">if</span> <span class="p">(</span><span class="nx">dragged</span><span class="o">===</span><span class="kc">null</span> <span class="o">||</span> <span class="nx">dragged</span><span class="p">.</span><span class="nx">node</span><span class="o">===</span><span class="kc">undefined</span><span class="p">)</span> <span class="k">return</span>
+</span><span class='line'>              <span class="k">if</span> <span class="p">(</span><span class="nx">dragged</span><span class="p">.</span><span class="nx">node</span> <span class="o">!==</span> <span class="kc">null</span><span class="p">)</span> <span class="nx">dragged</span><span class="p">.</span><span class="nx">node</span><span class="p">.</span><span class="nx">fixed</span> <span class="o">=</span> <span class="kc">false</span>
+</span><span class='line'>              <span class="nx">dragged</span><span class="p">.</span><span class="nx">node</span><span class="p">.</span><span class="nx">tempMass</span> <span class="o">=</span> <span class="mi">1000</span>
+</span><span class='line'>              <span class="nx">dragged</span> <span class="o">=</span> <span class="kc">null</span>
+</span><span class='line'>              <span class="nx">$</span><span class="p">(</span><span class="nx">canvas</span><span class="p">).</span><span class="nx">unbind</span><span class="p">(</span><span class="s1">&#39;mousemove&#39;</span><span class="p">,</span> <span class="nx">handler</span><span class="p">.</span><span class="nx">dragged</span><span class="p">)</span>
+</span><span class='line'>              <span class="nx">$</span><span class="p">(</span><span class="nb">window</span><span class="p">).</span><span class="nx">unbind</span><span class="p">(</span><span class="s1">&#39;mouseup&#39;</span><span class="p">,</span> <span class="nx">handler</span><span class="p">.</span><span class="nx">dropped</span><span class="p">)</span>
+</span><span class='line'>              <span class="nx">_mouseP</span> <span class="o">=</span> <span class="kc">null</span>
+</span><span class='line'>              <span class="k">return</span> <span class="kc">false</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>          <span class="p">}</span>
+</span><span class='line'>          <span class="nx">$</span><span class="p">(</span><span class="nx">canvas</span><span class="p">).</span><span class="nx">mousedown</span><span class="p">(</span><span class="nx">handler</span><span class="p">.</span><span class="nx">clicked</span><span class="p">);</span>
+</span><span class='line'>          <span class="nx">$</span><span class="p">(</span><span class="nx">canvas</span><span class="p">).</span><span class="nx">mousemove</span><span class="p">(</span><span class="nx">handler</span><span class="p">.</span><span class="nx">moved</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>      <span class="k">return</span> <span class="nx">that</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nx">$</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>      <span class="kd">var</span> <span class="nx">sys</span> <span class="o">=</span> <span class="nx">arbor</span><span class="p">.</span><span class="nx">ParticleSystem</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span> <span class="c1">// create the system with sensible repulsion/stiffness/friction</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="nx">sys</span><span class="p">.</span><span class="nx">renderer</span> <span class="o">=</span> <span class="nx">Renderer</span><span class="p">(</span><span class="s2">&quot;#viewport&quot;</span><span class="p">)</span> <span class="c1">// our newly created renderer will have its .init() method called shortly by sys...</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="nx">sys</span><span class="p">.</span><span class="nx">addNode</span><span class="p">(</span><span class="s1">&#39;Я&#39;</span><span class="p">);</span>
+</span><span class='line'>      <span class="nx">sys</span><span class="p">.</span><span class="nx">addNode</span><span class="p">(</span><span class="s1">&#39;Кто-то другой&#39;</span><span class="p">);</span>
+</span><span class='line'>      <span class="nx">$</span><span class="p">.</span><span class="nx">getJSON</span><span class="p">(</span><span class="s1">&#39;/json&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">response</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">$</span><span class="p">.</span><span class="nx">each</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">nodes</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">i</span><span class="p">,</span><span class="nx">node</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>          <span class="nx">sys</span><span class="p">.</span><span class="nx">addNode</span><span class="p">(</span><span class="nx">node</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nx">days</span><span class="o">:</span> <span class="nx">node</span><span class="p">.</span><span class="nx">days</span><span class="p">,</span>
+</span><span class='line'>            <span class="nx">image</span><span class="o">:</span> <span class="nx">node</span><span class="p">.</span><span class="nx">image</span><span class="p">,</span>
+</span><span class='line'>            <span class="nx">full_name</span><span class="o">:</span> <span class="nx">node</span><span class="p">.</span><span class="nx">full_name</span><span class="p">,</span>
+</span><span class='line'>            <span class="nx">color</span><span class="o">:</span> <span class="nx">node</span><span class="p">.</span><span class="nx">color</span><span class="p">,</span>
+</span><span class='line'>            <span class="nx">created_at</span><span class="o">:</span> <span class="nx">node</span><span class="p">.</span><span class="nx">created_at</span>
+</span><span class='line'>          <span class="p">});</span>
+</span><span class='line'>          <span class="nx">sys</span><span class="p">.</span><span class="nx">addEdge</span><span class="p">(</span><span class="nx">node</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span> <span class="s1">&#39;Я&#39;</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">});</span>
+</span><span class='line'>      <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">})</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="p">})(</span><span class="k">this</span><span class="p">.</span><span class="nx">jQuery</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>В строках 106-117 мы получаем данные с сервера, заполняя каждую ноду именем и данными, которые будет использовать далее.</p>
+
+<p>Отрисовка происходит в строках 29-36, а обработка события перемещения мыши в 42-51, где мы сохраненные в ноде данные отображаем (для этого используем возможности движка по нахождению ближайшей к указателю мыши ноды).</p>
+
+<p>Шаблон для отображения главной страницы <strong>./views/index.erb</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;status&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>   <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;image&quot;</span><span class="nt">&gt;&lt;/div&gt;</span>
+</span><span class='line'>   <span class="nt">&lt;h1&gt;</span>Я<span class="nt">&lt;/h1&gt;</span>
+</span><span class='line'>   <span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">&quot;ago&quot;</span><span class="nt">&gt;&lt;/span&gt;</span>
+</span><span class='line'><span class="nt">&lt;/div&gt;</span>
+</span><span class='line'><span class="nt">&lt;p</span> <span class="na">class=</span><span class="s">&quot;clear&quot;</span><span class="nt">&gt;&lt;/p&gt;</span>
+</span><span class='line'><span class="nt">&lt;canvas</span> <span class="na">id=</span><span class="s">&quot;viewport&quot;</span> <span class="na">width=</span><span class="s">&quot;1000&quot;</span> <span class="na">height=</span><span class="s">&quot;700&quot;</span><span class="nt">&gt;&lt;/canvas&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>В нем мы создаем статусбар и канвас, в котором и будет отображать наш граф и обрабатывать события.</p>
+
+<p>Добавим к нашему <strong>./twitter.rb</strong> последний штрих, точнее два, вывод главной страницы и отправка данных ajax&#8217;ом.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">get</span> <span class="s1">&#39;/&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">erb</span> <span class="ss">:&#39;index&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">get</span> <span class="s1">&#39;/json&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">content_type</span> <span class="ss">:json</span>
+</span><span class='line'>  <span class="n">users</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>  <span class="no">User</span><span class="o">.</span><span class="n">all</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">u</span><span class="o">|</span>
+</span><span class='line'>    <span class="n">users</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+</span><span class='line'>      <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="n">u</span><span class="o">.</span><span class="n">screen_name</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">:full_name</span> <span class="o">=&gt;</span> <span class="n">u</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">:days</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="no">DateTime</span><span class="o">.</span><span class="n">now</span><span class="o">-</span><span class="no">DateTime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">created_at</span><span class="o">.</span><span class="n">to_s</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-%d&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">to_i</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">:image</span> <span class="o">=&gt;</span> <span class="n">u</span><span class="o">.</span><span class="n">profile_image_url</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">:color</span> <span class="o">=&gt;</span> <span class="s2">&quot;#%06x&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">rand</span> <span class="o">*</span> <span class="mh">0xffffff</span><span class="p">),</span>
+</span><span class='line'>      <span class="ss">:created_at</span> <span class="o">=&gt;</span> <span class="n">u</span><span class="o">.</span><span class="n">created_at</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>    <span class="ss">nodes</span><span class="p">:</span> <span class="n">users</span>
+</span><span class='line'>  <span class="p">}</span><span class="o">.</span><span class="n">to_json</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>В методе <em>/json</em> мы проходимся по списку всех пользователей, которых мы сохранили в методе <em>/friends</em> и собираем json объект, который и выводим с заголовком <em>content_type :json</em></p>
+
+<p>Единственное, что может показаться странным, так это конструкция <em>(DateTime.now-DateTime.strptime(u.created_at.to_s, &lsquo;%Y-%m-%d&rsquo;)).to_i</em>, которая считает разницу в днях между днем регистрации пользователя и текущим днем, и конструкция <em>&ldquo;#%06x&rdquo; % (rand * 0xffffff)</em>, которая генерирует случайный цвет в формате #1234ab, остальные строки, надеюсь, прозрачны и легки к пониманию.</p>
+
+<h3>Демонстрация и заключение</h3>
+
+<p>Видео, демонстрирующее возможности разработонного приложения смотрите ниже, из него, я думаю, все станет понятно, что нельзя сказать о кучи текста и кода. Как говорят, лучше один раз увидеть, чем несколько раз прочитать.</p>
+
+<iframe width="560" height="315" src="//www.youtube.com/embed/-SX1AVO_bj0" frameborder="0" allowfullscreen></iframe>
+
+
+<p>В качестве заключения хочу сказать следующее: arbor.js &ndash; очень мощная библиотека для отрисовки графов на стороне клиента, которая загружает процессор на 100%, но позволяет, чертовка, визуализировать графы наглядно и красиво. Еще в данной заметке мы с вами познакомились очень поверхностно с Twitter гемом, который позволяет создавать приложения для взаимодействия с Twitter API. Надеюсь, потраченное на прочтение данной заметки, не было бесполезным :) и до новых встреч.</p>
+
+<p>P.S.: ссылка на <a href="https://github.com/vredniy/arbor-twitter-sinatra">репозиторий на Github</a></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-02-25T17:24:37+04:00" pubdate data-updated="true">25.02.2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ruby/'>Ruby</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://zudochkin.ru/2012/02/arbor-js-ruby-sinatra" data-via="vredniy" data-counturl="http://zudochkin.ru/2012/02/arbor-js-ruby-sinatra" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left articlenav" href="/2012/02/backbone-js-sinatra-ruby" title="Предыдущий пост: Backbone.js и Sinatra (Ruby)">&laquo; Backbone.js и Sinatra (Ruby)</a>
+      
+      
+        <a class="basic-alignment right articlenav" href="/2012/03/lets-game-with-ruby-and-php" title="Следующий пост: Поиграем? или совместное использование ruby и php">Поиграем? или совместное использование ruby и php &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Комментарии</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Последние посты</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2014/01/fulltext-phones-postgresql">Полнотекстовый поиск по телефонным номерам разного формата (PostgreSQL)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/11/open-uri-progress-bar">Ruby OpenURI::open и ProgressBar</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/first-photography">Первая выездная фотосъемка (Большой Москворецкий мост)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/vim-first-plugin">Написание первого плагина для Vim</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/logrotate-unicorn">Ротация логов на примере логов Unicorn</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Зудочкин Дима -
+  <span class="credit">Powered by <a rel="nofollow" href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'zudochkinru';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://zudochkin.ru/2012/02/arbor-js-ruby-sinatra';
+        var disqus_url = 'http://zudochkin.ru/2012/02/arbor-js-ruby-sinatra';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

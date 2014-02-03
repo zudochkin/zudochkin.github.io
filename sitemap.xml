@@ -1,6 +1,26 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
+        <loc>http://zudochkin.ru/2012/02/ruby-application-heroku</loc>
+        <lastmod>2014-02-03T19:14:34+04:00</lastmod>
+    </url>
+    <url>
+        <loc>http://zudochkin.ru/2012/02/ruby-sinatra-cms-heroku</loc>
+        <lastmod>2014-02-03T19:18:16+04:00</lastmod>
+    </url>
+    <url>
+        <loc>http://zudochkin.ru/2012/02/tdd-ruby-introduction</loc>
+        <lastmod>2014-02-03T19:16:54+04:00</lastmod>
+    </url>
+    <url>
+        <loc>http://zudochkin.ru/2012/02/backbone-js-sinatra-ruby</loc>
+        <lastmod>2014-02-03T18:59:38+04:00</lastmod>
+    </url>
+    <url>
+        <loc>http://zudochkin.ru/2012/02/arbor-js-ruby-sinatra</loc>
+        <lastmod>2014-02-03T18:53:39+04:00</lastmod>
+    </url>
+    <url>
         <loc>http://zudochkin.ru/2012/03/lets-game-with-ruby-and-php</loc>
         <lastmod>2014-02-03T00:17:03+04:00</lastmod>
     </url>
@@ -78,7 +98,7 @@
     </url>
     <url>
         <loc>http://zudochkin.ru/archives/</loc>
-        <lastmod>2014-02-03T00:22:14+04:00</lastmod>
+        <lastmod>2014-02-03T19:18:16+04:00</lastmod>
     </url>
     <url>
         <loc>http://zudochkin.ru/books/</loc>
@@ -86,7 +106,7 @@
     </url>
     <url>
         <loc>http://zudochkin.ru/</loc>
-        <lastmod>2014-02-03T00:22:14+04:00</lastmod>
+        <lastmod>2014-02-03T19:18:16+04:00</lastmod>
     </url>
     <url>
         <loc>http://zudochkin.ru/movies/</loc>

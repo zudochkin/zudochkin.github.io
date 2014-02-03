@@ -1,0 +1,988 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Backbone.js и Sinatra (Ruby) - Записки Вредного программиста</title>
+  <meta name="author" content="Зудочкин Дима">
+
+  
+  <meta name="description" content="Приветствую тебя, товарищ-разработчик, сегодня речь пойдет больше о клиентсом программировании, точнее об одном фреймворке. Backbone js ему название.">
+  <meta name="keywords" content="sinatra backbone, backbonejs, backbonejs ruby, backbone ruby,backbone,heroku,jquery,ruby,sinatra,javascript">
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://zudochkin.ru/2012/02/backbone-js-sinatra-ruby">
+
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Записки Вредного программиста" type="application/atom+xml">
+  <link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-11803166-9', 'zudochkin.ru');
+  ga('send', 'pageview');
+
+</script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <div id="logo">
+  	<div id="logoLeft">{</div>
+  	<div id="logoText">Zudochkin Dmitry</div>
+  	<div id="logoRight">}</div>
+  	<div class="clear"></div>
+  </div>
+  <h1><a href="/">Записки Вредного программиста</a></h1>
+  
+    <h2>enjoy, motherfuckers ;)</h2>
+  
+  <div class="clear"></div>
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:zudochkin.ru" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Главная</a></li>
+  <li><a href="/archives">Архив</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      
+        <h1 class="entry-title">Backbone.js и Sinatra (Ruby)</h1>
+      
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-02-11T23:58:01+04:00" pubdate data-updated="true">11.02.2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Приветствую тебя, товарищ-разработчик, сегодня речь пойдет больше о клиентсом программировании, точнее об одном фреймворке. Backbone js ему название. Что в нем особенного спросите вы. Это первый MVC фреймворк на стороне клиента, попавшийся мне на глаза. Очень долго я с ним воевал, поэтому тут уж дело чести понять как работают 1200 строк кода на javascript.</p>
+
+<!-- more -->
+
+
+<p>Данная заметка не прендует на всеобъемлющее описание, да и практической пользы от разрабатываемого в ней приложения (без доработки) практически нет, это больше для души или, как говорится, for fun.</p>
+
+<p>Сначала поставим себе небольшую цель, чего же мы хотим увидеть по окончании: одна страница, без ссылок и переходов, все взаимодействие с сервером происходит в режиме реального времени по средством ajax запросов. В конце мы сможем добавлять новые книги, удалять их и изменять поля. Весь &ldquo;дизайн&rdquo; выполнен человеком, то бишь мною, ничего общего с дизайнерами и верстальщиками не имеющего, но, как мне кажется, он [дизайн], получился удобным и не отталкивающим. Обрабатывать наши ajax запросы будет Ruby при помощи замечательного фреймворка Sinatra, но работа им предстоит не сложная, поэтому сосредоточимся на frontend&#8217;е.</p>
+
+<h3>Что еще за backbone.js?</h3>
+
+<p>Аналог jquery? Нет, у данного фреймворка совсем другая специализация &ndash; его основная задача создать основу для модульного приложения на стороне клиента, чтобы богатые на компоненты и модули интерфейсы легко могли взаимодействовать с пользователем. Чтобы добавления новой функциональности не превращало код приложения в спагетти, а наоборот, этому способствовало.</p>
+
+<h3>Из чего состоит backbone.js?</h3>
+
+<p>Модель, Представление, Коллекция и Роутер, если не сильно вдаваться в подробности (очень хорошая документация собрана на сайте backbone.js), то модель представляет собой, если проводить аналогию с базами данных, строку в таблице, к любым свойствам которой мы легко можем обращаться, также легко мы можем ее обновлять, сохранять и прочее. Коллекция &ndash; кучка моделей или по аналогии &ndash; несколькими строками таблицы, объединенных общими полями и свойствами. Представление &ndash; вот это, по-моему, самая интересная и в то же время непростая для меня часть. Представление в понимании создателей backbone.js &ndash; это совсем иное, нежели мы, backend-разработчики привыкли видеть. Это что-то очень похожее на букву V из аббревиатуры MVC, но с немного большими возможностями и ответственностями. Я думаю на примере станет немного яснее. И последним будет Роутер &ndash; в данном приложении я его использовать не буду, оно слишком маленькое, чтобы усложнять его и без того не простую к пониманию новую технологию, по крайней мере, для меня. Как написано на сайте backbone.js роутер предоставляет методы для связывания ссылок на странице со всевозможными событиями. С появлением в нашей жизни History API, появилась возможность использовать наряду с ссылками вида /#about, ссылки обычного вида, /about, к примеру, что намного приятнее для глаза человеческого.</p>
+
+<p><img class="image" src="/images/posts/2012-02-backbone-js-sinatra-ruby/backbone-sinatra.jpeg"></p>
+
+<p>Итак, хватит воды, давайте приступим к делу. Начнем, конечно же с html, который и будет подключать все библиотеки стили на стороне клиента, в нем же будем хранить наш шаблон, что для маленького приложения не будет грубой ошибкой.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;js/jquery-1.7.1.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+</span><span class='line'><span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;js/underscore.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+</span><span class='line'><span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;js/backbone.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+</span><span class='line'><span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">&quot;stylesheet&quot;</span> <span class="na">type=</span><span class="s">&quot;text/css&quot;</span> <span class="na">href=</span><span class="s">&quot;styles/bootstrap.css&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'><span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">&quot;stylesheet&quot;</span> <span class="na">type=</span><span class="s">&quot;text/css&quot;</span> <span class="na">href=</span><span class="s">&quot;http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/hot-sneaks/jquery-ui.css&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'><span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">&quot;stylesheet&quot;</span> <span class="na">type=</span><span class="s">&quot;text/css&quot;</span> <span class="na">href=</span><span class="s">&quot;styles/main.css&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'><span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;js/bootstrap.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+</span><span class='line'><span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+</span><span class='line'><span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;js/jquery.ui.datepicker-ru.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+</span><span class='line'><span class="c">&lt;!--&lt;script type=&quot;text/javascript&quot; src=&quot;js/backbone.localStorage.js&quot;&gt;&lt;/script&gt;--&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Начнем с подключения библиотеки и стилей: за основу взят, уже не в первый раз css фреймворк bootstrap от twitter, в самом начале подключаем нашу любимую библиотеки <a href="/category/jquery">Query</a>, но backbone.js может работать и без нее, это больше для нас, чтобы вместо 5 строк не писать 50 :). underscore.js &ndash; библиотека-утилита, которая предоставляет основу для функционального программирования на JavaScript, без него не работает наш backbone.js, поэтому подключайте underscore.js раньше. Остальные библиотеки не должны вызвать сложностей в понимании: они уже у всех на слуху, отдельно коснусь закомментированной строки. Если ее расскомментировать и внести небольшие изменения в код, то вместо хранения всего в базе данных, мы будем использовать localStorage браузера, который это поддерживает.</p>
+
+<p>Теперь немного разметки,</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;container-fluid&quot;</span> <span class="na">id=</span><span class="s">&quot;books&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;row-fluid&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>   <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;span12&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;h1&gt;</span>Моя библиотека<span class="nt">&lt;/h1&gt;</span>
+</span><span class='line'>   <span class="nt">&lt;/div&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/div&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;row-fluid&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;span2&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;book-control&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>         <span class="c">&lt;!-- добавление новых книг --&gt;</span>
+</span><span class='line'>         <span class="nt">&lt;h3&gt;</span>Добавить<span class="nt">&lt;/h3&gt;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">&quot;book-title&quot;</span><span class="nt">&gt;</span>Название книги<span class="nt">&lt;/label&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">&quot;text&quot;</span> <span class="na">id=</span><span class="s">&quot;book-title&quot;</span> <span class="na">class=</span><span class="s">&quot;span12&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;button</span> <span class="na">class=</span><span class="s">&quot;btn-primary&quot;</span><span class="nt">&gt;</span>Добавить новую<span class="nt">&lt;/button&gt;</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="nt">&lt;/div&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/div&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;span8 book-container&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>      <span class="c">&lt;!-- место для книг --&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/div&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;span2&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;h3&gt;</span>Описание<span class="nt">&lt;/h3&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/div&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/div&gt;</span>
+</span><span class='line'><span class="nt">&lt;/div&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Здесь ничего особенного, поэтому не буду комментрировать.</p>
+
+<p>Самое время привнести в наш проект немного магии, которое будет не мало. Первая магия &ndash; шаблоны на стороне клиента.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/template&quot;</span> <span class="na">id=</span><span class="s">&quot;book-template&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>   <span class="o">&lt;</span><span class="nx">dl</span><span class="o">&gt;</span>
+</span><span class='line'>      <span class="o">&lt;</span><span class="nx">dt</span><span class="o">&gt;&lt;</span><span class="nx">a</span> <span class="nx">href</span><span class="o">=</span><span class="s2">&quot;#&quot;</span> <span class="kr">class</span><span class="o">=</span><span class="s2">&quot;book-edit&quot;</span><span class="o">&gt;</span><span class="err">Название</span><span class="o">:&lt;</span><span class="sr">/a&gt; &lt;i class=&quot;icon-remove book-delete&quot;&gt;&lt;/i</span><span class="o">&gt;&lt;</span><span class="err">/dt&gt;</span>
+</span><span class='line'>      <span class="o">&lt;</span><span class="nx">dd</span><span class="o">&gt;&lt;</span><span class="nx">input</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text&quot;</span> <span class="kr">class</span><span class="o">=</span><span class="s2">&quot;book-title&quot;</span><span class="o">&gt;&lt;</span><span class="nx">span</span><span class="o">&gt;&lt;%=</span> <span class="nx">title</span> <span class="o">%&gt;&lt;</span><span class="err">/span&gt;&lt;/dd&gt;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="o">&lt;</span><span class="nx">dt</span><span class="o">&gt;</span><span class="err">Год</span> <span class="err">издания</span><span class="o">:</span> <span class="o">&lt;</span><span class="err">/dt&gt;</span>
+</span><span class='line'>      <span class="o">&lt;</span><span class="nx">dd</span><span class="o">&gt;&lt;</span><span class="nx">input</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text&quot;</span> <span class="kr">class</span><span class="o">=</span><span class="s2">&quot;book-year span3&quot;</span><span class="o">&gt;&lt;</span><span class="nx">span</span><span class="o">&gt;&lt;%=</span> <span class="nx">year</span> <span class="o">%&gt;&lt;</span><span class="err">/span&gt;&lt;/dd&gt;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="o">&lt;</span><span class="nx">dt</span><span class="o">&gt;</span><span class="err">Автор</span><span class="o">:</span> <span class="o">&lt;</span><span class="err">/dt&gt;</span>
+</span><span class='line'>      <span class="o">&lt;</span><span class="nx">dd</span><span class="o">&gt;&lt;</span><span class="nx">input</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text&quot;</span> <span class="kr">class</span><span class="o">=</span><span class="s2">&quot;book-author&quot;</span><span class="o">&gt;&lt;</span><span class="nx">span</span><span class="o">&gt;&lt;%=</span> <span class="nx">author</span> <span class="o">%&gt;&lt;</span><span class="err">/span&gt;&lt;/dd&gt;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="o">&lt;</span><span class="nx">dt</span><span class="o">&gt;</span><span class="err">Жанр</span><span class="o">:</span> <span class="o">&lt;</span><span class="err">/dt&gt;</span>
+</span><span class='line'>      <span class="o">&lt;</span><span class="nx">dd</span><span class="o">&gt;&lt;</span><span class="nx">input</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text&quot;</span> <span class="kr">class</span><span class="o">=</span><span class="s2">&quot;book-genre&quot;</span><span class="o">&gt;&lt;</span><span class="nx">span</span><span class="o">&gt;&lt;%=</span> <span class="nx">genre</span> <span class="o">%&gt;&lt;</span><span class="err">/span&gt;&lt;/dd&gt;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="o">&lt;</span><span class="nx">dt</span><span class="o">&gt;</span><span class="nx">ISBN</span><span class="o">:</span> <span class="o">&lt;</span><span class="err">/dt&gt;</span>
+</span><span class='line'>      <span class="o">&lt;</span><span class="nx">dd</span><span class="o">&gt;&lt;</span><span class="nx">input</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text&quot;</span> <span class="kr">class</span><span class="o">=</span><span class="s2">&quot;book-isbn&quot;</span><span class="o">&gt;&lt;</span><span class="nx">span</span><span class="o">&gt;&lt;%=</span> <span class="nx">isbn</span> <span class="o">%&gt;&lt;</span><span class="err">/span&gt;&lt;/dd&gt;</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="o">&lt;</span><span class="nx">dt</span><span class="o">&gt;</span><span class="err">Статус</span><span class="o">:</span> <span class="o">&lt;</span><span class="err">/dt&gt;</span>
+</span><span class='line'>      <span class="o">&lt;</span><span class="nx">dd</span><span class="o">&gt;</span>
+</span><span class='line'>         <span class="o">&lt;</span><span class="nx">select</span> <span class="kr">class</span><span class="o">=</span><span class="s2">&quot;book-status&quot;</span><span class="o">&gt;</span>
+</span><span class='line'>            <span class="o">&lt;</span><span class="nx">option</span> <span class="nx">value</span><span class="o">=</span><span class="s2">&quot;read&quot;</span><span class="o">&gt;</span><span class="err">Прочитана</span><span class="o">&lt;</span><span class="err">/option&gt;</span>
+</span><span class='line'>            <span class="o">&lt;</span><span class="nx">option</span> <span class="nx">value</span><span class="o">=</span><span class="s2">&quot;not-read&quot;</span><span class="o">&gt;</span><span class="err">Не</span> <span class="err">прочитана</span><span class="o">&lt;</span><span class="err">/option&gt;</span>
+</span><span class='line'>            <span class="o">&lt;</span><span class="nx">option</span> <span class="nx">value</span><span class="o">=</span><span class="s2">&quot;want-read&quot;</span><span class="o">&gt;</span><span class="err">Хочу</span> <span class="err">прочитать</span><span class="o">&lt;</span><span class="err">/option&gt;</span>
+</span><span class='line'>         <span class="o">&lt;</span><span class="err">/select&gt;</span>
+</span><span class='line'>         <span class="o">&lt;</span><span class="nx">span</span><span class="o">&gt;&lt;%=</span> <span class="nx">status</span> <span class="o">%&gt;&lt;</span><span class="err">/span&gt;</span>
+</span><span class='line'>      <span class="o">&lt;</span><span class="err">/dd&gt;</span>
+</span><span class='line'>      <span class="o">&lt;</span><span class="nx">dt</span><span class="o">&gt;</span><span class="err">Дата</span><span class="o">:</span> <span class="o">&lt;</span><span class="err">/dt&gt;</span>
+</span><span class='line'>      <span class="o">&lt;</span><span class="nx">dd</span><span class="o">&gt;&lt;</span><span class="nx">input</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text&quot;</span> <span class="kr">class</span><span class="o">=</span><span class="s2">&quot;datepicker book-date&quot;</span><span class="o">&gt;&lt;</span><span class="nx">span</span><span class="o">&gt;&lt;%=</span> <span class="nx">date</span> <span class="o">%&gt;&lt;</span><span class="err">/span&gt;&lt;/dd&gt;</span>
+</span><span class='line'>
+</span><span class='line'>   <span class="o">&lt;</span><span class="err">/dl&gt;</span>
+</span><span class='line'>   <span class="o">&lt;</span><span class="nx">a</span> <span class="kr">class</span><span class="o">=</span><span class="s2">&quot;btn btn-primary book-save&quot;</span><span class="o">&gt;</span><span class="err">Сохранить</span><span class="o">&lt;</span><span class="err">/a&gt;</span>
+</span><span class='line'><span class="nt">&lt;/script&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Казалось бы так похож на erb, но это просто совпадение, или разработчики данного шаблона рубисты. Вместо конструкций вида &lt;%= title %> в конечном html, появятся наши переменные, нам их нужно будет лишь заполнить. А верстка останется неизменной, что очень удобно.</p>
+
+<p>Почти все, кроме одной строки, хотя эта одна строчка подключает сердце нашего приложения</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;js/application.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Теперь самое время окунуться с головой в клиентское программирование (файл js/application.js).</p>
+
+<p>Начнем, пожалуй, с модели.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">Book</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Model</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+</span><span class='line'>  <span class="nx">defaults</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nx">title</span><span class="o">:</span> <span class="s2">&quot;Book&#39;s title&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nx">year</span><span class="o">:</span> <span class="mi">2009</span><span class="p">,</span>
+</span><span class='line'>      <span class="nx">author</span><span class="o">:</span> <span class="s2">&quot;Murakami&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nx">genre</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;horror&quot;</span><span class="p">,</span> <span class="s2">&quot;comedy&quot;</span><span class="p">],</span>
+</span><span class='line'>      <span class="nx">isbn</span><span class="o">:</span> <span class="s2">&quot;0128127622&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nx">status</span><span class="o">:</span> <span class="s2">&quot;not read&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nx">image</span><span class="o">:</span> <span class="s2">&quot;/images/placeholder.png&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nx">date</span><span class="o">:</span> <span class="s1">&#39;&#39;</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Все модели нашего приложения должны расширять базовый класс Backbone.Model, свойство defaults, как понятно из названия отвечает за установку свойств модели по умолчанию. Я взял для примеры стандартные книжные свойства, большая часть из которых работает не до конца.</p>
+
+<p>Теперь перейдем непосредственно к нашей библиотеке, расширив класс коллекции Backbone.Collection</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">Library</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Collection</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+</span><span class='line'>  <span class="c1">//localStorage: new Store(&quot;BackboneCollection&quot;),</span>
+</span><span class='line'>  <span class="nx">url</span><span class="o">:</span> <span class="s1">&#39;/books&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nx">model</span><span class="o">:</span> <span class="nx">Book</span><span class="p">,</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Закомментированная строка сохраняла бы всю нашу работу в local Storage браузера, мы же будем взаимодействовать с сервером, для этого нам понадобится адрес, по которому и будет производиться все общение (точнее будет основой для производных адресов). Последняя строка указывает коллекция каких объектов нами будет использоваться.</p>
+
+<p>Если для модели нам не нужен объект, то для коллекции пригодится, поэтому создадим его.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">library</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Library</span><span class="p">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>А сейчас начнется самое интересное &ndash; Представление. Будем разбирать его неспеша, чтобы ничего важного не упустить.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">BookView</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+</span><span class='line'>      <span class="nx">tagName</span><span class="o">:</span> <span class="s1">&#39;div&#39;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nx">className</span><span class="o">:</span> <span class="s1">&#39;book&#39;</span><span class="p">,</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="nx">template</span><span class="o">:</span> <span class="nx">_</span><span class="p">.</span><span class="nx">template</span><span class="p">(</span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#book-template&#39;</span><span class="p">).</span><span class="nx">html</span><span class="p">()),</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="nx">events</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>          <span class="s2">&quot;click a.book-edit&quot;</span><span class="o">:</span> <span class="s2">&quot;edit&quot;</span><span class="p">,</span>
+</span><span class='line'>          <span class="s2">&quot;keypress input&quot;</span><span class="o">:</span> <span class="s2">&quot;update&quot;</span><span class="p">,</span>
+</span><span class='line'>          <span class="s2">&quot;click .book-delete&quot;</span><span class="o">:</span> <span class="s2">&quot;clear&quot;</span><span class="p">,</span>
+</span><span class='line'>          <span class="s2">&quot;click .book-save&quot;</span><span class="o">:</span> <span class="s2">&quot;close&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="p">},</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Сначала расширяем базовый класс Backbone.View, далее указываем элемент, с которым мы будем работать, в данном случае, это div с классом book. Следующая строка указывает какой шаблон мы будем рендерить и сохраняет его в переменной. В свойстве events мы перечисляем какие события мы будет &ldquo;прослушивать&rdquo;.
+Каждая строка состоит из следующих моментов: сначала идет событие, которое мы будем обрабатывать, дальше &ndash; элемент, с которым это событие произойдет, после двоеточия &ndash; имя метода, который будет вызываться при наступлении прослушиваемого события.</p>
+
+<p>Первая строка &ndash; нажимаем на ссылку &ndash; редактирование книги, вторая &ndash; нажимаем на кнопку (в указанном методе мы проверям Enter ли это) в текстовом поле &ndash; сохранить изменения. И последние две &ndash; это удаление и сохранение изменений.</p>
+
+<p>Теперь опишим все методы нашего представления</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">initialize</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">render</span><span class="p">,</span> <span class="k">this</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="s1">&#39;destroy&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">remove</span><span class="p">,</span> <span class="k">this</span><span class="p">);</span>
+</span><span class='line'><span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">update</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">keyCode</span> <span class="o">==</span> <span class="mi">13</span><span class="p">)</span> <span class="k">this</span><span class="p">.</span><span class="nx">close</span><span class="p">();</span>
+</span><span class='line'><span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">close</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_get</span><span class="p">());</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">save</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">toJSON</span><span class="p">());</span>
+</span><span class='line'>      <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">el</span><span class="p">).</span><span class="nx">removeClass</span><span class="p">(</span><span class="s2">&quot;editing&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">},</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Первым не важно для модели, коллекции или представления вызывается метод initialize, поэтому можно расценивать его как конструктор.</p>
+
+<p>this.model будет во время работы приложения указывать на текущую модель, т.е. каждый кусок разметки будет связан с отдельной моделью, изменения в котором коснутся только одной модели, также как и наоборот. Первым делом мы связывем события модели с методами: первое это изменение модели, после которого должно произойти &ldquo;отрисовка&rdquo;, второе &ndash; удаление.</p>
+
+<p>Метод <em>update</em> вызывается каждый раз, когда пользователь нажимает на клавиатуру, нам нужно отлавливать только нажатие Enter, чтобы сохранить изменения.</p>
+
+<p>Метод <em>close</em> вызывается, когда пользователь нажал Enter или кликнул по кнопке &ldquo;Сохранить&rdquo;, посмотрите еще раз на последнюю строку из свойства events. В первой строке которого мы обновляем нашей модели свойств из текстовых полей. Дальше мы сохраняем модель и удаляем с себя класс редактирования (нужно будет для &ldquo;рюшечек&rdquo;).</p>
+
+<p>Следующий метод, наверное, самый значимый, он отрисовывает все изменения модели на экране пользователя.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">render</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">el</span><span class="p">).</span><span class="nx">html</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">template</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">toJSON</span><span class="p">()));</span>
+</span><span class='line'>  <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">el</span><span class="p">).</span><span class="nx">css</span><span class="p">({</span><span class="s1">&#39;background&#39;</span><span class="o">:</span> <span class="s1">&#39; no-repeat url(&#39;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;image&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span><span class="p">});</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">setText</span><span class="p">();</span>
+</span><span class='line'>  <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+</span><span class='line'><span class="p">},</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>this.el</em> ни что иное, как tagName: &lsquo;div&rsquo; и className: &lsquo;book&rsquo;. Первая строка данного метода изменяет html элемента, учитывая новые свойства модели и учитывая разметку из шаблона. (Помните, мы писали недавно template: _.template($(&lsquo;#book-template&rsquo;).html())). Вторая строка данного метода заполняет фоновой картинкой наш кусок разметки.</p>
+
+<p>&ldquo;Толстые&rdquo; методы для обновления свойств модели, исходя из значения текстовых полей или наоборот &ndash; текстоых полей, исходя их свойств модели.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">setText</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">text</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;.book span.book-title&#39;</span><span class="p">).</span><span class="nx">text</span><span class="p">(</span><span class="nx">text</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">inputTitle</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;input.book-title&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">inputYear</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;input.book-year&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">inputAuthor</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;input.book-author&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">inputGenre</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;input.book-genre&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">inputIsbn</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;input.book-isbn&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">inputStatus</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;select.book-status&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">inputDate</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;input.book-date&#39;</span><span class="p">);</span>
+</span><span class='line'><span class="p">},</span>
+</span><span class='line'><span class="nx">_fillForm</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">data</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">toJSON</span><span class="p">();</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">inputTitle</span><span class="p">.</span><span class="nx">val</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">title</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">inputYear</span><span class="p">.</span><span class="nx">val</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">year</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">inputAuthor</span><span class="p">.</span><span class="nx">val</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">author</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">inputGenre</span><span class="p">.</span><span class="nx">val</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">genre</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">inputIsbn</span><span class="p">.</span><span class="nx">val</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">isbn</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">inputStatus</span><span class="p">.</span><span class="nx">val</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">status</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">inputDate</span><span class="p">.</span><span class="nx">val</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">date</span><span class="p">);</span>
+</span><span class='line'><span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">_get</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nx">title</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">inputTitle</span><span class="p">.</span><span class="nx">val</span><span class="p">(),</span>
+</span><span class='line'>      <span class="nx">year</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">inputYear</span><span class="p">.</span><span class="nx">val</span><span class="p">(),</span>
+</span><span class='line'>      <span class="nx">author</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">inputAuthor</span><span class="p">.</span><span class="nx">val</span><span class="p">(),</span>
+</span><span class='line'>      <span class="nx">genre</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">inputGenre</span><span class="p">.</span><span class="nx">val</span><span class="p">(),</span>
+</span><span class='line'>      <span class="nx">isbn</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">inputIsbn</span><span class="p">.</span><span class="nx">val</span><span class="p">(),</span>
+</span><span class='line'>      <span class="nx">status</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">inputStatus</span><span class="p">.</span><span class="nx">val</span><span class="p">(),</span>
+</span><span class='line'>      <span class="nx">date</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">inputDate</span><span class="p">.</span><span class="nx">val</span><span class="p">()</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">},</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>И последние 3 методя для данного представления:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">edit</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;div.book&#39;</span><span class="p">).</span><span class="nx">removeClass</span><span class="p">(</span><span class="s1">&#39;editing&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">el</span><span class="p">).</span><span class="nx">addClass</span><span class="p">(</span><span class="s1">&#39;editing&#39;</span><span class="p">).</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;input, select&#39;</span><span class="p">).</span><span class="nx">fadeIn</span><span class="p">(</span><span class="s1">&#39;slow&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">_fillForm</span><span class="p">();</span>
+</span><span class='line'>  <span class="k">this</span><span class="p">.</span><span class="nx">inputTitle</span><span class="p">.</span><span class="nx">focus</span><span class="p">();</span>
+</span><span class='line'>  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+</span><span class='line'><span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">clear</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="nx">confirm</span><span class="p">(</span><span class="s2">&quot;Вы уверены?&quot;</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">this</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">destroy</span><span class="p">();</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">remove</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">el</span><span class="p">).</span><span class="nx">fadeOut</span><span class="p">(</span><span class="s1">&#39;slow&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span><span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">remove</span><span class="p">()});</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Первый &ndash; уделяет класс редактирования со всех книг и устанавливает на активной и заполняет форму значениями модели (данный метод вызывается, когда пользователь нажмет на ссылку для редактирования).</p>
+
+<p>Второй &ndash; задает пользователю вопрос, при утвердительном ответа на который удаляет данную модель.</p>
+
+<p>Третий &ndash; вызывается автоматически и удаляет элемент со страницы, а вызывается он из-за того, что мы в конструкторе написали следующее:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="k">this</span><span class="p">.</span><span class="nx">model</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="s1">&#39;destroy&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">remove</span><span class="p">,</span> <span class="k">this</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Осталось рассмотреть последнее представление и можно смело переходить к легкому backend&#8217;у.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">AppView</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+</span><span class='line'>  <span class="nx">el</span><span class="o">:</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#books&#39;</span><span class="p">),</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">events</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>      <span class="s2">&quot;click button&quot;</span><span class="o">:</span> <span class="s2">&quot;create&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="s2">&quot;keypress #book-title&quot;</span><span class="o">:</span> <span class="s2">&quot;createOnEnter&quot;</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">initialize</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">this</span><span class="p">.</span><span class="nx">input</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#book-title&#39;</span><span class="p">);</span>
+</span><span class='line'>      <span class="nx">library</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="s1">&#39;add&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">addOne</span><span class="p">,</span> <span class="k">this</span><span class="p">);</span>
+</span><span class='line'>      <span class="nx">library</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="s1">&#39;reset&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">addAll</span><span class="p">,</span> <span class="k">this</span><span class="p">);</span>
+</span><span class='line'>      <span class="nx">library</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">render</span><span class="p">,</span> <span class="k">this</span><span class="p">);</span>
+</span><span class='line'>      <span class="nx">library</span><span class="p">.</span><span class="nx">fetch</span><span class="p">();</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">render</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">},</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Данное представление отвечает за создание новых книг и загрузку книг с сервера. Книга создается заполнением только лишь названия, дальше ее можно отредактировать и сохранить. В конструкторе данного представления мы связываем необходимые события коллекции с методами, которые будет вызываться при наступлении событий. <strong>library.fetch();</strong> &ndash; запрашивает с сервера все книги, чтобы потом их отобразить.</p>
+
+<p>Почему метод рендеринга пустой? Потому что он нам тут не нужен, все отрисовывается в методе добавления новой книги, с него и начнем продолжение рассказа.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">addOne</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">book</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="kd">var</span> <span class="nx">view</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">BookView</span><span class="p">({</span><span class="nx">model</span><span class="o">:</span> <span class="nx">book</span><span class="p">});</span>
+</span><span class='line'>      <span class="kd">var</span> <span class="nx">content</span> <span class="o">=</span> <span class="nx">view</span><span class="p">.</span><span class="nx">render</span><span class="p">().</span><span class="nx">el</span><span class="p">;</span>
+</span><span class='line'>      <span class="nx">$</span><span class="p">(</span><span class="nx">content</span><span class="p">).</span><span class="nx">hide</span><span class="p">();</span>
+</span><span class='line'>      <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#books&#39;</span><span class="p">).</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;.book-container&#39;</span><span class="p">).</span><span class="nx">prepend</span><span class="p">(</span><span class="nx">content</span><span class="p">);</span>
+</span><span class='line'>      <span class="nx">$</span><span class="p">(</span><span class="nx">content</span><span class="p">).</span><span class="nx">show</span><span class="p">(</span><span class="mi">1000</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">addAll</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nx">library</span><span class="p">.</span><span class="nx">each</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">addOne</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">createOnEnter</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">if</span> <span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">keyCode</span> <span class="o">==</span> <span class="mi">13</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>          <span class="k">this</span><span class="p">.</span><span class="nx">create</span><span class="p">();</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>  <span class="p">},</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nx">create</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="kd">var</span> <span class="nx">text</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">input</span><span class="p">.</span><span class="nx">val</span><span class="p">();</span>
+</span><span class='line'>      <span class="nx">library</span><span class="p">.</span><span class="nx">create</span><span class="p">({</span><span class="nx">title</span><span class="o">:</span> <span class="nx">text</span><span class="p">});</span>
+</span><span class='line'>      <span class="k">this</span><span class="p">.</span><span class="nx">input</span><span class="p">.</span><span class="nx">val</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//$(&#39;.book-date&#39;).datepicker({});</span>
+</span><span class='line'><span class="kd">var</span> <span class="nx">appView</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">AppView</span><span class="p">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Метод addOne добавляет в верстку одну книгу, создавая соответствующее представление. Метод addAll &ndash; пробегается по все коллекции книг и по одной с помощью метода addOne добавляет книги в верстку. Метод create создает для нас книгу с заголовком, который мы укажем в текстовом поле.</p>
+
+<p>Осталось только создать нам представление приложения и наслаждаться результатом, хотя сначала нужно реализовать backend. Но он будет очень простым, поэтому быстрее перейдем к нему.</p>
+
+<h3>Backend на Ruby</h3>
+
+<p>Сначала общие моменты: подключение необходимых гемов, задание дефолтного подключения для DataMapper&#8217;а и описание класса Книга:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># coding: utf-8</span>
+</span><span class='line'>  <span class="nb">require</span> <span class="s1">&#39;sinatra&#39;</span>
+</span><span class='line'>  <span class="nb">require</span> <span class="s1">&#39;data_mapper&#39;</span>
+</span><span class='line'>  <span class="nb">require</span> <span class="s1">&#39;json&#39;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="no">DataMapper</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="ss">:default</span><span class="p">,</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DATABASE_URL&#39;</span><span class="o">]</span> <span class="o">||</span> <span class="s1">&#39;sqlite:./db/books.db&#39;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">class</span> <span class="nc">Book</span>
+</span><span class='line'>    <span class="kp">include</span> <span class="ss">DataMapper</span><span class="p">:</span><span class="ss">:Resource</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">property</span> <span class="ss">:id</span><span class="p">,</span>           <span class="no">Serial</span>
+</span><span class='line'>    <span class="n">property</span> <span class="ss">:title</span><span class="p">,</span>        <span class="nb">String</span>
+</span><span class='line'>    <span class="n">property</span> <span class="ss">:year</span><span class="p">,</span>         <span class="nb">Integer</span>
+</span><span class='line'>    <span class="n">property</span> <span class="ss">:date</span><span class="p">,</span>         <span class="no">Date</span>
+</span><span class='line'>    <span class="n">property</span> <span class="ss">:image</span><span class="p">,</span>        <span class="nb">String</span>
+</span><span class='line'>    <span class="n">property</span> <span class="ss">:author</span><span class="p">,</span>       <span class="nb">String</span>
+</span><span class='line'>    <span class="n">property</span> <span class="ss">:genre</span><span class="p">,</span>        <span class="nb">String</span>
+</span><span class='line'>    <span class="n">property</span> <span class="ss">:isbn</span><span class="p">,</span>         <span class="nb">String</span>
+</span><span class='line'>    <span class="n">property</span> <span class="ss">:status</span><span class="p">,</span>       <span class="nb">String</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1">#belongs_to :user</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="no">DataMapper</span><span class="o">.</span><span class="n">finalize</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">get</span> <span class="s1">&#39;/&#39;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="no">File</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;./public/index.html&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Главной страницей у нас будет статичный файл .html
+Теперь давайте сделаем небольшую паузу и поговорим о том, как взаимодействует Backbone.js с серверной частью. Если заглянуть в исходники, то там мы увидим следующее:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'> <span class="kd">var</span> <span class="nx">methodMap</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>    <span class="s1">&#39;create&#39;</span><span class="o">:</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s1">&#39;update&#39;</span><span class="o">:</span> <span class="s1">&#39;PUT&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s1">&#39;delete&#39;</span><span class="o">:</span> <span class="s1">&#39;DELETE&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s1">&#39;read&#39;</span><span class="o">:</span>   <span class="s1">&#39;GET&#39;</span>
+</span><span class='line'>  <span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Т.е. стандартный RESTfull запрос. Не будем оттягивать кота за яйца, закончим уже кодить над этим проектом, тем более, что Sinatra легко может обработать подобные запросы.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="n">get</span> <span class="s1">&#39;/books&#39;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">content_type</span> <span class="ss">:json</span>
+</span><span class='line'>    <span class="no">Book</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="ss">:order</span> <span class="o">=&gt;</span> <span class="ss">:id</span><span class="p">)</span><span class="o">.</span><span class="n">to_json</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">post</span> <span class="s1">&#39;/books&#39;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">data</span> <span class="o">=</span> <span class="no">JSON</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">gets</span><span class="p">)</span>
+</span><span class='line'>    <span class="no">Book</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:title</span> <span class="o">=&gt;</span> <span class="n">data</span><span class="o">[</span><span class="s1">&#39;title&#39;</span><span class="o">]</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">put</span> <span class="s1">&#39;/books/:id&#39;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">data</span> <span class="o">=</span> <span class="no">JSON</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">gets</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">book</span> <span class="o">=</span> <span class="no">Book</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">result</span> <span class="o">=</span> <span class="n">book</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+</span><span class='line'>      <span class="ss">:title</span> <span class="o">=&gt;</span> <span class="n">data</span><span class="o">[</span><span class="s1">&#39;title&#39;</span><span class="o">]</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">:year</span> <span class="o">=&gt;</span> <span class="n">data</span><span class="o">[</span><span class="s1">&#39;year&#39;</span><span class="o">]</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">:author</span> <span class="o">=&gt;</span> <span class="n">data</span><span class="o">[</span><span class="s1">&#39;author&#39;</span><span class="o">]</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">:genre</span> <span class="o">=&gt;</span> <span class="n">data</span><span class="o">[</span><span class="s1">&#39;genre&#39;</span><span class="o">]</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">:isbn</span> <span class="o">=&gt;</span> <span class="n">data</span><span class="o">[</span><span class="s1">&#39;isbn&#39;</span><span class="o">]</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">:status</span> <span class="o">=&gt;</span> <span class="n">data</span><span class="o">[</span><span class="s1">&#39;status&#39;</span><span class="o">]</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">:image</span> <span class="o">=&gt;</span> <span class="s1">&#39;/images/placeholder.png&#39;</span><span class="p">,</span> <span class="c1">#data[&#39;image&#39;],</span>
+</span><span class='line'>      <span class="ss">:date</span> <span class="o">=&gt;</span> <span class="no">Time</span><span class="o">.</span><span class="n">now</span>
+</span><span class='line'>    <span class="p">)</span>
+</span><span class='line'>    <span class="s2">&quot;false&quot;</span> <span class="k">unless</span> <span class="n">result</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">delete</span> <span class="s1">&#39;/books/:id&#39;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="no">Book</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">destroy</span>
+</span><span class='line'>  <span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Здесь нет ничего сложного, если есть какие-то сложности, посмотрите мои предыдущие заметки о Ruby и о Sinatra.</p>
+
+<h3>Заключение</h3>
+
+<p>Еще одно приложение мы разработали с вами на ruby, сегодня не обошлось без так важного на сегодняший день клиентсткого программирования. Ссылка на <a href="http://vredniy-library.heroku.com/">пример</a> (редактирование и создание не сохраняются в базе)  и ссылка на <a href="https://github.com/vredniy/Backbone-sinatra">исходник</a>.
+<img class="image" src="/images/posts/2012-02-backbone-js-sinatra-ruby/placeholder.png">
+Всем спасибо за внимание и до новых встреч :)</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-02-11T23:58:01+04:00" pubdate data-updated="true">11.02.2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ruby/'>Ruby</a>, <a class='category' href='/blog/categories/jquery/'>jQuery</a>, <a class='category' href='/blog/categories/javascript/'>javascript</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://zudochkin.ru/2012/02/backbone-js-sinatra-ruby" data-via="vredniy" data-counturl="http://zudochkin.ru/2012/02/backbone-js-sinatra-ruby" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left articlenav" href="/2012/02/tdd-ruby-introduction" title="Предыдущий пост: Введение в TDD с Ruby и Rspec">&laquo; Введение в TDD с Ruby и Rspec</a>
+      
+      
+        <a class="basic-alignment right articlenav" href="/2012/02/arbor-js-ruby-sinatra" title="Следующий пост: arbor.js: красивые графы на стороне клиента с помощью Ruby">arbor.js: красивые графы на стороне клиента с помощью Ruby &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Комментарии</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Последние посты</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2014/01/fulltext-phones-postgresql">Полнотекстовый поиск по телефонным номерам разного формата (PostgreSQL)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/11/open-uri-progress-bar">Ruby OpenURI::open и ProgressBar</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/first-photography">Первая выездная фотосъемка (Большой Москворецкий мост)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/vim-first-plugin">Написание первого плагина для Vim</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/logrotate-unicorn">Ротация логов на примере логов Unicorn</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Зудочкин Дима -
+  <span class="credit">Powered by <a rel="nofollow" href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'zudochkinru';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://zudochkin.ru/2012/02/backbone-js-sinatra-ruby';
+        var disqus_url = 'http://zudochkin.ru/2012/02/backbone-js-sinatra-ruby';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: TDD | Записки Вредного программиста]]></title>
+  <link href="http://zudochkin.ru/blog/categories/tdd/atom.xml" rel="self"/>
+  <link href="http://zudochkin.ru/"/>
+  <updated>2014-02-03T19:28:54+04:00</updated>
+  <id>http://zudochkin.ru/</id>
+  <author>
+    <name><![CDATA[Зудочкин Дима]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Введение в TDD с Ruby и Rspec]]></title>
+    <link href="http://zudochkin.ru/2012/02/tdd-ruby-introduction"/>
+    <updated>2012-02-08T22:19:50+04:00</updated>
+    <id>http://zudochkin.ru/2012/02/tdd-ruby-introduction</id>
+    <content type="html"><![CDATA[<p>Здравствуйте, уважаемые разработчики, сегодня я коснусь немного новой для себя методологии, а именно TDD, что означает test driven development (разработка через тестирование).</p>
+
+<!-- more -->
+
+
+<p>Что же представляет собой эта методология, что за разработка через тестирование? Это методика, которая с ног на голову переворачивает стандартный ход дел: продумывание архитектуры, проектирование, написание кода и в заключении написание модульных и приемочных тестов. По задумке TDD мы сначала продумываем архитектуру, потом пишем модульные они же юнит тесты, потом непосредственно код. С одной небольшой поправкой: юнит тесты пишутся очень маленькими, после этого пишется код, который позволяет тесту закраситься в зеленый цвет и так дальше &ndash; короткие итерации, которые сводят к минимуму функциональные и логические ошибки в приложениях.</p>
+
+<p>Так как я в данный момент очень поглащен изучением замечательного языка ruby, с его основ, то на нем и будем проводить наши с вами эксперименты. Чтобы не усложнять и без того сначала непростую к пониманию информацию, я попробую рассказать про данную методологию на простом примере класса калькулятора. И для дальнейшего, но уже самостоятельного закрепления материала и изучения, я очень рекомендую найти в интернете пример, наглядно показывающий TDD при разработке класса, который подсчитывает игровые очки в боулинге, учитывая особенности игры.</p>
+
+<p>Итак, поехали! Для начала нам понадобится gem rspec, который и будет нашим тестирующим инструментом, почему он, если есть аналоги? Потому что он первый попался мне на глаза, может есть и лучше, я пока не вникал в эту сторону вопроса, как известно &ndash; лучшее &ndash; враг хорошего.</p>
+
+<p><code>gem install rspec</code></p>
+
+<p>Команда установит нам необходимый гем со всеми необходимыми зависимостями.</p>
+
+<p>Далее создаем папку проект (.). Дерево нашего проекта будет иметь вид:</p>
+
+<p>```
+.
+├── _
+├── calculator.rb
+└── spec</p>
+
+<pre><code>└── calculator_spec.rb
+</code></pre>
+
+<p>```</p>
+
+<p><strong>calculator.rb</strong> &ndash; наше приложение, <strong>spec/calculator_spec.rb</strong> &ndash; наш файл с тестами.</p>
+
+<p>Создайте, если у вас еще не созданы, эти файлы, calculator.rb оставьте пустым. Начнем разработку, как уже говорилось вначале заметки с тестов, но перед этим давайте напишем небольшой план по разработке.</p>
+
+<ul>
+<li>Должен существовать класс калькулятора</li>
+<li>Калькулятор должен иметь метод add (сумма)</li>
+<li>Метод add должен возвращать сумму двух своих аргументов</li>
+<li>Должен иметь метод sub (разность)</li>
+<li>Также и для методов mul (произведение) и div (частное)</li>
+<li>Метод div должен кидать исключение, когда пытаемся делить на 0</li>
+<li>(не относящийся к делу пункт) Класс Calculator должен быть проивзодным от Calculator</li>
+</ul>
+
+
+<p>Напишем первый тест</p>
+
+<p>``` ruby
+require &lsquo;../calculator&rsquo;
+describe &lsquo;Calculator&rsquo; do</p>
+
+<pre><code>it 'should exists' do
+    Calculator.new
+end
+</code></pre>
+
+<p>end
+```</p>
+
+<p>Что же мы получаем, в первой строке все просто &ndash; подключаем файл нашего приложени, ведь над ним будем проводить наши эксперименты (без него никак). Со слова <strong>descibe</strong> начинается контекст теста, входящая в него конструкция (it &lsquo;should exists&rsquo;) непосредственно сам тест. Остается только запустить тест и посмотреть на результат:</p>
+
+<p><code>rspec ./spec/calculator_spec.rb</code></p>
+
+<p><img class="image" src="/images/posts/2012-02-tdd-ruby-introduction/tdd-calculator1.jpeg"></p>
+
+<p>Чтобы написать минимальный код, который бы прошел данный тест, нужно две строчки, а именно создать класс Calculator, так и запишем в <strong>./calculator.rb</strong></p>
+
+<p><code>ruby
+class Calulcator
+end
+</code></p>
+
+<p>Запускаем наш тест еще раз и убеждаемся, что тест пройден. Напишем новый тест, заключим его в тот же describe, что и предыдущий. У нас получится следующее:</p>
+
+<p>``` ruby
+describe &lsquo;Calculator&rsquo; do</p>
+
+<pre><code>it 'should exists' do
+    Calculator.new
+end
+it 'should have method add(a,b)' do
+    Calculator.new.add 2,3
+end
+</code></pre>
+
+<p>end
+```
+<img class="image" src="/images/posts/2012-02-tdd-ruby-introduction/tdd-calculator2.jpeg"></p>
+
+<p>Тест говорит следующее: &ldquo;Калькулятор должен иметь метод add, который принимает 2 параметра&rdquo;, запускаем наш тест и видим, что !!! тест провален, потому что у нас метода add, тем более принимающего два параметра, так в чем же дело, давайте его напишем, ведь это всего две строки кода.</p>
+
+<p>``` ruby
+class Calculator</p>
+
+<pre><code>def add(a, b)
+
+end
+</code></pre>
+
+<p>end
+```</p>
+
+<p>Теперь наш тест проходит и мы можем двигаться дальше. Давайте сделаем так, чтобы метод add возвращал сумму своих двух аргументов. Начнем, конечно же, с написания теста.</p>
+
+<p><img class="image" src="/images/posts/2012-02-tdd-ruby-introduction/tdd-calculator3.jpeg"></p>
+
+<p>``` ruby</p>
+
+<pre><code>it 'add() method should add two numbers' do
+    Calculator.new.add(2, 2).should_not eq(5)
+    Calculator.new.add(2, 2).should eq(4)
+end
+</code></pre>
+
+<p>```</p>
+
+<p>И, собственно, код, данный тест проходящий:</p>
+
+<p>``` ruby
+def add(a, b)</p>
+
+<pre><code>a+b
+</code></pre>
+
+<p>end
+```</p>
+
+<p>Остальные тесты я приведу вам без кода приложения, чтобы они выполнялись правильно вам потребуется код написать самим, благо, он совсем простой и займет всего пару минут.</p>
+
+<p>``` ruby
+require &lsquo;../calculator&rsquo;</p>
+
+<p>describe &lsquo;Calculator&rsquo; do</p>
+
+<pre><code>it 'should exists' do
+    Calculator.new
+end
+it 'should have method add(a,b)' do
+    Calculator.new.add 2,3
+end
+
+it 'add() method should add two numbers' do
+    Calculator.new.add(2, 2).should_not eq(5)
+    Calculator.new.add(2, 2).should eq(4)
+end
+
+it 'sub() method should return subtraction' do
+    Calculator.new.sub(5, 3).should eq(2)
+end
+
+it 'mul() method should return multiple' do
+    Calculator.new.mul(2, 7).should eq(14)
+end
+
+it 'div() method should return division' do
+    Calculator.new.div(10, 2).should eq(5)
+end
+
+it 'div() method should raise exception by division by zero' do
+    expect { Calculator.new.div(2, 0) }.to raise_error(ZeroDivisionError)
+end
+</code></pre>
+
+<p>end
+```</p>
+
+<h3>Заключение</h3>
+
+<p>В данной заметке мы очень поверхностно познакомились с очень интересной методологией разработки TDD (test driven development) и разобрали небольшой пример, чтобы немного закрепить знания. Если вы будете применять данную методику в своих проектах, то количество ошибок в них будет асимптотически приближаться к нулю, это ли не счастье программиста? :)</p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,1015 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Ruby для начинающих CMS - Записки Вредного программиста</title>
+  <meta name="author" content="Зудочкин Дима">
+
+  
+  <meta name="description" content="Данная заметка посвящена целиком Sinatra фреймворку на Ruby, а точнее написанию небольшой, простой CMS.">
+  <meta name="keywords" content="ruby cms, sinatra cms, ruby для начинающих, sinatra для начинающих, sinatra heroku, heroku деплой,heroku,ruby,sinatra">
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://zudochkin.ru/2012/02/ruby-sinatra-cms-heroku">
+
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Записки Вредного программиста" type="application/atom+xml">
+  <link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-11803166-9', 'zudochkin.ru');
+  ga('send', 'pageview');
+
+</script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <div id="logo">
+  	<div id="logoLeft">{</div>
+  	<div id="logoText">Zudochkin Dmitry</div>
+  	<div id="logoRight">}</div>
+  	<div class="clear"></div>
+  </div>
+  <h1><a href="/">Записки Вредного программиста</a></h1>
+  
+    <h2>enjoy, motherfuckers ;)</h2>
+  
+  <div class="clear"></div>
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:zudochkin.ru" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Главная</a></li>
+  <li><a href="/archives">Архив</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      
+        <h1 class="entry-title">Ruby для начинающих CMS</h1>
+      
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-02-05T03:24:29+04:00" pubdate data-updated="true">05.02.2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Данная заметка посвящена целиком Sinatra фреймворку на Ruby, а точнее написанию небольшой, простой CMS. Это ведь следующая стадия после &lsquo;hello, world&rsquo; в изучении нового языка. Поехали!</p>
+
+<!-- more -->
+
+
+<p><img class="image" src="/images/posts/2012-02-ruby-sinatra-cms-heroku/sinatra-cms-heroku-150x150.jpg"></p>
+
+<h4>План по реализации CMS</h4>
+
+<ol>
+<li> Написание требований (куда без них)</li>
+<li> Используемые гемы</li>
+<li> Создание необходимых моделей</li>
+<li> Написание кода экшнов</li>
+<li> Наведения марафета</li>
+<li> Деплой на хероку</li>
+</ol>
+
+
+<h5>1. Написание требований</h5>
+
+<p>Целью данной CMS должно быть введение новичков, таких же как и я, в богатый и интересный мир Ruby. Поэтому приложение не должно быть перенасыщено функциональстью, чтобы не отвлекать от главных моментов. &ldquo;Рюшечки&rdquo; мы всегда сумеем прикрепить. Поэтому основные требования заключаются в следующем:</p>
+
+<ul>
+<li>Backend
+
+<ul>
+<li>Создание/редактирование/удаление статичных страниц
+
+<ul>
+<li>должна будет отображаться форма с текстовыми полями, контентное поле должно быть заменено wysiwyg, я выбрал для этих целей <strong>redactor.js</strong> (давно хотел с ним познакомиться, видимо, время пришло)</li>
+<li>у каждой страницы будет две метки времени: метка создания (заполняется автоматически при создании новой страницы) и метки обновления (время изменения страницы)</li>
+</ul>
+</li>
+<li>Отображение списка страниц в возможностью из него удалить или редактировать любую.</li>
+<li>Должна быть реализована базовая аутентификация, чтобы люди с улицы не смогли проникнуть в &ldquo;админку&rdquo;</li>
+<li>Приятный интерфейс</li>
+<li>Редирект на список страниц после создания/редактирования или удаления</li>
+</ul>
+</li>
+<li>Frontend
+
+<ul>
+<li>Динамически строемое меню, содержащее все страницы в виде ссылок, чтобы можно было &ldquo;погулять&rdquo; по разделам</li>
+<li>Приятный интерфейс</li>
+<li>Ссылки вида <em>/contacts.html</em>, чтобы выглядело эстетично.</li>
+<li>При заходе на главную (/) пользователь видит домашнюю страницу, также со списком всех имеющихся страниц.</li>
+</ul>
+</li>
+</ul>
+
+
+<h5>2. Используемые гемы</h5>
+
+<p>Теперь перейдем непосредственно к реализации написанной выше функциональности. В первую очередь нам понадобится <em>data_mapper</em>, гем который очень облегчает жизнь разработчикам, которые используют базы данных, правда некоторые выбирают Active Record, но разъяснение разницы лежит за пределами этой заметки.
+Итак, Datamapper &ndash; прослойка между БД и объектом &ndash; не нужно писать ни строчки sql кода, создавать таблицы напрямую и изменять их структуру. Datamapper возьмет на себя всю эту грязную работу. Сначала установка <code>sudo apt-get install libsqlite3-dev</code>.</p>
+
+<p>На локальной машине мы будем работать с backend&#8217;ом в виде sqlite3, на хероку &ndash; postgres. Но нам по этому поводу не нужно переживать: всю грязную работу сделают datamapper и heroku.</p>
+
+<p>Устанавливаем необходимый гем командой <code>gem install data_mapper</code>.</p>
+
+<p>Чтобы не томить нетерпеливых сразу приведу конечный <strong>Gemfile</strong>, вот так он выглядит у меня:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">source</span> <span class="ss">:rubygems</span>
+</span><span class='line'><span class="n">gem</span> <span class="s1">&#39;data_mapper&#39;</span>
+</span><span class='line'><span class="n">gem</span> <span class="s1">&#39;sinatra&#39;</span>
+</span><span class='line'><span class="n">gem</span> <span class="s1">&#39;dm-postgres-adapter&#39;</span>
+</span><span class='line'><span class="n">gem</span> <span class="s1">&#39;dm-sqlite-adapter&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h5>3. Создание необходимых моделей</h5>
+
+<p>Модель, спешу я вас обрадовать или огорчить, будет у нас всего одна &ndash; это Страница. Для нашего скромного и минималистичного приложения ее будет более чем достаточно. Сначала отвлечемся на config.ru &ndash; файл, без которого наше приложения на запустится (о нем я писал в <a href="/2012/02/ruby-application-heroku/">заметке о деплое ruby приложения</a>). Собственно <strong>config.ru</strong>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;./bootstrap.rb&#39;</span>
+</span><span class='line'><span class="n">run</span> <span class="ss">Sinatra</span><span class="p">:</span><span class="ss">:Application</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Здесь, надеюсь, не нужно разъяснения. Далее мы подходим к модели поближе. Перед тем, как описывать подель, нам необходимо подготовить соединение, где-то ведь нам необходимо данные сохранять.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># coding: utf-8</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;rubygems&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;sinatra&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;data_mapper&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">DataMapper</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="ss">:default</span><span class="p">,</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DATABASE_URL&#39;</span><span class="o">]</span> <span class="o">||</span> <span class="s1">&#39;sqlite:./db/page.db&#39;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Первая строчка необходима для того, чтобы можно было в исходный код писать символы в utf-8 кодировке. Далее тремя последующими строчками мы подключаем необходимые файлы, один из которых Sinatra, другой &ndash; Datamapper. Последняя строчка самая интересная. Она сообщает Datamapper&#8217;у, что если не установлена переменная окружения <em>DATABASE_URL</em> (значит, мы на heroku сервере), то использовать локальную базу данных, которая будет находится в папке db.</p>
+
+<p>Теперь непосредственно модель, которая представляет собой класс (неожиданно, неправда ли?), к котому строкой <em>include DataMapper::Resource</em> добавляется множество методов для манипуляции самого Datamapper&#8217;а. Точнее вся это функциональность добавляется не к самому класса, к инстансам этого класса. Код модели представлен чуть ниже:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Page</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="ss">DataMapper</span><span class="p">:</span><span class="ss">:Resource</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">property</span> <span class="ss">:id</span><span class="p">,</span>               <span class="no">Serial</span>
+</span><span class='line'>  <span class="n">property</span> <span class="ss">:name</span><span class="p">,</span>             <span class="nb">String</span>
+</span><span class='line'>  <span class="n">property</span> <span class="ss">:alias</span><span class="p">,</span>            <span class="nb">String</span>
+</span><span class='line'>  <span class="n">property</span> <span class="ss">:short</span><span class="p">,</span>            <span class="no">Text</span>
+</span><span class='line'>  <span class="n">property</span> <span class="ss">:full</span><span class="p">,</span>             <span class="no">Text</span>
+</span><span class='line'>  <span class="n">property</span> <span class="ss">:seo_title</span><span class="p">,</span>        <span class="nb">String</span>
+</span><span class='line'>  <span class="n">property</span> <span class="ss">:seo_keywords</span><span class="p">,</span>     <span class="nb">String</span>
+</span><span class='line'>  <span class="n">property</span> <span class="ss">:seo_description</span><span class="p">,</span>  <span class="nb">String</span>
+</span><span class='line'>  <span class="n">property</span> <span class="ss">:created_at</span><span class="p">,</span>       <span class="no">DateTime</span>
+</span><span class='line'>  <span class="n">property</span> <span class="ss">:updated_at</span><span class="p">,</span>       <span class="no">DateTime</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>В классе мы объявляем необходимые свойства: id &ndash; как и ожидается, является первичным ключом, остальные свойства, я думаю, итак понятны, всем ведь уже не раз приходилось проектировать базы данных.
+Этот код яйца выеденного не стоит без создания таблиц, соответствющих этой модели. Этим займется команда</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">DataMapper</span><span class="o">.</span><span class="n">finalize</span>
+</span><span class='line'><span class="c1">#DataMapper.auto_migrate!</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Первая строка говорит Datamapper&#8217;у, что все, хватит, больше мы добавлять поля не будем, поэтому можешь не беспокоиться, закоментированная же строка применялась мною на этапе разработки, потому что количество столбцов и их тип менялись очень часто.
+С моделью в общих чертах разобрались, все необходимые моменты будут расталкованы мною чуть дальше, когда мы коснемся момента реализации.</p>
+
+<h5>4. Написание кода экшнов</h5>
+
+<p>На стороне backend&#8217;а у нас будет 6 так называемых экшнов, т.е. действий, которые будут выполняться в зависимости от контекста.</p>
+
+<h6>Создание страницы:</h6>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">get</span> <span class="s1">&#39;/admin/create&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">erb</span> <span class="ss">:create_form</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Здесь все просто, когда пользователь запрашивает страницу /admin/create (метод get), ему нужно отобразить форму для добавления новой страницы (<em>erb :create_form</em> &ndash; рендерит <em>./views/create_form.erb</em>). Код формы выглядит очень просто:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;h3&gt;</span>Форма страницы<span class="nt">&lt;/h3&gt;</span>
+</span><span class='line'><span class="nt">&lt;form</span> <span class="na">method=</span><span class="s">&quot;post&quot;</span> <span class="na">action=</span><span class="s">&quot;/admin/create&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">&quot;name&quot;</span><span class="nt">&gt;</span>Имя страницы:<span class="nt">&lt;/label&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;input</span> <span class="na">id=</span><span class="s">&quot;name&quot;</span> <span class="na">type=</span><span class="s">&quot;text&quot;</span> <span class="na">name=</span><span class="s">&quot;name&quot;</span> <span class="na">value=</span><span class="s">&quot;&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;br&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">&quot;alias&quot;</span><span class="nt">&gt;</span>Псевдоним:<span class="nt">&lt;/label&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;input</span> <span class="na">id=</span><span class="s">&quot;alias&quot;</span> <span class="na">type=</span><span class="s">&quot;text&quot;</span> <span class="na">name=</span><span class="s">&quot;alias&quot;</span> <span class="na">value=</span><span class="s">&quot;&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;br&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">&quot;short&quot;</span><span class="nt">&gt;</span>Краткое описание:<span class="nt">&lt;/label&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;input</span> <span class="na">id=</span><span class="s">&quot;short&quot;</span> <span class="na">type=</span><span class="s">&quot;text&quot;</span> <span class="na">name=</span><span class="s">&quot;short&quot;</span> <span class="na">value=</span><span class="s">&quot;&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;br&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">&quot;full&quot;</span><span class="nt">&gt;</span>Контент:<span class="nt">&lt;/label&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;textarea</span> <span class="na">id=</span><span class="s">&quot;full&quot;</span> <span class="na">class=</span><span class="s">&quot;wysiwyg&quot;</span> <span class="na">name=</span><span class="s">&quot;full&quot;</span><span class="nt">&gt;&lt;/textarea&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;br&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">&quot;seo_title&quot;</span><span class="nt">&gt;</span>SEO заголовок:<span class="nt">&lt;/label&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;input</span> <span class="na">id=</span><span class="s">&quot;seo_title&quot;</span> <span class="na">type=</span><span class="s">&quot;text&quot;</span> <span class="na">name=</span><span class="s">&quot;seo_title&quot;</span> <span class="na">value=</span><span class="s">&quot;&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;br&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">&quot;seo_keywords&quot;</span><span class="nt">&gt;</span>SEO ключевые слова:<span class="nt">&lt;/label&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;input</span> <span class="na">id=</span><span class="s">&quot;seo_keywords&quot;</span> <span class="na">type=</span><span class="s">&quot;text&quot;</span> <span class="na">name=</span><span class="s">&quot;seo_keywords&quot;</span> <span class="na">value=</span><span class="s">&quot;&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;br&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">&quot;seo_description&quot;</span><span class="nt">&gt;</span>SEO описание:<span class="nt">&lt;/label&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;textarea</span> <span class="na">name=</span><span class="s">&quot;seo_description&quot;</span> <span class="na">id=</span><span class="s">&quot;seo_description&quot;</span> <span class="na">rows=</span><span class="s">&quot;2&quot;</span><span class="nt">&gt;&lt;/textarea&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;br&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">&quot;submit&quot;</span> <span class="na">name=</span><span class="s">&quot;submit&quot;</span> <span class="na">value=</span><span class="s">&quot;Создать&quot;</span> <span class="na">class=</span><span class="s">&quot;btn btn-primary&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;/form&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Единственно место, на которое стоит обратить внимание это свойства тега form, а именно <code>&lt;html method="post" action="/admin/create"&gt;</code>, тем самым мы устанавливаем метод отправки формы в post (по умолчанию все формы отправляются get-методом) на страницу <em>/admin/create</em>, где мы полученные данные и будем поджидать, чтобы записать в базу данных.</p>
+
+<h6>Сохранение страницы:</h6>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">post</span> <span class="s1">&#39;/admin/create&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">params</span><span class="o">.</span><span class="n">delete</span> <span class="s1">&#39;submit&#39;</span>
+</span><span class='line'>  <span class="n">params</span><span class="o">[</span><span class="ss">:updated_at</span><span class="o">]</span> <span class="o">=</span> <span class="n">params</span><span class="o">[</span><span class="ss">:created_at</span><span class="o">]</span> <span class="o">=</span> <span class="no">Time</span><span class="o">.</span><span class="n">now</span>
+</span><span class='line'>  <span class="vi">@page</span> <span class="o">=</span> <span class="no">Page</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">redirect</span> <span class="s1">&#39;/admin/pages&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>params</em> &ndash; содержит все переменные нам переданные. Для начала нам необходимо исключить свойство submit (это кнопка отправки формы), которого нет в нашей модели. Дальше мы присваеваем меткам и создания, и обновления текущее время и дату, а команда <em>Page.create(params)</em> &ndash; создает новую запись в таблице и сохраняет ее с переданными нами из формы данными. Последняя строчка перенаправляет пользователя на страницу, где отображаются все записи, мы к ней еще вернемся.</p>
+
+<h6>Редактирование страницы:</h6>
+
+<p>С этим моментом все очень похоже, кроме нескольких моментов: 1) перед отправкой формы нам необходимо ее заполнить уже имеющимися данными, 2) применить не метод create (как при создании), а присвоить атрибуты напрямую и сохранить.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">get</span> <span class="s1">&#39;/admin/edit/:id&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="vi">@page</span> <span class="o">=</span> <span class="no">Page</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">erb</span> <span class="ss">:edit_form</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Если пользователь нажал на ссылку из списка страниц (<em>/admin/edit/1</em>, к примеру) и мы допускаем, что запись в таблице с таким id содержится (проверка на корректность &ldquo;раздула&rdquo; бы код и усложнила бы его понимание, поэтому данный момент я оставлю на вашей совести).
+<em>@page = Page.get(params[:id])</em> &ndash; получаем запись из таблицы с заданным id, дальше нам остается отрендерить страницу <em>./views/edit-form.erb</em> и ждать пока пользователь нажмет на кнопку submit.
+А пока <strong>./views/edit_form.erb</strong>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;h3&gt;</span>Форма страницы<span class="nt">&lt;/h3&gt;</span>
+</span><span class='line'><span class="nt">&lt;form</span> <span class="na">method=</span><span class="s">&quot;post&quot;</span> <span class="na">action=</span><span class="s">&quot;/admin/edit/&lt;%= @page.id %&gt;&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">&quot;name&quot;</span><span class="nt">&gt;</span>Имя страницы:<span class="nt">&lt;/label&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;input</span> <span class="na">id=</span><span class="s">&quot;name&quot;</span> <span class="na">type=</span><span class="s">&quot;text&quot;</span> <span class="na">name=</span><span class="s">&quot;name&quot;</span> <span class="na">value=</span><span class="s">&quot;&lt;%= @page.name %&gt;&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;br&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">&quot;alias&quot;</span><span class="nt">&gt;</span>Псевдоним:<span class="nt">&lt;/label&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;input</span> <span class="na">id=</span><span class="s">&quot;alias&quot;</span> <span class="na">type=</span><span class="s">&quot;text&quot;</span> <span class="na">name=</span><span class="s">&quot;alias&quot;</span> <span class="na">value=</span><span class="s">&quot;&lt;%= @page.alias %&gt;&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;br&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">&quot;short&quot;</span><span class="nt">&gt;</span>Краткое описание:<span class="nt">&lt;/label&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;input</span> <span class="na">id=</span><span class="s">&quot;short&quot;</span> <span class="na">type=</span><span class="s">&quot;text&quot;</span> <span class="na">name=</span><span class="s">&quot;short&quot;</span> <span class="na">value=</span><span class="s">&quot;&lt;%= @page.short %&gt;&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;br&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">&quot;full&quot;</span><span class="nt">&gt;</span>Контент:<span class="nt">&lt;/label&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;textarea</span> <span class="na">id=</span><span class="s">&quot;full&quot;</span> <span class="na">class=</span><span class="s">&quot;wysiwyg&quot;</span> <span class="na">name=</span><span class="s">&quot;full&quot;</span><span class="nt">&gt;</span><span class="err">&lt;</span>%= @page.full %&gt;<span class="nt">&lt;/textarea&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;br&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">&quot;seo_title&quot;</span><span class="nt">&gt;</span>SEO заголовок:<span class="nt">&lt;/label&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;input</span> <span class="na">id=</span><span class="s">&quot;seo_title&quot;</span> <span class="na">type=</span><span class="s">&quot;text&quot;</span> <span class="na">name=</span><span class="s">&quot;seo_title&quot;</span> <span class="na">value=</span><span class="s">&quot;&lt;%= @page.seo_title %&gt;&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;br&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">&quot;seo_keywords&quot;</span><span class="nt">&gt;</span>SEO ключевые слова:<span class="nt">&lt;/label&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;input</span> <span class="na">id=</span><span class="s">&quot;seo_keywords&quot;</span> <span class="na">type=</span><span class="s">&quot;text&quot;</span> <span class="na">name=</span><span class="s">&quot;seo_keywords&quot;</span> <span class="na">value=</span><span class="s">&quot;&lt;%= @page.seo_keywords %&gt;&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;br&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">&quot;seo_description&quot;</span><span class="nt">&gt;</span>SEO описание:<span class="nt">&lt;/label&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;textarea</span> <span class="na">name=</span><span class="s">&quot;seo_description&quot;</span> <span class="na">id=</span><span class="s">&quot;seo_description&quot;</span> <span class="na">rows=</span><span class="s">&quot;2&quot;</span><span class="nt">&gt;</span><span class="err">&lt;</span>%= @page.seo_description %&gt;<span class="nt">&lt;/textarea&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;br&gt;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">&quot;submit&quot;</span> <span class="na">name=</span><span class="s">&quot;submit&quot;</span> <span class="na">value=</span><span class="s">&quot;Сохранить&quot;</span> <span class="na">class=</span><span class="s">&quot;btn btn-primary&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;/form&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Единственное отличие &ndash; это заполненные значения полей формы значениями из таблицы в базе данных. После того, как пользователь отправлят форму, нам нужно записать в базу данных новые значения, этим займется следующий метод.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">post</span> <span class="s1">&#39;/admin/edit/:id&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="vi">@page</span> <span class="o">=</span> <span class="no">Page</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">params</span><span class="o">.</span><span class="n">delete</span> <span class="s1">&#39;submit&#39;</span>
+</span><span class='line'>  <span class="n">params</span><span class="o">.</span><span class="n">delete</span> <span class="s1">&#39;id&#39;</span>
+</span><span class='line'>  <span class="n">params</span><span class="o">.</span><span class="n">delete</span> <span class="s1">&#39;splat&#39;</span>
+</span><span class='line'>  <span class="n">params</span><span class="o">.</span><span class="n">delete</span> <span class="s1">&#39;captures&#39;</span>
+</span><span class='line'>  <span class="n">params</span><span class="o">[</span><span class="ss">:updated_at</span><span class="o">]</span> <span class="o">=</span> <span class="no">Time</span><span class="o">.</span><span class="n">now</span>
+</span><span class='line'>  <span class="vi">@page</span><span class="o">.</span><span class="n">attributes</span> <span class="o">=</span> <span class="n">params</span>
+</span><span class='line'>  <span class="vi">@page</span><span class="o">.</span><span class="n">save</span>
+</span><span class='line'>  <span class="n">redirect</span> <span class="s1">&#39;/admin/pages&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Он у меня получился самым раздутым, скорее всего, из-за не знания языка, но я только учусь, а как говорится лучшее &ndash; враг хорошего, поэтому не обращаем на это внимание и продолжаем двигаться дальше.
+После первой строки <em>@page = Page.get(params[:id])</em>, <em>@page</em> &ndash; является строкой в таблице, следующие 4 строки удаляют ненужные параметры, пришедшие к нам из формы, или из фреймворка (последние 2 подсовывает нам Sinatra).
+<em>params[:updated_at] = Time.now</em> &ndash; обновляет временную метку, почти не отличается от строки в создании новой странице, только тут мы не трогаем дату и время создания, потому что она остается неизменной на протяжении всей жизни записи.
+Строки <em>@page.attributes = params</em>  и <em>@page.save</em> обновляют свойства и записывают уже измененную модель в базу данных. Последняя строка вам уже известна, она перенаправляет пользователя на страницу списка записей. Тут, по-хорошему, нужно было добавить проверку на успешность записи и вслывающее сообщение после редиректа, пусть будет это для вас как домашнее задание, кому интересно.</p>
+
+<h6>Удаление страницы:</h6>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">get</span> <span class="s1">&#39;/admin/delete/:id&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="no">Page</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">destroy</span>
+</span><span class='line'>  <span class="n">redirect</span> <span class="s1">&#39;/admin/pages&#39;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Тут все, я думаю, понятно без моих комментариев, находим запись и удаляем его, и снова редирект.</p>
+
+<p>Сейчас разберем список страниц, который отбражается на странице /admin/pages</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">get</span> <span class="s1">&#39;/admin/pages&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="vi">@pages</span> <span class="o">=</span> <span class="no">Page</span><span class="o">.</span><span class="n">all</span>
+</span><span class='line'>  <span class="n">erb</span> <span class="ss">:pages</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>После этих панипуляций @pages содержит все записи из таблицы, и эта переменная доступна нам в шаблоне, а шаблон, как вы, наверное, уже успели догадаться, называться будет <strong>./views/pages.erb</strong>, вот его код:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;h6&gt;</span>Список страниц<span class="nt">&lt;/h6&gt;</span>
+</span><span class='line'><span class="nt">&lt;table</span> <span class="na">class=</span><span class="s">&quot;table-striped table&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;thead&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;tr&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;th&gt;</span>Имя<span class="nt">&lt;/th&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;th&gt;</span>Псевдоним<span class="nt">&lt;/th&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;th&gt;</span>Заголовок<span class="nt">&lt;/th&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;th&gt;</span>Создана<span class="nt">&lt;/th&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;th&gt;</span>Изменена<span class="nt">&lt;/th&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;th&gt;</span><span class="ni">&amp;nbsp;</span><span class="nt">&lt;/th&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/tr&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/thead&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;tbody&gt;</span>
+</span><span class='line'>    <span class="err">&lt;</span>% @pages.each do |page| %&gt;
+</span><span class='line'>      <span class="nt">&lt;tr&gt;</span>
+</span><span class='line'>   <span class="nt">&lt;td&gt;&lt;a</span> <span class="na">href=</span><span class="s">&quot;/admin/edit/&lt;%= page.id %&gt;&quot;</span><span class="nt">&gt;</span><span class="err">&lt;</span>%= page.name %&gt;<span class="nt">&lt;/a&gt;&lt;/td&gt;</span>
+</span><span class='line'>   <span class="nt">&lt;td&gt;</span><span class="err">&lt;</span>%= page.alias %&gt;<span class="nt">&lt;/td&gt;</span>
+</span><span class='line'>   <span class="nt">&lt;td&gt;</span><span class="err">&lt;</span>%= page.seo_title %&gt;<span class="nt">&lt;/td&gt;</span>
+</span><span class='line'>   <span class="nt">&lt;td&gt;</span><span class="err">&lt;</span>%= page.created_at.strftime(&quot;%d.%m.%Y %H:%M&quot;) %&gt;<span class="nt">&lt;/td&gt;</span>
+</span><span class='line'>   <span class="nt">&lt;td&gt;</span><span class="err">&lt;</span>%= page.updated_at.strftime(&quot;%d.%m.%Y %H:%M&quot;) %&gt;<span class="nt">&lt;/td&gt;</span>
+</span><span class='line'>   <span class="nt">&lt;td&gt;&lt;a</span> <span class="na">href=</span><span class="s">&quot;/admin/delete/&lt;%= page.id %&gt;&quot;</span> <span class="na">onclick=</span><span class="s">&quot;javascript: return confirm(&#39;Вы уверены в этом?&#39;)&quot;</span><span class="nt">&gt;&lt;i</span> <span class="na">class=</span><span class="s">&quot;icon-remove&quot;</span><span class="nt">&gt;&lt;/i&gt;&lt;/a&gt;&lt;/td&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;/tr&gt;</span>
+</span><span class='line'>    <span class="err">&lt;</span>% end %&gt;
+</span><span class='line'>  <span class="nt">&lt;/tbody&gt;</span>
+</span><span class='line'><span class="nt">&lt;/table&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;h5&gt;&lt;a</span> <span class="na">href=</span><span class="s">&quot;/admin/create&quot;</span><span class="nt">&gt;</span>Создать новую страницу<span class="nt">&lt;/a&gt;&lt;/h5&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>По сути это проста таблица, каждая строка которой является строкой в таблице в базе данных. Строкой <em>@pages.each do |page|</em> мы начинаем цикл по всем записям переменной @pages, помните, которую мы объявили немногим ранее? Прозорливые умы, наверное, догадались, что означает конструкция <code>page.created_at.strftime("%d.%m.%Y %H:%M")</code> Вы правы, этой строкой мы превращаем дату и время из формата, в котором она хранится в базе данных в удобочитаемый формат понятный и приятный глазу человеческому.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'>onclick=&quot;javascript: return confirm(&#39;Вы уверены в этом?&#39;)&quot;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Отображает стандартное браузерное окошко с вопросом, если пользователь отвечает на него утвердительно, то строка из таблицы удаляется, иначе же ничего не происходит (примитивная защита от дурака).</p>
+
+<p>С backend&#8217;ом почти разобрались, остались небольшие штришки, давайте перейдем к frontend&#8217;у, чтобы можно было посмотреть на результат своей нелегкой деятельности.</p>
+
+<h5>Отображаем главную страницу</h5>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">get</span> <span class="s1">&#39;/&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="vi">@page</span> <span class="o">=</span> <span class="no">Page</span><span class="o">.</span><span class="n">first</span><span class="p">(</span><span class="ss">:alias</span> <span class="o">=&gt;</span> <span class="s1">&#39;mainpage&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="vi">@pages</span> <span class="o">=</span> <span class="no">Page</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="ss">:alias</span><span class="o">.</span><span class="n">not</span> <span class="o">=&gt;</span> <span class="s1">&#39;mainpage&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">erb</span> <span class="ss">:page</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<blockquote><p>Небольшое отступление: Поиск страниц у нас будет осуществляться по полю alias, т.е. псевдоним, в базе данных он будет храниться в виде строки, к примеру, mainpage, contacts, about и т.д. Mainpage с маленькой буквы я буду использовать для задания главной страницы, которая и будет отбражаться по адресу &lsquo;/&rsquo;.</p></blockquote>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="vi">@page</span> <span class="o">=</span> <span class="no">Page</span><span class="o">.</span><span class="n">first</span><span class="p">(</span><span class="ss">:alias</span> <span class="o">=&gt;</span> <span class="s1">&#39;mainpage&#39;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>находит первую попавшуюся страницу, в поле alias которой стоит значение &lsquo;mainpage&rsquo; (по-хорошему, нужно было на это поле поставить индекс и сделать его уникальным, но не об этом речь). Следующая строка получает все страницы, кроме mainpage (будем строить простейшее меню на сайте).</p>
+
+<p>И отображаем страницу <strong>./views/page.erb</strong>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;row-fluid&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;span3&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;h1&gt;</span><span class="err">&lt;</span>%= @page.name %&gt;<span class="nt">&lt;/h1&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/div&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;span7&quot;</span><span class="nt">&gt;</span><span class="err">&lt;</span>%= @page.full %&gt;<span class="nt">&lt;/div&gt;</span>
+</span><span class='line'><span class="nt">&lt;/div&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Где все остальное спросите вы, не торопитесь, отвечу я, все будет :).
+Что за странные классы с непонятными именами предчувствую вопрос и сразу отвечу на него. Т.к. из меня верстальшик, тем более дизайнер, некудышний (я уже смирился с этим), приходится использовать готовые решения, такие как css-фреймворки, в данном проект используется twitter bootstrap &ndash; аккуратный, легкий, приятный глазу, что несказанно облегчает жизнь таким как я разработчикам, которые хотят разрабатывать проекты, но &ldquo;верстальным&rdquo; талантом их обделили высшие силы :). Twitter, с тебя $10 за рекламу :).</p>
+
+<p>Давайте сначала разберем последний на стороне backend&#8217;а экшн и перейдем непосредственно к шаблонам. Итак,</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">get</span> <span class="s1">&#39;/:alias.html&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="vi">@page</span> <span class="o">=</span> <span class="no">Page</span><span class="o">.</span><span class="n">first</span><span class="p">(</span><span class="ss">:alias</span> <span class="o">=&gt;</span> <span class="n">params</span><span class="o">[</span><span class="ss">:alias</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">not_found</span> <span class="s1">&#39;Страница не найдена&#39;</span> <span class="k">if</span> <span class="vi">@page</span><span class="o">.</span><span class="n">nil?</span>
+</span><span class='line'>  <span class="vi">@pages</span> <span class="o">=</span> <span class="no">Page</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="ss">:alias</span><span class="o">.</span><span class="n">not</span> <span class="o">=&gt;</span> <span class="s1">&#39;mainpage&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">erb</span> <span class="ss">:page</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">not_found</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">erb</span> <span class="ss">:&#39;404&#39;</span><span class="p">,</span> <span class="p">{</span><span class="ss">:layout</span> <span class="o">=&gt;</span> <span class="kp">false</span><span class="p">}</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Получилось сразу два: первый почти ничем не отличается от предыдущего, рассмотренного нами, кроме вызова <em>not_found</em>, если <em>@page.nil?</em> (если страница не найдена), второй является хелпером, который вызывается, если страница не найдена.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">erb</span> <span class="ss">:&#39;404&#39;</span><span class="p">,</span> <span class="p">{</span><span class="ss">:layout</span> <span class="o">=&gt;</span> <span class="kp">false</span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>рендерит ./views/404.erb с отключенным шаблоном.</p>
+
+<h5>Пару слов о шаблонах</h5>
+
+<p>Шаблон представляет собой двухуровневый рендеринг: сначала рендерится непосредственно сама страница экшна, указанного нами в конструкции erb :page, дальше, если не указано обратное, рендерится файл <em>./views/layout.erb</em> и в часть, где указано <em>=yield</em>, вставляется первый кусок, что заметно облегчает жизнь, сокращая код представлений экшнов. Самое главное в этом моменте правильно вычленить повторяющиеся во всех страницах элементы от изменяющихся.
+Раз уж коснулись шаблонов, приведу шаблон, который рендерится на стороне frontend&#8217;а, <strong>./views/layout.erb</strong>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="cp">&lt;!DOCTYPE html&gt;</span>
+</span><span class='line'><span class="nt">&lt;html</span> <span class="na">lang=</span><span class="s">&quot;en&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;head&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;meta</span> <span class="na">charset=</span><span class="s">&quot;utf-8&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;meta</span> <span class="na">name=</span><span class="s">&quot;description&quot;</span> <span class="na">content=</span><span class="s">&quot;&lt;%= @page.seo_description %&gt;&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;meta</span> <span class="na">name=</span><span class="s">&quot;keywords&quot;</span> <span class="na">content=</span><span class="s">&quot;&lt;%= @page.seo_keywords %&gt;&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;meta</span> <span class="na">name=</span><span class="s">&quot;author&quot;</span> <span class="na">content=</span><span class="s">&quot;@vredniy&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;title&gt;</span><span class="err">&lt;</span>%= @page.seo_title %&gt;<span class="nt">&lt;/title&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">&quot;stylesheet&quot;</span> <span class="na">href=</span><span class="s">&quot;/css/bootstrap.css&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/head&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;body&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;container-fluid&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;row-fluid&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;span2&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;h3&gt;</span>Главное меню<span class="nt">&lt;/h3&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;ul&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;li&gt;&lt;a</span> <span class="na">href=</span><span class="s">&quot;/&quot;</span><span class="nt">&gt;</span>Главная<span class="nt">&lt;/a&gt;&lt;/li&gt;</span>
+</span><span class='line'>      <span class="err">&lt;</span>% @pages.each do |page| %&gt;
+</span><span class='line'>   <span class="nt">&lt;li&gt;&lt;a</span> <span class="na">href=</span><span class="s">&quot;/&lt;%= page.alias %&gt;.html&quot;</span><span class="nt">&gt;</span><span class="err">&lt;</span>%= page.name %&gt;<span class="nt">&lt;/a&gt;&lt;/li&gt;</span>
+</span><span class='line'>      <span class="err">&lt;</span>% end %&gt;
+</span><span class='line'>    <span class="nt">&lt;/ul&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/div&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;span10&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>      <span class="err">&lt;</span>%= yield %&gt;
+</span><span class='line'>    <span class="nt">&lt;/div&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/div&gt;</span>
+</span><span class='line'><span class="nt">&lt;/div&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/body&gt;</span>
+</span><span class='line'><span class="nt">&lt;/html&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>В нем не должно быть непонятных моментов, переменные нами уже заполнены, единственное, что кажется на первый взгляд немного сложным, это цикл, отображающий меню, точнее все страницы, кроме главной, но и с ним мы чуть выше знакомились.</p>
+
+<p>Шаблон для административной части я не буду приводить здесь, для экономии места, в конце будет ссылка на работающий репозиторий, который вы можете склонировать и запустить у себя локально или задеплоить на heroku.</p>
+
+<p>Осталось еще пара недосказанных моментов: аутентификация и изменения шаблона для закрытой (backend) части.
+Что касается первого, то тут все предельно просто, будем использовать базовую аутентификацию, которую нам представляет прослойка в виде Rack. Реализуем, как рекомендуют на сайте документации Sinatra, через хелперы, вот и сам код:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">helpers</span> <span class="k">do</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">protected!</span>
+</span><span class='line'>    <span class="k">unless</span> <span class="n">authorized?</span>
+</span><span class='line'>      <span class="n">response</span><span class="o">[</span><span class="s1">&#39;WWW-Authenticate&#39;</span><span class="o">]</span> <span class="o">=</span> <span class="sx">%(Basic realm=&quot;Cms&#39;s restricted area&quot;)</span>
+</span><span class='line'>      <span class="kp">throw</span><span class="p">(</span><span class="ss">:halt</span><span class="p">,</span> <span class="o">[</span><span class="mi">401</span><span class="p">,</span> <span class="s2">&quot;Not authorized</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">authorized?</span>
+</span><span class='line'>    <span class="vi">@auth</span> <span class="o">||=</span> <span class="ss">Rack</span><span class="p">:</span><span class="ss">:Auth</span><span class="o">::</span><span class="ss">Basic</span><span class="p">:</span><span class="ss">:Request</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">env</span><span class="p">)</span>
+</span><span class='line'>    <span class="vi">@auth</span><span class="o">.</span><span class="n">provided?</span> <span class="o">&amp;&amp;</span> <span class="vi">@auth</span><span class="o">.</span><span class="n">basic?</span> <span class="o">&amp;&amp;</span> <span class="vi">@auth</span><span class="o">.</span><span class="n">username</span> <span class="o">&amp;&amp;</span> <span class="vi">@auth</span><span class="o">.</span><span class="n">credentials</span> <span class="o">==</span> <span class="o">[</span><span class="s1">&#39;admin&#39;</span><span class="p">,</span> <span class="s1">&#39;password&#39;</span><span class="o">]</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>В экшне, который мы хотим закрыть от посторонних глаз нужно будет написать <em>protected!</em>, тем самым вызвать хелпер, который проверит, авторизован пользователь или нет, если нет, отобразит стандартное окно браузера с полями для ввода логина и пароля.</p>
+
+<p>Т.к., мы, программисты, люди ленивые, нам сложно писать для каждого экшна /admin* слово protected!, поэтому мы пойдем другим путем, а именно используя фильтр before, который вызывается перед каждым запросом, напишем две строки кода.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">before</span> <span class="s1">&#39;/admin/*&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="kp">protected</span><span class="o">!</span>
+</span><span class='line'>  <span class="vi">@default_layout</span> <span class="o">=</span> <span class="ss">:admin</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Первая строка, как и упоминали &ldquo;защищает&rdquo; от посторонних глаз все закрытые части приложения, вторая же для всех закрытых частей меняет шаблон по умолчанию на admin, т.е. ./views/admin.erb</p>
+
+<h5>5. Наведения марафета</h5>
+
+<p>Чтобы придать немного эстетичности нашему простому приложению мы будем использовать сторонние инструменты, в частности <a href="http://twitter.github.com/bootstrap/">twitter bootstrap</a> и <a href="http://imperavi.com/redactor/">redactor от imperavi</a>. Все эти файлы уже имеются в репозитории на github, тут они будут лишь занимать ценное место. Еще приведу структуру папок данного приложения, чтобы вы не путались что и куда.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">.</span>
+</span><span class='line'><span class="err">├──</span> <span class="n">bootstrap</span><span class="o">.</span><span class="n">rb</span>
+</span><span class='line'><span class="err">├──</span> <span class="n">config</span><span class="o">.</span><span class="n">ru</span>
+</span><span class='line'><span class="err">├──</span> <span class="n">db</span>
+</span><span class='line'><span class="err">│  </span> <span class="err">└──</span> <span class="n">page</span><span class="o">.</span><span class="n">db</span>
+</span><span class='line'><span class="err">├──</span> <span class="no">Gemfile</span>
+</span><span class='line'><span class="err">├──</span> <span class="no">Gemfile</span><span class="o">.</span><span class="n">lock</span>
+</span><span class='line'><span class="err">├──</span> <span class="kp">public</span>
+</span><span class='line'><span class="err">│  </span> <span class="err">├──</span> <span class="n">css</span>
+</span><span class='line'><span class="err">│  </span> <span class="err">├──</span> <span class="n">favicon</span><span class="o">.</span><span class="n">ico</span>
+</span><span class='line'><span class="err">│  </span> <span class="err">├──</span> <span class="n">img</span>
+</span><span class='line'><span class="err">│  </span> <span class="err">└──</span> <span class="n">js</span>
+</span><span class='line'><span class="err">├──</span> <span class="no">README</span>
+</span><span class='line'><span class="err">└──</span> <span class="n">views</span>
+</span><span class='line'>    <span class="err">├──</span> <span class="mi">404</span><span class="o">.</span><span class="n">erb</span>
+</span><span class='line'>    <span class="err">├──</span> <span class="n">admin</span><span class="o">.</span><span class="n">erb</span>
+</span><span class='line'>    <span class="err">├──</span> <span class="n">create_form</span><span class="o">.</span><span class="n">erb</span>
+</span><span class='line'>    <span class="err">├──</span> <span class="n">edit_form</span><span class="o">.</span><span class="n">erb</span>
+</span><span class='line'>    <span class="err">├──</span> <span class="n">layout</span><span class="o">.</span><span class="n">erb</span>
+</span><span class='line'>    <span class="err">├──</span> <span class="n">page</span><span class="o">.</span><span class="n">erb</span>
+</span><span class='line'>    <span class="err">└──</span> <span class="n">pages</span><span class="o">.</span><span class="n">erb</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h5>6. Деплой на хероку</h5>
+
+<p>Деплой почти ни чем не отличается от деплоя из предыдущей заметки, кроме переноса локальной базы данных на удаленный сервер heroku <code>heroku db:push  sqlite://db/page.db</code>.</p>
+
+<p>Молодцы heroku и эту возможность предусмотрели, после успешного выполнения данной команды, локальная база данных из sqlite3 скопируется в удаленную postgres.</p>
+
+<blockquote><p>если у вас на локальной машине стоял ruby 1.9.3, как у меня, то придется откатиться до версии 1.9.2. Это нужно для того, чтобы запушить локальную базу данных на хероку. Если вам это не нужно, то пропустите это шаг.</p></blockquote>
+
+<h5>Заключение</h5>
+
+<p>Этой заметкой я закрпеляю небольшой логический этап в освоении мною нового для меня языка ruby. Язык мне очень нравится, но сразу переключиться на него попросту не могу. Синтаксис приятный глазу, легкие конструкции, шустрые фреймворки, работающие из коробки. Осталось только поделиться ссылкой на <a href="https://github.com/vredniy/simple-sinatra-cms">репозиторий на github</a> и работающий <a href="http://vredniy-sinatra.heroku.com/">проект на heroku</a>. Оставляйте комментарии, задавайте вопросы, поправляйте, если найдете неточности &ndash; я открыт для обсуждений, на этом я прощаюсь с вами и до новых встреч :)
+P.S.: вот так должно выглядеть приложение в конце</p>
+
+<p><img class="image" src="/images/posts/2012-02-ruby-sinatra-cms-heroku/sinatra-cms-heroku-800x483.jpg"></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-02-05T03:24:29+04:00" pubdate data-updated="true">05.02.2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ruby/'>Ruby</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://zudochkin.ru/2012/02/ruby-sinatra-cms-heroku" data-via="vredniy" data-counturl="http://zudochkin.ru/2012/02/ruby-sinatra-cms-heroku" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left articlenav" href="/2012/02/ruby-application-heroku" title="Предыдущий пост: Деплой ruby приложения на heroku">&laquo; Деплой ruby приложения на heroku</a>
+      
+      
+        <a class="basic-alignment right articlenav" href="/2012/02/tdd-ruby-introduction" title="Следующий пост: Введение в TDD с Ruby и Rspec">Введение в TDD с Ruby и Rspec &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Комментарии</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Последние посты</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2014/01/fulltext-phones-postgresql">Полнотекстовый поиск по телефонным номерам разного формата (PostgreSQL)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/11/open-uri-progress-bar">Ruby OpenURI::open и ProgressBar</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/first-photography">Первая выездная фотосъемка (Большой Москворецкий мост)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/vim-first-plugin">Написание первого плагина для Vim</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/logrotate-unicorn">Ротация логов на примере логов Unicorn</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Зудочкин Дима -
+  <span class="credit">Powered by <a rel="nofollow" href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'zudochkinru';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://zudochkin.ru/2012/02/ruby-sinatra-cms-heroku';
+        var disqus_url = 'http://zudochkin.ru/2012/02/ruby-sinatra-cms-heroku';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
