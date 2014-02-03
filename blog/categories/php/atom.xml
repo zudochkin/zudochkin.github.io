@@ -4,7 +4,7 @@
   <title><![CDATA[Category: php | Записки Вредного программиста]]></title>
   <link href="http://zudochkin.ru/blog/categories/php/atom.xml" rel="self"/>
   <link href="http://zudochkin.ru/"/>
-  <updated>2014-02-03T19:28:54+04:00</updated>
+  <updated>2014-02-03T21:38:05+04:00</updated>
   <id>http://zudochkin.ru/</id>
   <author>
     <name><![CDATA[Зудочкин Дима]]></name>
@@ -440,6 +440,809 @@ p counter</p>
 <img class="image" src="/images/posts/2012-03-lets-game-with-ruby-and-php/redis-game.png"></p>
 
 <p>Надеюсь, смогу добиться скорость выполнения в раза больше, чем сейчас. Мне нужно чтобы приложение проходило по всем комбинациям, сравнивая со всем словами в словаре и тратило при этом меньше минуты, сейчас около 3х.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[PHP замыкания и немного рефлексии ]]></title>
+    <link href="http://zudochkin.ru/2011/08/php-sinatra-closures"/>
+    <updated>2011-08-26T16:29:19+04:00</updated>
+    <id>http://zudochkin.ru/2011/08/php-sinatra-closures</id>
+    <content type="html"><![CDATA[<p>Это будет очень короткая заметка и больше экспериментальная. Вчера вечером смотрел Sinatra (фреймворк на базе Ruby) и меня он покорил своей легкостью. Да вообще мне очень нравится Ruby, обязательно его в скором будущем выучу, а сейчас поговорим о PHP. Заметка сводится к тому, что я попытался реализовать функционал Sinatra на PHP. Таких велосипедов, скажите вы, превеликое множество и несомненно будете правы. Но я нашел в сегодняшнем велосипедостроение очень много для себя полезного. Да и &ldquo;фреймворк&rdquo; (фреймворком пока назвать его очень сложно, но начало положено) получился очень маленьким &ndash; около 40 строк.</p>
+
+<!--more-->
+
+
+<h3>Описание фреймворка</h3>
+
+<p>Фреймворк может обрабатывать GET запросы, учитывая маршрутизацию, которая задется регулярным выражением с любым количеством параметров. С выходом 5.3 версии PHP нам стали доступны так называемые замыкания или анонимные функции (кому как нравится). Вот именно и благодаря замыканиям фреймворк получился очень маленьким. Когда придумывал ему название (ведь каждый программист должен назвать свое детище), в интернете натолкнулся на картинку жирафа, так и обрел название мой фреймворк (Jirafa на испанский манер).</p>
+
+<h3>Использование</h3>
+
+<p><img class="image" src="/images/posts/2011-08-php-sinatra-closures/php-sinatra-300x230.png">Практическим назначением фреймворк не может похвастаться, но в возможном будущем он обрастется функционалом, и тогда появится реальная необходимость его использовать. А сейчас это наглядное пособие по использованию замыканий.</p>
+
+<p>Чтобы создать приложение нужно создать класс приложения и назначить на определенные маршруты функции, которые и будет обрабатывать запрос.</p>
+
+<p>``` php
+$app = new Jirafa();</p>
+
+<p>$app->setRegistry(array(</p>
+
+<pre><code>'viewObject' =&gt; 'may be smarty',
+'dbObject' =&gt; new PDO('sqlite:./db/db.db') //'may be pdo or something else'
+</code></pre>
+
+<p>));</p>
+
+<p>```</p>
+
+<p>Метод setRegistry() используется мною для того, чтобы передать во все функции необходимые параметры, это могут быть и шаблонизаторы, и PDO объекты, да вообще все что угодно можно передать. А дальше несколько строк кода для демонстрации.</p>
+
+<p>``` php
+$app->get(&lsquo;/&rsquo;, function() use ($registry) { // показываем главную</p>
+
+<pre><code>              return '&lt;br&gt;1hi ';
+           })
+</code></pre>
+
+<p>   &ndash;>get(&lsquo;404&rsquo;, function($registry) { // отображается, если ни один маршрут не подошел</p>
+
+<pre><code>              var_dump($registry);
+              return '&lt;h1&gt;Error 404&lt;/h1&gt;';
+           })
+</code></pre>
+
+<p>   &ndash;>get(&lsquo;(\w+).html&rsquo;, function ($alias, $registry) { // example.com/static.html</p>
+
+<pre><code>              $pdo = $registry['dbObject'];
+              $html = 'Error';
+              try {
+                 $row = $pdo-&gt;query("SELECT * FROM content WHERE alias='{$alias}'")-&gt;fetch();
+                 $html = "&lt;h1&gt;{$row['title']}&lt;/h1&gt;&lt;p&gt;{$row['content']}&lt;/p&gt;";
+              } catch (PDOException $e) {
+                 return $e-&gt;getMessage();
+              }
+              return $html;
+           })
+</code></pre>
+
+<p>```</p>
+
+<p>Я считаю, что все должно быть предельно понятно, поэтому вернемся к классу фреймворка (на данный момент &ldquo;фреймворк состоит из одного файла, двух, если считать .htaccess)</p>
+
+<h3>Исходный код фреймворка</h3>
+
+<p>``` php
+class Jirafa
+{</p>
+
+<pre><code>protected $_app = array();
+protected $_registry;
+
+public function get() {
+    $args = func_get_args();
+    $this-&gt;_app[array_shift($args)] = array_shift($args);
+
+    return $this;
+}
+
+public function render() {
+    $uri = ($_SERVER['REQUEST_URI'] === '/') ? '/' : substr($_SERVER['REQUEST_URI'], 1);
+    // iterate over all paths
+    foreach($this-&gt;_app as $path =&gt; $func) {
+        // if $uri and regular expression are matched
+        if (preg_match('@^' . $path . '\/*$@', $uri, $matches)) {
+            var_dump($path);
+            array_shift($matches);
+            $countInPath = count($matches);
+
+            $reflection = new ReflectionFunction($func);
+            $params = $reflection-&gt;getParameters();
+
+            $array = array();
+            foreach($params as $param)
+            $array[$param-&gt;getName()] = array_shift($matches);
+
+            //if (count($array) !== $countInPath + 1)
+            //goto error;
+
+            echo call_user_func_array($func, array_merge($array, array('registry' =&gt; $this-&gt;_registry)));
+            return;
+        }
+    }
+    //error:
+    echo call_user_func_array($this-&gt;_app['404'], array('registry' =&gt; $this-&gt;_registry));
+}
+
+public function setRegistry($registry) {
+    $this-&gt;_registry = $registry;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Метод get() в нем очень простой, он записывает обрабатываемый маршрут и параметры, с которыми данный метод был вызван (понадобится нам в дальнейшем для заполнения параметров в функции). Для удобство возвращаем свой же объект, чтобы сократить код приложения.</p>
+
+<p>Метод render() находит соответствие сохраненных методом get() маршрутов и $<em>SERVER[&lsquo;REQUEST_URI&rsquo;]. Если соответствие найдено, то мы с помощью рефлексии (Reflection) получаем данные нашего замыкания (как называются переменные и их количество). Далее с помощью замечательного метода call_user_func_array(), позволяющего вызывать функцию или метод с переменным количество аргументов, мы вызываем функцию нашего исключения, передавая ей в качестве параметров, помимо запрашиваемых, еще и переменную $this-></em>registry, которая, как я уже упоминал выше, может содержать вспомогательную информацию, необходимую для работы приложения.</p>
+
+<h3>Заключение</h3>
+
+<p>В данной заметки мы вскользь познакомились с замыканиями и рефлексией. Изобрели еще один маленький велосипед с квадратными колесами, которые, надеюсь, поднял вам настроение и прибавил вам немного практики и мыслей по поводу дальнейшего использования полезных конструкция замечательного языка PHP. Удачи вам, веб-девелоперы :)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[MongoDb и PHP]]></title>
+    <link href="http://zudochkin.ru/2011/08/mongodb-php"/>
+    <updated>2011-08-20T01:46:43+04:00</updated>
+    <id>http://zudochkin.ru/2011/08/mongodb-php</id>
+    <content type="html"><![CDATA[<p>В данной заметке вы узнаете что такое NoSQL (MongoDB), научитесь устанавливать MongoDB сервер и взаимодействовать с ним на PHP.</p>
+
+<!-- more -->
+
+
+<h3>NoSQL &ndash; что за странная аббревиатура?</h3>
+
+<p>Наверное, какждый из вас уже слышал эту аббревиатуру, может даже вы &ldquo;щупали&rdquo; ее на зубок, а может и используете ее в своих проектах на продакшн серверах. Данная технология в момент ее появления наделала много шуму, легко втиснувшись и отобрав кусок хлеба у реляционных баз данных. NoSQL термин означает что это не только (not only) SQL, хотя на первый взгляд кажется, что это не SQL (no). Термин означает множество технологий работы с базами данных в обход стандартной реляционной модели. Данные могут храниться в виде пар ключ-значение, деревьев или документов. Мы с вами рассмотрим последнее.</p>
+
+<h3>Описание документо-ориентированных хранилищ</h3>
+
+<p>В данной системе управления базами данных единицей хранения информации является некий документ, хранящийся в виде пар ключ-значние и имеющих некие связи.</p>
+
+<h3>Что же такое MongoDB?</h3>
+
+<p><img class="image" src="/images/posts/2011-08-mongodb-php/mongodb-300x241.png">До рассмотрения возможностей данного замечательного продукта хотелось бы отметить 6 основных концепций, заключенных в нем:</p>
+
+<ol>
+<li>Концепция базы данных не отличима от понятий базы данных в реляционных СУБД. MongoDB также может содержать ноль или более баз данных, которые являются контейнером верхнего уровня.</li>
+<li>База данных может содрежать ноль или более коллекций. Коллекциями в контексте СУРБД (здесь и далее система управления реляционными базами данных) являются таблицы.</li>
+<li>Коллекция может содрежать в себе документы. В СУРБД это строки.</li>
+<li>Документ может состоять из разного количества полей. Если проводить аналогию с реляционной моделью, то это конечно же столбец.</li>
+<li>Индексы есть и в MongoDB, и в СУРБД, функции их почти неотлимы.</li>
+<li>Курсоры есть в MongoDB, но прямого аналога в реляционной модели нет. Важно понять, что, когда вы запрашиваете MongoDB вернуть вам определенные данные, Mongo возвращает курсор, с помощью которого мы можем подсчитать или пропустить некоторые документы, без нагрузки на сервер.</li>
+</ol>
+
+
+<h3>Установка MongoDB</h3>
+
+<p>Подробная информация об установке широко представлена на официальном сайте, поэтому не будем заострять внимание на этом разделе. Я затрону лишь основные моменты, чтобы начать работу.
+Пройдемся по шагам, чтобы ее завершить:</p>
+
+<ol>
+<li>Заходим на <a href="http://www.mongodb.org/downloads">официальную страницу загрузки</a>, скачиваем подходящую скомпилированную версию.</li>
+<li>Распаковываем архив куда угодно и заходим в папку bin. mongod &ndash; сервер, mongo &ndash; клиентская оболочка &ndash; с этими двумя исходниками мы и будем проводить большую часть времени.</li>
+<li>Создаем текстовый файл в папке bin, пусть называться он будет mongod.conf</li>
+<li>Записываем одну строку во вновь созданный файл dbpath=ПУТЬ-ГДЕ-ВЫ-ХОТИТЕ-ЧТОБЫ-ЛЕЖАЛА-БАЗА-ДАННЫХ. К примеру, на Windows вы можете написать dbpath=c:\mongodb\data, под Линуксом dbpath=/etc/mongodb/data. Указанный путь должен сущестовать (позаботьтесь об этом).</li>
+<li>Запустите из папки bin файл mongod с параметром **&mdash;config /путь/к/конфигу/mongodb.conf.</li>
+</ol>
+
+
+<p>Установка завершена. Чтобы это проверить запустите в командной строке клиент (mongo), которые должен автоматически соединиться с запущенным сервером и отобразить приглашение. Попробуйте ввести <strong>help</strong> или db.version(). Пока оставим наш клиент и перейдем к PHP.</p>
+
+<h3>PHP и MongoDB</h3>
+
+<p>MongoDB на данный момент имеет поддержку почти всех популярных языков программирования, таких как C++, Erlang, Java, Javascript, Perl, Python и PHP. На последнем мы и остановимся.</p>
+
+<h5>Описание расширения</h5>
+
+<p>Я не буду приводить пример установки раширений для PHP. В нем нет ничего нетривиального. Лучше заострю внимание на чем-нибуь более интересным, чтобы вы после прочтения данной заметки легко написать свое первое приложение с использованием MongoDB. Полное описание расширения вы можете на странице официального руководства (http://www.php.net/manual/en/book.mongo.php).</p>
+
+<h5>Соединение</h5>
+
+<p>Начнем с соединения (сервер на данный момент должен быть запущен). Если мы экспериментируем на своей локальной машине, то все просто.</p>
+
+<p>``` php
+&lt;?php</p>
+
+<pre><code>    $mongo = new Mongo(); // соединяемся с сервером
+    $db = $mongo-&gt;database; // выбираем базу данных
+</code></pre>
+
+<p>```</p>
+
+<p>Если же вы используете MongoDB на выделенном хостинге или по каким-то другим причинам вам требуется авторизация, то данный пример немного усложнится.</p>
+
+<p>``` php
+ array(</p>
+
+<pre><code>    'host' =&gt; 'mongodb.example.com',
+    'port' =&gt; '27017',
+    'username' =&gt; 'mongodb-user',
+    'password' =&gt; 'SECRET-PASSWORD',
+    'dbname' =&gt; 'DATABASE-NAME'
+)
+</code></pre>
+
+<p>);</p>
+
+<p>$collectionName = &lsquo;COLLECTION-NAME&rsquo;;</p>
+
+<p>$mongo = new Mongo(</p>
+
+<pre><code>"mongodb://{$options['db']['username']}:{$options['db']['password']}@{$options['db']['host']}:{$options['db']['port']}/{$options['db']['dbname']}"
+</code></pre>
+
+<p>);</p>
+
+<p>$collection = $mongo->$options[&lsquo;db&rsquo;][&lsquo;dbname&rsquo;]&ndash;>$collectionName;
+```</p>
+
+<p>Данные пляски очень похожи на DSN, которые повсеместно используется с PDO.</p>
+
+<h5>Запись</h5>
+
+<p>Соединяться с сервером мы уже научились, также как и выбирать коллекцию. Кстати, если нет коллекции, ничего страшного, если вы будете вносить данные в несуществующую коллекцию, то заботливый Mongo ее для вас создаст. Еще раз убеждаюь, что MongoDB создана для лентяев, которые хотят сосредоточиться только на важных вещах, а на не плясках с бубном. :)</p>
+
+<p>``` php</p>
+
+<pre><code>$collection-&gt;insert(
+    array(
+        'title' =&gt; 'Simple Title',
+        'alias' =&gt; 'about',
+        'content' =&gt; 'Lorem Ipsum',
+        'images' =&gt; array('image1.jpg', 'image2.jpg')), // вставляем какие угодно данные, хоть массивы
+    array("safe" =&gt; 1)); // данный параметро сообщает MongoDB проследить за успешностью вставки, обычно этот параметр отключен
+</code></pre>
+
+<p>```</p>
+
+<h5>Выборка</h5>
+
+<p><code>php
+$content = $collection-&gt;findOne(array('alias' =&gt; 'about')); // находим одну запись, удоволетворяющая условию {alias: 'about'}
+var_dump($content);
+</code></p>
+
+<p>Выборка происходит почти также как в реляционных базах данных после слова WHERE (select * from COLLECTION-NAME WHERE alias = &lsquo;about&rsquo; LIMIT 1).  Разработчики предусмотрели множество плюшек при выборке, но всех их рассмотреть в данной вводной заметке не представляется возможным, поэтому расскажу еще о выборке с участием регулярных выражений и отклоняюсь.</p>
+
+<p>``` php
+$cursor = $collection->find(array(&lsquo;word&rsquo; => new MongoRegex(&ldquo;/{$mask}/ig&rdquo;)))&ndash;>limit(50);</p>
+
+<p>$words = array();</p>
+
+<p>foreach ($cursor as $o)</p>
+
+<pre><code>$words[] = $o;
+</code></pre>
+
+<p>```</p>
+
+<p>Данный пример почти из реального проекта, который показывает и выборку по регулярному выражению и работу с курсорами. Надеюсь, данный код не вызвал у вас затруднений.</p>
+
+<h5>Изменение</h5>
+
+<p>Изменение данных в документах чуть более обширный раздел, заключающий в себе и выборку и запись новых данных. Но не все так сложно, как я малюю. Начну с примера.</p>
+
+<p><code>php
+$collection-&gt;update(array('alias' =&gt; 'about'), array('$set' =&gt; array("title" =&gt; 'In MongoDB we trust')));
+</code></p>
+
+<p>Данная запутанная с первого взляда запись на самом деле проста, если разбить ее на составляющие. Первый параметр в методе update() отвечая за выборку, т.е. критерии выборки, второй параметр, как будем менять. В данном случае мы установим ($set) заголовок в новый. Отличные от $set параметры вы можете найти в документации к MongoDB. Аналог в виде SQL мог бы выглядеть так</p>
+
+<p><code>sql
+update COLLECTION-NAME set title = 'In MongoDB we trust' where alias = 'about'
+</code></p>
+
+<p>Данного минимума, как я уже упоминал ранее, должно хватить для реализации несложного приложения. Все информацию помимо упомянутого мною в данной заметке, можно получить на официальном сайте MongoDB</p>
+
+<h3>Заключение</h3>
+
+<p>В первую очередь вам следует понять, что волшебной таблетки не существует. Любое решение, каким бы оно не казалось со стороны гибким и легким, имеет свои плюсы и минусы. Если вам не нужно хранить статистические данные, которые размазаны по десятками а то и сотням таблиц со сложными связями, вряд ли вам подойдет NoSQL решения. Если же данные легко подвергаются денормализации, то смело выбирайте NoSQL из-за скорости и удобности работы.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Покерный класс на PHP]]></title>
+    <link href="http://zudochkin.ru/2011/08/poker-class-php"/>
+    <updated>2011-08-11T13:52:41+04:00</updated>
+    <id>http://zudochkin.ru/2011/08/poker-class-php</id>
+    <content type="html"><![CDATA[<p>Приветствую тебя, разработчик или случайно зашедший на огонек в этот уютный технический бложек. Сегодня речь пойдет о несколько математической задаче, хоть и немного там математики, да и она понятна школьнику 5го класса. Сегодня мы научимся распознавать комбинации в Техасском холдеме, именно в такую разновидность покера я играю (играл). Т.к. это очень простой класс на PHP, он не будет иметь определять старшинство одинаковых по названию комбинаций, но разнящихся по номиналу, к примеру стрит до 10 и стрит до 8 будут трактоваться этим классом, как просто стрит. В Техасском холдеме всего 10 комбинаций и мы с вами пройдемся от самой старшей из них &ndash; флеш рояль до самой младшей &ndash; старшая карта.</p>
+
+<!-- more -->
+
+
+<h6>Флеш рояль</h6>
+
+<p>Высшая кобинация в покере &ndash; это стрит (стрейт) флеш до туза.</p>
+
+<p>``` php
+protected function _isRoyalFlush()
+{</p>
+
+<pre><code>return ($this-&gt;_isFlush() &amp;&amp; $this-&gt;_isStraight() &amp;&amp; array_search(14, $this-&gt;_ranks) &amp;&amp; array_search('13', $this-&gt;_ranks));
+</code></pre>
+
+<p>}
+```</p>
+
+<p><img class="image" src="/images/posts/2011-08-poker-class-php/poker-class-php-300x214.jpg"></p>
+
+<p>Немного костыльный способ проверки на флеш рояль: проверяем на наличие стрита, флеша и чтобы наличствовали туз и кароль.</p>
+
+<h6>Каре или Quad</h6>
+
+<p>Тут проще некуда, нужно наличие четырех одинаковых карт.</p>
+
+<p>``` php
+protected function _isQuad()
+{</p>
+
+<pre><code>$test = $this-&gt;_ranks;
+
+$uniqueElementsCount = array();
+
+foreach($this-&gt;_ranks as $key =&gt; $card) {
+    $test = $this-&gt;_ranks;
+    unset($test[$key]);
+    $uniqueElementsCount[] = count(array_unique($test));
+}
+
+
+return 1 === min($uniqueElementsCount);
+</code></pre>
+
+<p>}
+```</p>
+
+<h6>Стрит флеш</h6>
+
+<p>Тот же самый флешрояль, только необязательно, чтобы стрит был до туза (10-валет-дама-кароль-туз).</p>
+
+<p>``` php
+protected function _isStraightFlush()
+{</p>
+
+<pre><code>return ($this-&gt;_isFlush() &amp;&amp; $this-&gt;_isStraight());
+</code></pre>
+
+<p>}
+```</p>
+
+<h6>Фул хаус</h6>
+
+<p>Это когда три карты одного достоинства и две другого. Не самая удачная реализация :)</p>
+
+<p>``` php
+protected function _isFullHouse()
+{</p>
+
+<pre><code>$ranks = $this-&gt;_ranks;
+sort($ranks);
+
+if ((($ranks[0] == $ranks[1] &amp;&amp; $ranks[1] == $ranks[2]) &amp;&amp; ($ranks[3] == $ranks[4])) // 1=2=3 and 4=5
+        || ($ranks[0] == $ranks[1]) &amp;&amp; ($ranks[2] == $ranks[3] and $ranks[3] == $ranks[4])) // 1=2 and 3=4=5
+    return true;
+
+return false;
+}
+</code></pre>
+
+<p>```</p>
+
+<h6>Флеш</h6>
+
+<p>Все карты в комбинации должны быть одной масти. Проверяет все очень просто: сортируется массив с мастями и проверяется на равенство первая и последняя карты.</p>
+
+<p>``` php
+protected function _isFlush()
+{</p>
+
+<pre><code>$suits = $this-&gt;_suits;
+sort($suits);
+if ($suits[0] === $suits[4])
+    return true;
+
+return false;
+</code></pre>
+
+<p>}
+```</p>
+
+<h6>Стрит</h6>
+
+<p>Вне зависимости от масти, достоинство карт должно быть по старшенству (5 подряд). Из-за того, что туз может в зависимости от ситуации быть и самой старшей, и самой младшей картой, пришлось сделать две проверки.</p>
+
+<p>``` php
+protected function _isStraight()
+{</p>
+
+<pre><code>$ranks = $this-&gt;_ranks;
+sort($ranks);
+
+// if Ace is low card in straight
+if ($key = array_search(14, $ranks)) {
+    $tempRanks = $ranks;
+    unset($tempRanks[$key]);
+    if (array(2, 3, 4, 5) == $tempRanks) {
+        return true;
+    }
+    unset($tempRanks);
+}
+
+// if Ace is high card - default algorithm
+$min = $ranks[0];
+foreach($ranks as $key =&gt; $value) {
+    $ranks[$key] -= $min;
+    if ($key != $ranks[$key])
+        return false;
+}
+return true;
+</code></pre>
+
+<p>}
+```</p>
+
+<h6>Сет, трипс или тройка</h6>
+
+<p>Нужно наличие трех одинаковых карт. Алгоритм опять же далек от совершенства, но он выполняет свою работу.</p>
+
+<p>``` php
+protected function _isThreeOfKind()
+{</p>
+
+<pre><code>$ranks = $this-&gt;_ranks;
+sort($ranks);
+
+if (($ranks[0] == $ranks[1] and $ranks[1] == $ranks[2])
+        || ($ranks[1] == $ranks[2] and $ranks[2] == $ranks[3])
+        || ($ranks[2] == $ranks[3] and $ranks[3] == $ranks[4]))
+    return true;
+return false;
+</code></pre>
+
+<p>}
+```</p>
+
+<h6>Две пары</h6>
+
+<p>Из название алгоритма должно быть понятно что к чему.</p>
+
+<p>``` php
+protected function _isTwoPairs()
+{</p>
+
+<pre><code>$ranks = $this-&gt;_ranks;
+
+foreach($ranks as $key =&gt; $rank) {
+    $testRanks = $ranks;
+    unset($testRanks[$key]);
+    sort($testRanks);
+    if (($testRanks[0] == $testRanks[1])
+            and ($testRanks[2] == $testRanks[3])
+            and ($testRanks[0] != $testRanks[2])
+            // exclude full house
+            and ($testRanks[0] != $ranks[$key])
+            and ($testRanks[2] != $ranks[$key])
+    )
+        return true;
+}
+return false;
+</code></pre>
+
+<p>}
+```</p>
+
+<h6>Пара</h6>
+
+<p>Количество уникальных карт из пяти должно равняться четырем, если опять же я ничего не перепутал :).</p>
+
+<p>``` php
+protected function _isPair()
+{</p>
+
+<pre><code>return 4 === count(array_unique($this-&gt;_ranks));
+</code></pre>
+
+<p>}
+```</p>
+
+<h6>Старшая карта</h6>
+
+<p>Последний абзаци больше для красоты, потому что если ни одна комбинация не подошла, значит комбинация &ndash; старшая карта.</p>
+
+<p>``` php
+protected function _isHighCard()
+{</p>
+
+<pre><code>return true;
+</code></pre>
+
+<p>}
+```</p>
+
+<h6>Исходный код класса для опеределения покерных комбинаций на PHP</h6>
+
+<p>``` php
+&lt;?php
+/<strong>
+ * @author vredniy.ru
+ *
+</strong>/
+class Poker
+{</p>
+
+<pre><code>protected $_cards = array();
+//
+protected $_ranks = array();
+protected $_suits = array();
+
+public function __construct(array $cards)
+{
+    $this-&gt;_cards = $cards;
+
+    $rank = null;
+
+    foreach($cards as $card) {
+        switch (strtolower($card['rank'])) {
+            case 't':
+                $rank = 10;
+                break;
+            case 'j':
+                $rank = '11';
+                break;
+            case 'q':
+                $rank = '12';
+                break;
+            case 'k':
+                $rank = '13';
+                break;
+            case 'a':
+                $rank = '14';
+                break;
+                ;
+            default:
+                $rank = $card['rank'];
+                break;
+        }
+        $this-&gt;_ranks[] = $rank;
+        $this-&gt;_suits[] = $card['suit'];
+    }
+}
+
+public function checkCombination()
+{
+    // is Royal Flush
+    echo $this-&gt;_isRoyalFlush() ? 'royal flush' : 'not royal flush';
+    echo '&lt;br&gt;';
+
+    // is Quad (four of kind)
+    echo $this-&gt;_isQuad() ? 'quad' : 'not quad';
+    echo '&lt;br&gt;';
+
+    // is StraightFlush
+    echo $this-&gt;_isStraightFlush() ? 'straight flush' : 'not straight flush';
+    echo '&lt;br&gt;';
+
+    // is Full House
+    echo $this-&gt;_isFullHouse() ? 'full house' : 'not full house';
+    echo '&lt;br&gt;';
+
+    // is Flush
+    echo $this-&gt;_isFlush() ? 'flush' : 'not flush';
+    echo '&lt;br&gt;';
+
+    // is Straight
+    echo $this-&gt;_isStraight() ? 'straight' : 'not straigt';
+    echo '&lt;br&gt;';
+
+    // is Three of Kind
+    echo $this-&gt;_isThreeOfKind() ? 'three of kind' : 'not three of kind';
+    echo '&lt;br&gt;';
+
+    // is Two Pairs
+    echo $this-&gt;_isTwoPairs() ? 'two pairs' : 'not two pairs';
+    echo '&lt;br&gt;';
+
+    // is one Pair
+    echo $this-&gt;_isPair() ? 'pair' : 'not pair';
+    echo '&lt;br&gt;';
+
+    // is High Card
+    echo $this-&gt;_isHighCard() ? 'high card' : 'not high card';
+    echo '&lt;br&gt;';
+}
+
+/**
+ * chech that combination is flush and straight and contains ace and king (exclude straight flush "ace-5")
+ *
+ * @return bool
+ */
+protected function _isRoyalFlush()
+{
+    return ($this-&gt;_isFlush() &amp;&amp; $this-&gt;_isStraight() &amp;&amp; array_search(14, $this-&gt;_ranks) &amp;&amp; array_search('13', $this-&gt;_ranks));
+}
+
+/**
+ * check combination is quad (four of kind)
+ *
+ * @return bool
+ */
+protected function _isQuad()
+{
+
+    $test = $this-&gt;_ranks;
+
+    $uniqueElementsCount = array();
+
+    foreach($this-&gt;_ranks as $key =&gt; $card) {
+        $test = $this-&gt;_ranks;
+        unset($test[$key]);
+        $uniqueElementsCount[] = count(array_unique($test));
+    }
+
+
+    return 1 === min($uniqueElementsCount);
+}
+
+/**
+ * is a straight and a flush?
+ *
+ * @return bool
+ */
+protected function _isStraightFlush()
+{
+    return ($this-&gt;_isFlush() &amp;&amp; $this-&gt;_isStraight());
+}
+
+/**
+ * is full house?
+ * (1=2=3 and 4=5) or (1=2 and 3=4=5)
+ *
+ * @return bool
+ */
+protected function _isFullHouse()
+{
+    $ranks = $this-&gt;_ranks;
+    sort($ranks);
+
+    if ((($ranks[0] == $ranks[1] &amp;&amp; $ranks[1] == $ranks[2]) &amp;&amp; ($ranks[3] == $ranks[4])) // 1=2=3 and 4=5
+            || ($ranks[0] == $ranks[1]) &amp;&amp; ($ranks[2] == $ranks[3] and $ranks[3] == $ranks[4])) // 1=2 and 3=4=5
+        return true;
+
+    return false;
+}
+
+/**
+ * is flush?
+ *
+ * @return bool
+ */
+protected function _isFlush()
+{
+    $suits = $this-&gt;_suits;
+    sort($suits);
+    if ($suits[0] === $suits[4])
+        return true;
+
+    return false;
+}
+
+/**
+ * check straight. 2 attempt, 'cause ace may be high card, or low.
+ *
+ * @return bool
+ */
+protected function _isStraight()
+{
+
+    $ranks = $this-&gt;_ranks;
+    sort($ranks);
+
+    // if Ace is low card in straight
+    if ($key = array_search(14, $ranks)) {
+        $tempRanks = $ranks;
+        unset($tempRanks[$key]);
+        if (array(2, 3, 4, 5) == $tempRanks) {
+            return true;
+        }
+        unset($tempRanks);
+    }
+
+    // if Ace is high card - default algorithm
+    $min = $ranks[0];
+    foreach($ranks as $key =&gt; $value) {
+        $ranks[$key] -= $min;
+        if ($key != $ranks[$key])
+            return false;
+    }
+    return true;
+}
+
+/**
+ * is Three of kind
+ *
+ * @return bool
+ */
+protected function _isThreeOfKind()
+{
+    $ranks = $this-&gt;_ranks;
+    sort($ranks);
+
+    if (($ranks[0] == $ranks[1] and $ranks[1] == $ranks[2])
+            || ($ranks[1] == $ranks[2] and $ranks[2] == $ranks[3])
+            || ($ranks[2] == $ranks[3] and $ranks[3] == $ranks[4]))
+        return true;
+    return false;
+}
+
+/**
+ * is two pairs
+ *
+ * @return bool
+ */
+protected function _isTwoPairs()
+{
+    $ranks = $this-&gt;_ranks;
+
+    foreach($ranks as $key =&gt; $rank) {
+        $testRanks = $ranks;
+        unset($testRanks[$key]);
+        sort($testRanks);
+        if (($testRanks[0] == $testRanks[1])
+                and ($testRanks[2] == $testRanks[3])
+                and ($testRanks[0] != $testRanks[2])
+                // exclude full house
+                and ($testRanks[0] != $ranks[$key])
+                and ($testRanks[2] != $ranks[$key])
+        )
+            return true;
+    }
+    return false;
+}
+
+/**
+ * is single Pair
+ *
+ * @return bool
+ */
+protected function _isPair()
+{
+    return 4 === count(array_unique($this-&gt;_ranks));
+}
+
+/**
+ * is High Card
+ *
+ * @return bool true
+ */
+protected function _isHighCard()
+{
+    return true;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h6>Небольшой пример использования</h6>
+
+<p>``` php
+&lt;?php</p>
+
+<p>require_once &lsquo;Poker.php&rsquo;;</p>
+
+<p>$cards = array(</p>
+
+<pre><code>array('suit' =&gt; 's', 'rank' =&gt; '3'),
+array('suit' =&gt; 's', 'rank' =&gt; '7'),
+array('suit' =&gt; 's', 'rank' =&gt; 'a'),
+array('suit' =&gt; 's', 'rank' =&gt; 't'),
+array('suit' =&gt; 's', 'rank' =&gt; 't')
+</code></pre>
+
+<p>);</p>
+
+<p>$poker = new Poker($cards);</p>
+
+<p>$poker->checkCombination();
+```</p>
+
+<p>Комбинация из 5 карт для данного класса задается массивом из 5 элементов, которые в свою очередь явлеются ассоциативными массивами (suit &ndash; это масть, rank &ndash; достоинство карты).</p>
+
+<h3>Эпилог</h3>
+
+<p>Данный класс можно немного доработать, чтобы вместо название комбинаций, он выводил какой-нибудь балл комбинации, чтобы имелась возможность сравнивать две одинаковых комбинации, но это по желанию и выходит за пределы данной заметки. Также вы можете допилить проверку на корректность заданной комбинации. На этом на сегодня все.  Удачи вам в любых начинаниях и продолжениях.</p>
 ]]></content>
   </entry>
   

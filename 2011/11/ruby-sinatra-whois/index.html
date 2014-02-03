@@ -1,0 +1,413 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Sinatra и Whois gem: маленькое приложение - Записки Вредного программиста</title>
+  <meta name="author" content="Зудочкин Дима">
+
+  
+  <meta name="description" content="Здравствуйте, уважаемые коллеги и те, кто может случайно забрел на мой блог. Сегодня речь пойдет о Ruby, но я не буду вдаваться в подробное описание &hellip;">
+  <meta name="keywords" content="ruby,sinatra,whois,jquery">
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://zudochkin.ru/2011/11/ruby-sinatra-whois">
+
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Записки Вредного программиста" type="application/atom+xml">
+  <link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-11803166-9', 'zudochkin.ru');
+  ga('send', 'pageview');
+
+</script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <div id="logo">
+  	<div id="logoLeft">{</div>
+  	<div id="logoText">Zudochkin Dmitry</div>
+  	<div id="logoRight">}</div>
+  	<div class="clear"></div>
+  </div>
+  <h1><a href="/">Записки Вредного программиста</a></h1>
+  
+    <h2>enjoy, motherfuckers ;)</h2>
+  
+  <div class="clear"></div>
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:zudochkin.ru" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Главная</a></li>
+  <li><a href="/archives">Архив</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      
+        <h1 class="entry-title">Sinatra и Whois Gem: маленькое приложение</h1>
+      
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-11-18T02:26:34+04:00" pubdate data-updated="true">18.11.2011</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Здравствуйте, уважаемые коллеги и те, кто может случайно забрел на мой блог. Сегодня речь пойдет о Ruby, но я не буду вдаваться в подробное описание языка, поэтому ограничимся базовой функциональностью замечательного фреймворка Sinatra.</p>
+
+<!-- more -->
+
+
+<h3>Вступление</h3>
+
+<p>Мой отпуск подходит плавно к концу, но чтобы не зря тратить время решил я посвятить его изучению нового для меня языка программирования. Почему Ruby, возможно назреет у вас вопрос. Отвечу так: я долго шел к смене языка программировани, нет, это не из-за того, что мне не нравится PHP, отнюдь, но захотелось чего-то другого во время отпуска, тем более, что время позволяет. Прежде чем остановиться на Ruby, мною было прочитано много килобайт материала, просмотрено много мегабайт видео презентаций и скринкастов, и я решил более не задаваться глупыми вопросами, а может Python, может еще что-нибудь, решил просто попробовать.</p>
+
+<p><img class="image" src="/images/posts/2011-11-ruby-sinatra-whois/ruby-sinatra-300x197.png">Почему Sinatra, а не Rails? Все просто: чтобы понять как работает такой большой веб-фреймворк, как Rails, понадобится намного больше времени, да и понять его без хорошего знания Ruby, я не рискну, а Sinatra в этом отношении в разы полегче, можно сказать, что это чистый Ruby.</p>
+
+<h3>Постановка задачи</h3>
+
+<p>Задача будет проста до безумия: у нас будет иметься одна страница с одним текстовым полем. Если мы введем туда корректное имя домена, приложение ответит нам доступен ли домен для регистрации и срок истечения, если домен зарегистрирован.</p>
+
+<h3>Используемый инструментарий</h3>
+
+<p>В первую очередь нам, конечно же, понадобится сервер с установленным на нем Ruby, локальный вполне подойдет. В этой короткой заметке я не буду рассказывать как его [сервер] установить, в интернете полным-полно подобных мануалов и раскрывают они тему исчерпывающе. В дополнение к гему sinatra, нам также понадобятся: whois (http://goo.gl/0jEJA) и гем json (им мы будем отдавать ответ).</p>
+
+<h3>Реализация</h3>
+
+<p>Приложение у нас будет состоять из двух экшнов: первый это главная страница, на которой и будет отображаться текстовый элемент и экшн, который будет отвечать за прием данных по средством AJAX, отправку запроса серверу whois и возвращению ответ в формате JSON.
+Шаблонизатором у нас будет выступать HAML, очень удобная и простая штука, так что приведу код шаблона главной страницы в формате haml.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">!!!</span>
+</span><span class='line'><span class="o">%</span><span class="n">html</span>
+</span><span class='line'>  <span class="o">%</span><span class="n">head</span>
+</span><span class='line'>    <span class="o">%</span><span class="n">meta</span><span class="p">{</span><span class="ss">:content</span> <span class="o">=&gt;</span> <span class="s2">&quot;text/html; charset=UTF-8&quot;</span><span class="p">,</span> <span class="s2">&quot;http-equiv&quot;</span> <span class="o">=&gt;</span> <span class="s2">&quot;content-type&quot;</span><span class="p">}</span><span class="o">/</span>
+</span><span class='line'>    <span class="o">%</span><span class="n">script</span><span class="p">{</span><span class="ss">:type</span> <span class="o">=&gt;</span> <span class="s1">&#39;text/javascript&#39;</span><span class="p">,</span> <span class="ss">:src</span> <span class="o">=&gt;</span> <span class="s1">&#39;http://yandex.st/jquery/1.7.0/jquery.min.js&#39;</span><span class="p">}</span>
+</span><span class='line'>    <span class="o">%</span><span class="n">script</span><span class="p">{</span><span class="ss">:type</span> <span class="o">=&gt;</span> <span class="s1">&#39;text/javascript&#39;</span><span class="p">,</span> <span class="ss">:src</span> <span class="o">=&gt;</span> <span class="s1">&#39;/javascripts/default.js&#39;</span><span class="p">}</span>
+</span><span class='line'>    <span class="o">%</span><span class="n">title</span> <span class="err">Маленькое</span> <span class="err">приложение</span> <span class="err">на</span> <span class="err">Руби</span> <span class="p">(</span><span class="no">Sinatra</span><span class="p">,</span> <span class="no">Whois</span><span class="p">,</span> <span class="no">Json</span><span class="p">)</span>
+</span><span class='line'>  <span class="o">%</span><span class="n">body</span>
+</span><span class='line'>    <span class="o">%</span><span class="n">div</span>
+</span><span class='line'>      <span class="o">%</span><span class="nb">p</span> <span class="err">Впишите</span> <span class="err">какой</span><span class="o">-</span><span class="err">нибудь</span><span class="p">,</span> <span class="err">желательно</span><span class="p">,</span> <span class="err">корректный</span> <span class="err">домен</span> <span class="err">и</span> <span class="err">нажмите</span> <span class="no">Enter</span>
+</span><span class='line'>      <span class="o">%</span><span class="n">form</span><span class="p">{</span><span class="ss">:method</span> <span class="o">=&gt;</span> <span class="s1">&#39;post&#39;</span><span class="p">,</span> <span class="ss">:action</span> <span class="o">=&gt;</span> <span class="s1">&#39;/ajax.json&#39;</span><span class="p">}</span>
+</span><span class='line'>        <span class="o">%</span><span class="n">input</span><span class="p">{</span><span class="ss">:type</span> <span class="o">=&gt;</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s2">&quot;domain&quot;</span><span class="p">}</span>
+</span><span class='line'>      <span class="o">%</span><span class="n">ul</span><span class="p">{</span><span class="ss">:id</span> <span class="o">=&gt;</span> <span class="s1">&#39;info&#39;</span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Также приведу исходных код экшна главной страницы, который занимает всего 1 строчку. Его задача только отобразить шаблон.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">get</span> <span class="s1">&#39;/&#39;</span> <span class="k">do</span>
+</span><span class='line'>   <span class="n">haml</span> <span class="ss">:index</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Наш AJAX экшн будет срабатывать по POST запросу при отсылке данных по адресу /ajax.json</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="n">post</span> <span class="s1">&#39;/ajax.json&#39;</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">domain</span> <span class="o">=</span> <span class="n">params</span><span class="o">[</span><span class="ss">:domain</span><span class="o">]</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">begin</span>
+</span><span class='line'>      <span class="n">info</span> <span class="o">=</span> <span class="no">Whois</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">rescue</span> <span class="ss">Whois</span><span class="p">:</span><span class="ss">:ServerNotFound</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>    <span class="n">content_type</span> <span class="ss">:json</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">{</span> <span class="ss">:domain</span> <span class="o">=&gt;</span> <span class="n">domain</span><span class="p">,</span> <span class="ss">:info</span> <span class="o">=&gt;</span> <span class="p">{</span><span class="ss">:available</span> <span class="o">=&gt;</span> <span class="n">info</span><span class="o">.</span><span class="n">available?</span><span class="p">,</span> <span class="ss">:registered</span> <span class="o">=&gt;</span> <span class="n">info</span><span class="o">.</span><span class="n">registered?</span><span class="p">,</span> <span class="ss">:expires</span> <span class="o">=&gt;</span> <span class="n">info</span><span class="o">.</span><span class="n">expires_on</span><span class="p">}</span> <span class="p">}</span><span class="o">.</span><span class="n">to_json</span> <span class="k">unless</span> <span class="n">info</span><span class="o">.</span><span class="n">nil?</span>
+</span><span class='line'>  <span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>В первой строке которого мы получаем имя домена через форму. Далее получаем необходимую информацию о домене, для того чтобы не сыпались в приложении исключения я оборачиваю вызов кода, который легко может выбросить исключения в обертку аля PHP try-catch. <strong>content_type json</strong>, как вы догадались, устанавливает формат ответа. В последней строке мы формируем JSON. Что удобно в Ruby, так это то, что не нужно возвращать значения, данный язык делает это сам, т.е. последняя строка в методе возвращает значение.</p>
+
+<p>Осталось только связать нашу форму на главной странице и AJAX экшн. Для этих целей очень хорошо подойдет несколько строк на замечательном JavaScript-фреймворке jQuery. Задача &ndash; отправить AJAX запрос методом POST, дождаться ответа от сервера и заполнить список полями из полученного JSON.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">$</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;form&#39;</span><span class="p">).</span><span class="nx">submit</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">$</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="s1">&#39;/ajax.json&#39;</span><span class="p">,</span> <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">serialize</span><span class="p">(),</span> <span class="kd">function</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">alert</span><span class="p">(</span><span class="s1">&#39;Что-то пошло не так (&#39;</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">return</span><span class="p">;</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>      <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;ul#info &gt; *&#39;</span><span class="p">).</span><span class="nx">remove</span><span class="p">();</span>
+</span><span class='line'>      <span class="nx">$</span><span class="p">.</span><span class="nx">each</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">info</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">field</span><span class="p">,</span> <span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;ul#info&#39;</span><span class="p">).</span><span class="nx">append</span><span class="p">(</span><span class="s1">&#39;</span>
+</span><span class='line'><span class="s1">* **&#39;</span> <span class="o">+</span> <span class="nx">field</span> <span class="o">+</span> <span class="s1">&#39;** &#39;</span> <span class="o">+</span> <span class="nx">value</span> <span class="o">+</span> <span class="s1">&#39;</span>
+</span><span class='line'><span class="s1">&#39;</span><span class="p">)</span>
+</span><span class='line'>      <span class="p">});</span>
+</span><span class='line'>      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">},</span> <span class="s1">&#39;json&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Исходный код</h3>
+
+<p>Исходный код вы можете посмотреть на гитхабе, <a href="https://github.com/vredniy/sinatra-whois">здесь</a>.</p>
+
+<h3>Заключение</h3>
+
+<p>Это была моя первая заметка на тему Ruby, надеюсь, мой блог и дальше будет пополняться подобными постами, потому что язык мне очень нравится, нравится своей гибкостью и необычностью (как программист на PHP говорю). Спасибо зв внимание и до новых встреч.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-11-18T02:26:34+04:00" pubdate data-updated="true">18.11.2011</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ruby/'>Ruby</a>, <a class='category' href='/blog/categories/jquery/'>jQuery</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://zudochkin.ru/2011/11/ruby-sinatra-whois" data-via="vredniy" data-counturl="http://zudochkin.ru/2011/11/ruby-sinatra-whois" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left articlenav" href="/2011/09/health-sport" title="Предыдущий пост: Здоровый образ жизни и я">&laquo; Здоровый образ жизни и я</a>
+      
+      
+        <a class="basic-alignment right articlenav" href="/2012/02/ruby-application-heroku" title="Следующий пост: Деплой ruby приложения на heroku">Деплой ruby приложения на heroku &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Комментарии</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Последние посты</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2014/01/fulltext-phones-postgresql">Полнотекстовый поиск по телефонным номерам разного формата (PostgreSQL)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/11/open-uri-progress-bar">Ruby OpenURI::open и ProgressBar</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/first-photography">Первая выездная фотосъемка (Большой Москворецкий мост)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/vim-first-plugin">Написание первого плагина для Vim</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/logrotate-unicorn">Ротация логов на примере логов Unicorn</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Зудочкин Дима -
+  <span class="credit">Powered by <a rel="nofollow" href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'zudochkinru';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://zudochkin.ru/2011/11/ruby-sinatra-whois';
+        var disqus_url = 'http://zudochkin.ru/2011/11/ruby-sinatra-whois';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

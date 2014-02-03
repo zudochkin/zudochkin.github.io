@@ -1,0 +1,1124 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Покерный класс на PHP - Записки Вредного программиста</title>
+  <meta name="author" content="Зудочкин Дима">
+
+  
+  <meta name="description" content="Сегодня мы научимся распознавать комбинации в Техасском холдеме, именно в такую разновидность покера я играю (играл).">
+  <meta name="keywords" content="покер php, poker class php, poker php, poker combination php, combination php, php class poker,oop,php,poker,алгоритмы,программирование">
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://zudochkin.ru/2011/08/poker-class-php">
+
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Записки Вредного программиста" type="application/atom+xml">
+  <link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-11803166-9', 'zudochkin.ru');
+  ga('send', 'pageview');
+
+</script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <div id="logo">
+  	<div id="logoLeft">{</div>
+  	<div id="logoText">Zudochkin Dmitry</div>
+  	<div id="logoRight">}</div>
+  	<div class="clear"></div>
+  </div>
+  <h1><a href="/">Записки Вредного программиста</a></h1>
+  
+    <h2>enjoy, motherfuckers ;)</h2>
+  
+  <div class="clear"></div>
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:zudochkin.ru" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Главная</a></li>
+  <li><a href="/archives">Архив</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      
+        <h1 class="entry-title">Покерный класс на PHP</h1>
+      
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-08-11T13:52:41+04:00" pubdate data-updated="true">11.08.2011</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Приветствую тебя, разработчик или случайно зашедший на огонек в этот уютный технический бложек. Сегодня речь пойдет о несколько математической задаче, хоть и немного там математики, да и она понятна школьнику 5го класса. Сегодня мы научимся распознавать комбинации в Техасском холдеме, именно в такую разновидность покера я играю (играл). Т.к. это очень простой класс на PHP, он не будет иметь определять старшинство одинаковых по названию комбинаций, но разнящихся по номиналу, к примеру стрит до 10 и стрит до 8 будут трактоваться этим классом, как просто стрит. В Техасском холдеме всего 10 комбинаций и мы с вами пройдемся от самой старшей из них &ndash; флеш рояль до самой младшей &ndash; старшая карта.</p>
+
+<!-- more -->
+
+
+<h6>Флеш рояль</h6>
+
+<p>Высшая кобинация в покере &ndash; это стрит (стрейт) флеш до туза.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">protected</span> <span class="k">function</span> <span class="nf">_isRoyalFlush</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isFlush</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isStraight</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="nb">array_search</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nb">array_search</span><span class="p">(</span><span class="s1">&#39;13&#39;</span><span class="p">,</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img class="image" src="/images/posts/2011-08-poker-class-php/poker-class-php-300x214.jpg"></p>
+
+<p>Немного костыльный способ проверки на флеш рояль: проверяем на наличие стрита, флеша и чтобы наличствовали туз и кароль.</p>
+
+<h6>Каре или Quad</h6>
+
+<p>Тут проще некуда, нужно наличие четырех одинаковых карт.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">protected</span> <span class="k">function</span> <span class="nf">_isQuad</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nv">$test</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nv">$uniqueElementsCount</span> <span class="o">=</span> <span class="k">array</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">foreach</span><span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span> <span class="k">as</span> <span class="nv">$key</span> <span class="o">=&gt;</span> <span class="nv">$card</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nv">$test</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">;</span>
+</span><span class='line'>      <span class="nb">unset</span><span class="p">(</span><span class="nv">$test</span><span class="p">[</span><span class="nv">$key</span><span class="p">]);</span>
+</span><span class='line'>      <span class="nv">$uniqueElementsCount</span><span class="p">[]</span> <span class="o">=</span> <span class="nb">count</span><span class="p">(</span><span class="nb">array_unique</span><span class="p">(</span><span class="nv">$test</span><span class="p">));</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">1</span> <span class="o">===</span> <span class="nx">min</span><span class="p">(</span><span class="nv">$uniqueElementsCount</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h6>Стрит флеш</h6>
+
+<p>Тот же самый флешрояль, только необязательно, чтобы стрит был до туза (10-валет-дама-кароль-туз).</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">protected</span> <span class="k">function</span> <span class="nf">_isStraightFlush</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isFlush</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isStraight</span><span class="p">());</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h6>Фул хаус</h6>
+
+<p>Это когда три карты одного достоинства и две другого. Не самая удачная реализация :)</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">protected</span> <span class="k">function</span> <span class="nf">_isFullHouse</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nv">$ranks</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">sort</span><span class="p">(</span><span class="nv">$ranks</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(((</span><span class="nv">$ranks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nv">$ranks</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">4</span><span class="p">]))</span> <span class="c1">// 1=2=3 and 4=5</span>
+</span><span class='line'>          <span class="o">||</span> <span class="p">(</span><span class="nv">$ranks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nv">$ranks</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="k">and</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">4</span><span class="p">]))</span> <span class="c1">// 1=2 and 3=4=5</span>
+</span><span class='line'>      <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h6>Флеш</h6>
+
+<p>Все карты в комбинации должны быть одной масти. Проверяет все очень просто: сортируется массив с мастями и проверяется на равенство первая и последняя карты.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">protected</span> <span class="k">function</span> <span class="nf">_isFlush</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nv">$suits</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_suits</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">sort</span><span class="p">(</span><span class="nv">$suits</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="nv">$suits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">===</span> <span class="nv">$suits</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+</span><span class='line'>      <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h6>Стрит</h6>
+
+<p>Вне зависимости от масти, достоинство карт должно быть по старшенству (5 подряд). Из-за того, что туз может в зависимости от ситуации быть и самой старшей, и самой младшей картой, пришлось сделать две проверки.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">protected</span> <span class="k">function</span> <span class="nf">_isStraight</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nv">$ranks</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">sort</span><span class="p">(</span><span class="nv">$ranks</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// if Ace is low card in straight</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="nv">$key</span> <span class="o">=</span> <span class="nb">array_search</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="nv">$ranks</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nv">$tempRanks</span> <span class="o">=</span> <span class="nv">$ranks</span><span class="p">;</span>
+</span><span class='line'>      <span class="nb">unset</span><span class="p">(</span><span class="nv">$tempRanks</span><span class="p">[</span><span class="nv">$key</span><span class="p">]);</span>
+</span><span class='line'>      <span class="k">if</span> <span class="p">(</span><span class="k">array</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">==</span> <span class="nv">$tempRanks</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>          <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>      <span class="nb">unset</span><span class="p">(</span><span class="nv">$tempRanks</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// if Ace is high card - default algorithm</span>
+</span><span class='line'>  <span class="nv">$min</span> <span class="o">=</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+</span><span class='line'>  <span class="k">foreach</span><span class="p">(</span><span class="nv">$ranks</span> <span class="k">as</span> <span class="nv">$key</span> <span class="o">=&gt;</span> <span class="nv">$value</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nv">$ranks</span><span class="p">[</span><span class="nv">$key</span><span class="p">]</span> <span class="o">-=</span> <span class="nv">$min</span><span class="p">;</span>
+</span><span class='line'>      <span class="k">if</span> <span class="p">(</span><span class="nv">$key</span> <span class="o">!=</span> <span class="nv">$ranks</span><span class="p">[</span><span class="nv">$key</span><span class="p">])</span>
+</span><span class='line'>          <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h6>Сет, трипс или тройка</h6>
+
+<p>Нужно наличие трех одинаковых карт. Алгоритм опять же далек от совершенства, но он выполняет свою работу.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">protected</span> <span class="k">function</span> <span class="nf">_isThreeOfKind</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nv">$ranks</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">sort</span><span class="p">(</span><span class="nv">$ranks</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">if</span> <span class="p">((</span><span class="nv">$ranks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">and</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+</span><span class='line'>          <span class="o">||</span> <span class="p">(</span><span class="nv">$ranks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">and</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+</span><span class='line'>          <span class="o">||</span> <span class="p">(</span><span class="nv">$ranks</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="k">and</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">4</span><span class="p">]))</span>
+</span><span class='line'>      <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h6>Две пары</h6>
+
+<p>Из название алгоритма должно быть понятно что к чему.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">protected</span> <span class="k">function</span> <span class="nf">_isTwoPairs</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nv">$ranks</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">foreach</span><span class="p">(</span><span class="nv">$ranks</span> <span class="k">as</span> <span class="nv">$key</span> <span class="o">=&gt;</span> <span class="nv">$rank</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nv">$testRanks</span> <span class="o">=</span> <span class="nv">$ranks</span><span class="p">;</span>
+</span><span class='line'>      <span class="nb">unset</span><span class="p">(</span><span class="nv">$testRanks</span><span class="p">[</span><span class="nv">$key</span><span class="p">]);</span>
+</span><span class='line'>      <span class="nb">sort</span><span class="p">(</span><span class="nv">$testRanks</span><span class="p">);</span>
+</span><span class='line'>      <span class="k">if</span> <span class="p">((</span><span class="nv">$testRanks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$testRanks</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</span><span class='line'>              <span class="k">and</span> <span class="p">(</span><span class="nv">$testRanks</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$testRanks</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+</span><span class='line'>              <span class="k">and</span> <span class="p">(</span><span class="nv">$testRanks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nv">$testRanks</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+</span><span class='line'>              <span class="c1">// exclude full house</span>
+</span><span class='line'>              <span class="k">and</span> <span class="p">(</span><span class="nv">$testRanks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nv">$ranks</span><span class="p">[</span><span class="nv">$key</span><span class="p">])</span>
+</span><span class='line'>              <span class="k">and</span> <span class="p">(</span><span class="nv">$testRanks</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="nv">$ranks</span><span class="p">[</span><span class="nv">$key</span><span class="p">])</span>
+</span><span class='line'>      <span class="p">)</span>
+</span><span class='line'>          <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h6>Пара</h6>
+
+<p>Количество уникальных карт из пяти должно равняться четырем, если опять же я ничего не перепутал :).</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">protected</span> <span class="k">function</span> <span class="nf">_isPair</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">4</span> <span class="o">===</span> <span class="nb">count</span><span class="p">(</span><span class="nb">array_unique</span><span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h6>Старшая карта</h6>
+
+<p>Последний абзаци больше для красоты, потому что если ни одна комбинация не подошла, значит комбинация &ndash; старшая карта.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">protected</span> <span class="k">function</span> <span class="nf">_isHighCard</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h6>Исходный код класса для опеределения покерных комбинаций на PHP</h6>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+<span class='line-number'>123</span>
+<span class='line-number'>124</span>
+<span class='line-number'>125</span>
+<span class='line-number'>126</span>
+<span class='line-number'>127</span>
+<span class='line-number'>128</span>
+<span class='line-number'>129</span>
+<span class='line-number'>130</span>
+<span class='line-number'>131</span>
+<span class='line-number'>132</span>
+<span class='line-number'>133</span>
+<span class='line-number'>134</span>
+<span class='line-number'>135</span>
+<span class='line-number'>136</span>
+<span class='line-number'>137</span>
+<span class='line-number'>138</span>
+<span class='line-number'>139</span>
+<span class='line-number'>140</span>
+<span class='line-number'>141</span>
+<span class='line-number'>142</span>
+<span class='line-number'>143</span>
+<span class='line-number'>144</span>
+<span class='line-number'>145</span>
+<span class='line-number'>146</span>
+<span class='line-number'>147</span>
+<span class='line-number'>148</span>
+<span class='line-number'>149</span>
+<span class='line-number'>150</span>
+<span class='line-number'>151</span>
+<span class='line-number'>152</span>
+<span class='line-number'>153</span>
+<span class='line-number'>154</span>
+<span class='line-number'>155</span>
+<span class='line-number'>156</span>
+<span class='line-number'>157</span>
+<span class='line-number'>158</span>
+<span class='line-number'>159</span>
+<span class='line-number'>160</span>
+<span class='line-number'>161</span>
+<span class='line-number'>162</span>
+<span class='line-number'>163</span>
+<span class='line-number'>164</span>
+<span class='line-number'>165</span>
+<span class='line-number'>166</span>
+<span class='line-number'>167</span>
+<span class='line-number'>168</span>
+<span class='line-number'>169</span>
+<span class='line-number'>170</span>
+<span class='line-number'>171</span>
+<span class='line-number'>172</span>
+<span class='line-number'>173</span>
+<span class='line-number'>174</span>
+<span class='line-number'>175</span>
+<span class='line-number'>176</span>
+<span class='line-number'>177</span>
+<span class='line-number'>178</span>
+<span class='line-number'>179</span>
+<span class='line-number'>180</span>
+<span class='line-number'>181</span>
+<span class='line-number'>182</span>
+<span class='line-number'>183</span>
+<span class='line-number'>184</span>
+<span class='line-number'>185</span>
+<span class='line-number'>186</span>
+<span class='line-number'>187</span>
+<span class='line-number'>188</span>
+<span class='line-number'>189</span>
+<span class='line-number'>190</span>
+<span class='line-number'>191</span>
+<span class='line-number'>192</span>
+<span class='line-number'>193</span>
+<span class='line-number'>194</span>
+<span class='line-number'>195</span>
+<span class='line-number'>196</span>
+<span class='line-number'>197</span>
+<span class='line-number'>198</span>
+<span class='line-number'>199</span>
+<span class='line-number'>200</span>
+<span class='line-number'>201</span>
+<span class='line-number'>202</span>
+<span class='line-number'>203</span>
+<span class='line-number'>204</span>
+<span class='line-number'>205</span>
+<span class='line-number'>206</span>
+<span class='line-number'>207</span>
+<span class='line-number'>208</span>
+<span class='line-number'>209</span>
+<span class='line-number'>210</span>
+<span class='line-number'>211</span>
+<span class='line-number'>212</span>
+<span class='line-number'>213</span>
+<span class='line-number'>214</span>
+<span class='line-number'>215</span>
+<span class='line-number'>216</span>
+<span class='line-number'>217</span>
+<span class='line-number'>218</span>
+<span class='line-number'>219</span>
+<span class='line-number'>220</span>
+<span class='line-number'>221</span>
+<span class='line-number'>222</span>
+<span class='line-number'>223</span>
+<span class='line-number'>224</span>
+<span class='line-number'>225</span>
+<span class='line-number'>226</span>
+<span class='line-number'>227</span>
+<span class='line-number'>228</span>
+<span class='line-number'>229</span>
+<span class='line-number'>230</span>
+<span class='line-number'>231</span>
+<span class='line-number'>232</span>
+<span class='line-number'>233</span>
+<span class='line-number'>234</span>
+<span class='line-number'>235</span>
+<span class='line-number'>236</span>
+<span class='line-number'>237</span>
+<span class='line-number'>238</span>
+<span class='line-number'>239</span>
+<span class='line-number'>240</span>
+<span class='line-number'>241</span>
+<span class='line-number'>242</span>
+<span class='line-number'>243</span>
+<span class='line-number'>244</span>
+<span class='line-number'>245</span>
+<span class='line-number'>246</span>
+<span class='line-number'>247</span>
+<span class='line-number'>248</span>
+<span class='line-number'>249</span>
+<span class='line-number'>250</span>
+<span class='line-number'>251</span>
+<span class='line-number'>252</span>
+<span class='line-number'>253</span>
+<span class='line-number'>254</span>
+<span class='line-number'>255</span>
+<span class='line-number'>256</span>
+<span class='line-number'>257</span>
+<span class='line-number'>258</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="o">&lt;?</span><span class="nx">php</span>
+</span><span class='line'><span class="sd">/**</span>
+</span><span class='line'><span class="sd"> * @author vredniy.ru</span>
+</span><span class='line'><span class="sd"> *</span>
+</span><span class='line'><span class="sd">**/</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">Poker</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">protected</span> <span class="nv">$_cards</span> <span class="o">=</span> <span class="k">array</span><span class="p">();</span>
+</span><span class='line'>    <span class="c1">//</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="nv">$_ranks</span> <span class="o">=</span> <span class="k">array</span><span class="p">();</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="nv">$_suits</span> <span class="o">=</span> <span class="k">array</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">function</span> <span class="nf">__construct</span><span class="p">(</span><span class="k">array</span> <span class="nv">$cards</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_cards</span> <span class="o">=</span> <span class="nv">$cards</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nv">$rank</span> <span class="o">=</span> <span class="k">null</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">foreach</span><span class="p">(</span><span class="nv">$cards</span> <span class="k">as</span> <span class="nv">$card</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">switch</span> <span class="p">(</span><span class="nx">strtolower</span><span class="p">(</span><span class="nv">$card</span><span class="p">[</span><span class="s1">&#39;rank&#39;</span><span class="p">]))</span> <span class="p">{</span>
+</span><span class='line'>                <span class="k">case</span> <span class="s1">&#39;t&#39;</span><span class="o">:</span>
+</span><span class='line'>                    <span class="nv">$rank</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+</span><span class='line'>                    <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>                <span class="k">case</span> <span class="s1">&#39;j&#39;</span><span class="o">:</span>
+</span><span class='line'>                    <span class="nv">$rank</span> <span class="o">=</span> <span class="s1">&#39;11&#39;</span><span class="p">;</span>
+</span><span class='line'>                    <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>                <span class="k">case</span> <span class="s1">&#39;q&#39;</span><span class="o">:</span>
+</span><span class='line'>                    <span class="nv">$rank</span> <span class="o">=</span> <span class="s1">&#39;12&#39;</span><span class="p">;</span>
+</span><span class='line'>                    <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>                <span class="k">case</span> <span class="s1">&#39;k&#39;</span><span class="o">:</span>
+</span><span class='line'>                    <span class="nv">$rank</span> <span class="o">=</span> <span class="s1">&#39;13&#39;</span><span class="p">;</span>
+</span><span class='line'>                    <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>                <span class="k">case</span> <span class="s1">&#39;a&#39;</span><span class="o">:</span>
+</span><span class='line'>                    <span class="nv">$rank</span> <span class="o">=</span> <span class="s1">&#39;14&#39;</span><span class="p">;</span>
+</span><span class='line'>                    <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>                    <span class="p">;</span>
+</span><span class='line'>                <span class="k">default</span><span class="o">:</span>
+</span><span class='line'>                    <span class="nv">$rank</span> <span class="o">=</span> <span class="nv">$card</span><span class="p">[</span><span class="s1">&#39;rank&#39;</span><span class="p">];</span>
+</span><span class='line'>                    <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>            <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">[]</span> <span class="o">=</span> <span class="nv">$rank</span><span class="p">;</span>
+</span><span class='line'>            <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_suits</span><span class="p">[]</span> <span class="o">=</span> <span class="nv">$card</span><span class="p">[</span><span class="s1">&#39;suit&#39;</span><span class="p">];</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">public</span> <span class="k">function</span> <span class="nf">checkCombination</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="c1">// is Royal Flush</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isRoyalFlush</span><span class="p">()</span> <span class="o">?</span> <span class="s1">&#39;royal flush&#39;</span> <span class="o">:</span> <span class="s1">&#39;not royal flush&#39;</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="s1">&#39;&lt;br&gt;&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// is Quad (four of kind)</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isQuad</span><span class="p">()</span> <span class="o">?</span> <span class="s1">&#39;quad&#39;</span> <span class="o">:</span> <span class="s1">&#39;not quad&#39;</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="s1">&#39;&lt;br&gt;&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// is StraightFlush</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isStraightFlush</span><span class="p">()</span> <span class="o">?</span> <span class="s1">&#39;straight flush&#39;</span> <span class="o">:</span> <span class="s1">&#39;not straight flush&#39;</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="s1">&#39;&lt;br&gt;&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// is Full House</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isFullHouse</span><span class="p">()</span> <span class="o">?</span> <span class="s1">&#39;full house&#39;</span> <span class="o">:</span> <span class="s1">&#39;not full house&#39;</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="s1">&#39;&lt;br&gt;&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// is Flush</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isFlush</span><span class="p">()</span> <span class="o">?</span> <span class="s1">&#39;flush&#39;</span> <span class="o">:</span> <span class="s1">&#39;not flush&#39;</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="s1">&#39;&lt;br&gt;&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// is Straight</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isStraight</span><span class="p">()</span> <span class="o">?</span> <span class="s1">&#39;straight&#39;</span> <span class="o">:</span> <span class="s1">&#39;not straigt&#39;</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="s1">&#39;&lt;br&gt;&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// is Three of Kind</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isThreeOfKind</span><span class="p">()</span> <span class="o">?</span> <span class="s1">&#39;three of kind&#39;</span> <span class="o">:</span> <span class="s1">&#39;not three of kind&#39;</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="s1">&#39;&lt;br&gt;&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// is Two Pairs</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isTwoPairs</span><span class="p">()</span> <span class="o">?</span> <span class="s1">&#39;two pairs&#39;</span> <span class="o">:</span> <span class="s1">&#39;not two pairs&#39;</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="s1">&#39;&lt;br&gt;&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// is one Pair</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isPair</span><span class="p">()</span> <span class="o">?</span> <span class="s1">&#39;pair&#39;</span> <span class="o">:</span> <span class="s1">&#39;not pair&#39;</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="s1">&#39;&lt;br&gt;&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// is High Card</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isHighCard</span><span class="p">()</span> <span class="o">?</span> <span class="s1">&#39;high card&#39;</span> <span class="o">:</span> <span class="s1">&#39;not high card&#39;</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">echo</span> <span class="s1">&#39;&lt;br&gt;&#39;</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="sd">/**</span>
+</span><span class='line'><span class="sd">     * chech that combination is flush and straight and contains ace and king (exclude straight flush &quot;ace-5&quot;)</span>
+</span><span class='line'><span class="sd">     *</span>
+</span><span class='line'><span class="sd">     * @return bool</span>
+</span><span class='line'><span class="sd">     */</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="k">function</span> <span class="nf">_isRoyalFlush</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isFlush</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isStraight</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="nb">array_search</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nb">array_search</span><span class="p">(</span><span class="s1">&#39;13&#39;</span><span class="p">,</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="sd">/**</span>
+</span><span class='line'><span class="sd">     * check combination is quad (four of kind)</span>
+</span><span class='line'><span class="sd">     *</span>
+</span><span class='line'><span class="sd">     * @return bool</span>
+</span><span class='line'><span class="sd">     */</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="k">function</span> <span class="nf">_isQuad</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nv">$test</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nv">$uniqueElementsCount</span> <span class="o">=</span> <span class="k">array</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">foreach</span><span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span> <span class="k">as</span> <span class="nv">$key</span> <span class="o">=&gt;</span> <span class="nv">$card</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nv">$test</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">;</span>
+</span><span class='line'>            <span class="nb">unset</span><span class="p">(</span><span class="nv">$test</span><span class="p">[</span><span class="nv">$key</span><span class="p">]);</span>
+</span><span class='line'>            <span class="nv">$uniqueElementsCount</span><span class="p">[]</span> <span class="o">=</span> <span class="nb">count</span><span class="p">(</span><span class="nb">array_unique</span><span class="p">(</span><span class="nv">$test</span><span class="p">));</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="mi">1</span> <span class="o">===</span> <span class="nx">min</span><span class="p">(</span><span class="nv">$uniqueElementsCount</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="sd">/**</span>
+</span><span class='line'><span class="sd">     * is a straight and a flush?</span>
+</span><span class='line'><span class="sd">     *</span>
+</span><span class='line'><span class="sd">     * @return bool</span>
+</span><span class='line'><span class="sd">     */</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="k">function</span> <span class="nf">_isStraightFlush</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isFlush</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_isStraight</span><span class="p">());</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="sd">/**</span>
+</span><span class='line'><span class="sd">     * is full house?</span>
+</span><span class='line'><span class="sd">     * (1=2=3 and 4=5) or (1=2 and 3=4=5)</span>
+</span><span class='line'><span class="sd">     *</span>
+</span><span class='line'><span class="sd">     * @return bool</span>
+</span><span class='line'><span class="sd">     */</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="k">function</span> <span class="nf">_isFullHouse</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$ranks</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">;</span>
+</span><span class='line'>        <span class="nb">sort</span><span class="p">(</span><span class="nv">$ranks</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(((</span><span class="nv">$ranks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nv">$ranks</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">4</span><span class="p">]))</span> <span class="c1">// 1=2=3 and 4=5</span>
+</span><span class='line'>                <span class="o">||</span> <span class="p">(</span><span class="nv">$ranks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nv">$ranks</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="k">and</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">4</span><span class="p">]))</span> <span class="c1">// 1=2 and 3=4=5</span>
+</span><span class='line'>            <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="sd">/**</span>
+</span><span class='line'><span class="sd">     * is flush?</span>
+</span><span class='line'><span class="sd">     *</span>
+</span><span class='line'><span class="sd">     * @return bool</span>
+</span><span class='line'><span class="sd">     */</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="k">function</span> <span class="nf">_isFlush</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$suits</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_suits</span><span class="p">;</span>
+</span><span class='line'>        <span class="nb">sort</span><span class="p">(</span><span class="nv">$suits</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="nv">$suits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">===</span> <span class="nv">$suits</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+</span><span class='line'>            <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="sd">/**</span>
+</span><span class='line'><span class="sd">     * check straight. 2 attempt, &#39;cause ace may be high card, or low.</span>
+</span><span class='line'><span class="sd">     *</span>
+</span><span class='line'><span class="sd">     * @return bool</span>
+</span><span class='line'><span class="sd">     */</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="k">function</span> <span class="nf">_isStraight</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nv">$ranks</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">;</span>
+</span><span class='line'>        <span class="nb">sort</span><span class="p">(</span><span class="nv">$ranks</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// if Ace is low card in straight</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="nv">$key</span> <span class="o">=</span> <span class="nb">array_search</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="nv">$ranks</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nv">$tempRanks</span> <span class="o">=</span> <span class="nv">$ranks</span><span class="p">;</span>
+</span><span class='line'>            <span class="nb">unset</span><span class="p">(</span><span class="nv">$tempRanks</span><span class="p">[</span><span class="nv">$key</span><span class="p">]);</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="k">array</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">==</span> <span class="nv">$tempRanks</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>                <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>            <span class="nb">unset</span><span class="p">(</span><span class="nv">$tempRanks</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// if Ace is high card - default algorithm</span>
+</span><span class='line'>        <span class="nv">$min</span> <span class="o">=</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+</span><span class='line'>        <span class="k">foreach</span><span class="p">(</span><span class="nv">$ranks</span> <span class="k">as</span> <span class="nv">$key</span> <span class="o">=&gt;</span> <span class="nv">$value</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nv">$ranks</span><span class="p">[</span><span class="nv">$key</span><span class="p">]</span> <span class="o">-=</span> <span class="nv">$min</span><span class="p">;</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="nv">$key</span> <span class="o">!=</span> <span class="nv">$ranks</span><span class="p">[</span><span class="nv">$key</span><span class="p">])</span>
+</span><span class='line'>                <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="sd">/**</span>
+</span><span class='line'><span class="sd">     * is Three of kind</span>
+</span><span class='line'><span class="sd">     *</span>
+</span><span class='line'><span class="sd">     * @return bool</span>
+</span><span class='line'><span class="sd">     */</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="k">function</span> <span class="nf">_isThreeOfKind</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$ranks</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">;</span>
+</span><span class='line'>        <span class="nb">sort</span><span class="p">(</span><span class="nv">$ranks</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">((</span><span class="nv">$ranks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">and</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+</span><span class='line'>                <span class="o">||</span> <span class="p">(</span><span class="nv">$ranks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">and</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+</span><span class='line'>                <span class="o">||</span> <span class="p">(</span><span class="nv">$ranks</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="k">and</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$ranks</span><span class="p">[</span><span class="mi">4</span><span class="p">]))</span>
+</span><span class='line'>            <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="sd">/**</span>
+</span><span class='line'><span class="sd">     * is two pairs</span>
+</span><span class='line'><span class="sd">     *</span>
+</span><span class='line'><span class="sd">     * @return bool</span>
+</span><span class='line'><span class="sd">     */</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="k">function</span> <span class="nf">_isTwoPairs</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$ranks</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">foreach</span><span class="p">(</span><span class="nv">$ranks</span> <span class="k">as</span> <span class="nv">$key</span> <span class="o">=&gt;</span> <span class="nv">$rank</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nv">$testRanks</span> <span class="o">=</span> <span class="nv">$ranks</span><span class="p">;</span>
+</span><span class='line'>            <span class="nb">unset</span><span class="p">(</span><span class="nv">$testRanks</span><span class="p">[</span><span class="nv">$key</span><span class="p">]);</span>
+</span><span class='line'>            <span class="nb">sort</span><span class="p">(</span><span class="nv">$testRanks</span><span class="p">);</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">((</span><span class="nv">$testRanks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$testRanks</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</span><span class='line'>                    <span class="k">and</span> <span class="p">(</span><span class="nv">$testRanks</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="nv">$testRanks</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+</span><span class='line'>                    <span class="k">and</span> <span class="p">(</span><span class="nv">$testRanks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nv">$testRanks</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+</span><span class='line'>                    <span class="c1">// exclude full house</span>
+</span><span class='line'>                    <span class="k">and</span> <span class="p">(</span><span class="nv">$testRanks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nv">$ranks</span><span class="p">[</span><span class="nv">$key</span><span class="p">])</span>
+</span><span class='line'>                    <span class="k">and</span> <span class="p">(</span><span class="nv">$testRanks</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="nv">$ranks</span><span class="p">[</span><span class="nv">$key</span><span class="p">])</span>
+</span><span class='line'>            <span class="p">)</span>
+</span><span class='line'>                <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="sd">/**</span>
+</span><span class='line'><span class="sd">     * is single Pair</span>
+</span><span class='line'><span class="sd">     *</span>
+</span><span class='line'><span class="sd">     * @return bool</span>
+</span><span class='line'><span class="sd">     */</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="k">function</span> <span class="nf">_isPair</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="mi">4</span> <span class="o">===</span> <span class="nb">count</span><span class="p">(</span><span class="nb">array_unique</span><span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_ranks</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="sd">/**</span>
+</span><span class='line'><span class="sd">     * is High Card</span>
+</span><span class='line'><span class="sd">     *</span>
+</span><span class='line'><span class="sd">     * @return bool true</span>
+</span><span class='line'><span class="sd">     */</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="k">function</span> <span class="nf">_isHighCard</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h6>Небольшой пример использования</h6>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="o">&lt;?</span><span class="nx">php</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">require_once</span> <span class="s1">&#39;Poker.php&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">$cards</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span>
+</span><span class='line'>    <span class="k">array</span><span class="p">(</span><span class="s1">&#39;suit&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="s1">&#39;rank&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;3&#39;</span><span class="p">),</span>
+</span><span class='line'>    <span class="k">array</span><span class="p">(</span><span class="s1">&#39;suit&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="s1">&#39;rank&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;7&#39;</span><span class="p">),</span>
+</span><span class='line'>    <span class="k">array</span><span class="p">(</span><span class="s1">&#39;suit&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="s1">&#39;rank&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;a&#39;</span><span class="p">),</span>
+</span><span class='line'>    <span class="k">array</span><span class="p">(</span><span class="s1">&#39;suit&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="s1">&#39;rank&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;t&#39;</span><span class="p">),</span>
+</span><span class='line'>    <span class="k">array</span><span class="p">(</span><span class="s1">&#39;suit&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="s1">&#39;rank&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;t&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">$poker</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Poker</span><span class="p">(</span><span class="nv">$cards</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">$poker</span><span class="o">-&gt;</span><span class="na">checkCombination</span><span class="p">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Комбинация из 5 карт для данного класса задается массивом из 5 элементов, которые в свою очередь явлеются ассоциативными массивами (suit &ndash; это масть, rank &ndash; достоинство карты).</p>
+
+<h3>Эпилог</h3>
+
+<p>Данный класс можно немного доработать, чтобы вместо название комбинаций, он выводил какой-нибудь балл комбинации, чтобы имелась возможность сравнивать две одинаковых комбинации, но это по желанию и выходит за пределы данной заметки. Также вы можете допилить проверку на корректность заданной комбинации. На этом на сегодня все.  Удачи вам в любых начинаниях и продолжениях.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-08-11T13:52:41+04:00" pubdate data-updated="true">11.08.2011</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/oop/'>OOP</a>, <a class='category' href='/blog/categories/php/'>php</a>, <a class='category' href='/blog/categories/alghoritmy/'>алгоритмы</a>, <a class='category' href='/blog/categories/proghrammirovaniie/'>программирование</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://zudochkin.ru/2011/08/poker-class-php" data-via="vredniy" data-counturl="http://zudochkin.ru/2011/08/poker-class-php" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+      
+        <a class="basic-alignment right articlenav" href="/2011/08/mongodb-php" title="Следующий пост: MongoDb и PHP">MongoDb и PHP &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Комментарии</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Последние посты</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2014/01/fulltext-phones-postgresql">Полнотекстовый поиск по телефонным номерам разного формата (PostgreSQL)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/11/open-uri-progress-bar">Ruby OpenURI::open и ProgressBar</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/first-photography">Первая выездная фотосъемка (Большой Москворецкий мост)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/vim-first-plugin">Написание первого плагина для Vim</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/logrotate-unicorn">Ротация логов на примере логов Unicorn</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Зудочкин Дима -
+  <span class="credit">Powered by <a rel="nofollow" href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'zudochkinru';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://zudochkin.ru/2011/08/poker-class-php';
+        var disqus_url = 'http://zudochkin.ru/2011/08/poker-class-php';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
