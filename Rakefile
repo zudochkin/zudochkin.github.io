@@ -44,7 +44,7 @@ def replace_code(old_code)
 
   puts 'code changed'
 
-  old_code.gsub(code_finder_regexp, "``` \\1\\2\n```")
+  old_code.gsub(code_finder_regexp, "\n``` \\1\\2```\n")
 end
 
 def replace_images(content, yaml_object)
