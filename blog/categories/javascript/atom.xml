@@ -4,7 +4,7 @@
   <title><![CDATA[Category: javascript | Записки Вредного программиста]]></title>
   <link href="http://zudochkin.ru/blog/categories/javascript/atom.xml" rel="self"/>
   <link href="http://zudochkin.ru/"/>
-  <updated>2014-02-03T21:38:05+04:00</updated>
+  <updated>2014-02-09T16:59:49+04:00</updated>
   <id>http://zudochkin.ru/</id>
   <author>
     <name><![CDATA[Зудочкин Дима]]></name>
@@ -544,6 +544,99 @@ result = book.update(
 <p>Еще одно приложение мы разработали с вами на ruby, сегодня не обошлось без так важного на сегодняший день клиентсткого программирования. Ссылка на <a href="http://vredniy-library.heroku.com/">пример</a> (редактирование и создание не сохраняются в базе)  и ссылка на <a href="https://github.com/vredniy/Backbone-sinatra">исходник</a>.
 <img class="image" src="/images/posts/2012-02-backbone-js-sinatra-ruby/placeholder.png">
 Всем спасибо за внимание и до новых встреч :)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Общие заблуждения о jQuery (часть 1) parent, parents, closest]]></title>
+    <link href="http://zudochkin.ru/2011/06/jquery-for-beginners-confusing-part1"/>
+    <updated>2011-06-07T11:43:34+04:00</updated>
+    <id>http://zudochkin.ru/2011/06/jquery-for-beginners-confusing-part1</id>
+    <content type="html"><![CDATA[<p>Быстрый рост JavaScript библиотек и разнообразных фреймворков, таких как jQuery, для программирования на стороне клиента, предоставил всю мощь языка JavaScript для широкой аудитории. jQuery предоставляет свой собственный API, методы и синтаксические особенности. Порой которые похожи друг на друга, но отличающиеся в чем-то. Это заметка должна избавить вас от путаницы</p>
+
+<!-- more -->
+
+
+<h3>.parent(), .parents() .closest()</h3>
+
+<p>Все три эти метода предоставляют доступ вверх над элементами по дереву DOM, но они тем временем все-таки отличаются</p>
+
+<h4>parent(selector)</h4>
+
+<p>Попросту находит одного непосредственного родителя для элемента или элементов. Он также может принимать селектор в виде параметра, который будет полезен для нахождения родителя в определенном контексте.</p>
+
+<p><code>javascript
+$('span.my').parent().css('border', '1px solid red');
+$('p').parent('div.sidebar').css('border', '1px solid red');
+</code></p>
+
+<p>В первой строке мы получаем родителя с классом my. Во второй же получает родителей для всех элементов <p>, при условии, что родитель его <div> с классом .sidebar.</p>
+
+<p>Возможность ограничить выборку метода как во второй строке в примере выше &ndash; стандартная &ldquo;плюшка&rdquo; jQuery. Большинство методов для DOM-манипуляций позволяют указать селектор.</p>
+
+<h4>parents(selector)</h4>
+
+<p>Работает по тому же принципу, что и .parent() за исключением того, что данный метод не ограничен одним уровнем и может возвращать несколько предков. К примеру:</p>
+
+<p><code>html
+$('li.naivgation').parents('li');
+</code></p>
+
+<p>Для каждого элемента <li> который содержит в себе класс <strong>navigation</strong>, возвращает всех родителей и предков, который в свою очередь тоже элементы списка <li>. Данный метод может быть полезен с многоуровнемым меню.</p>
+
+<p>``` html</p>
+
+<ul class="navigation">
+  <li>Catalog
+     <ul>
+        <li>Electronics</li>
+        <li>Animals</li>
+        <li>Birds</li>
+     </ul>
+  </li>
+  <li>About...
+     <ul>
+        <li>me</li>
+        <li>company</li>
+     </ul>
+  </li>
+</ul>
+
+
+<p>```</p>
+
+<p>Допустим нам нужно поменять цвет фона только для третьего уровня вложенности:</p>
+
+<p>``` javascript
+$(&lsquo;.navigation li&rsquo;).each(function() {
+  if (2 == $(this).parents(&lsquo;.navigation li&rsquo;).length)</p>
+
+<pre><code> $(this).css('background-color', 'cyan');
+</code></pre>
+
+<p>});
+```</p>
+
+<p>Для каждого элемента <li>, найденного в классе <strong>navigation</strong> находим количество <li>-предков. Если это два, значит раскрашиваем его.</p>
+
+<h4>closest(selector)</h4>
+
+<p>Это больше магия, но очень полезная. Данный метод работает также как и .parents(), исключая то, что возвращает только одного родителя или предка. Бывают ситуации, когда вам не нужны все родители, возвращаемые методом .parents(), тогда в дело вступает метод .closest(). Допустим, нам нужно узнать явлвется ли один элемент непосредственным наследником другого:</p>
+
+<p><code>javascript
+if (1 == $('.elem1').closest('.elem2').length)
+  console.log('Непосредственный предок');
+else
+  console.log('Дальний родственник :)');
+</code></p>
+
+<p>Метод .closest() легко сэмулировать методом .parents(), ограничив количество возвращаемых элементов:</p>
+
+<p><code>javascript
+$($('.elem1').parents('.elem2').get(0)).css('border', '1px solid red');
+</code></p>
+
+<p>И еще метод .closest() начинает обход, начиная с элемента, удовлетворяющему селектору, а не с его родителя.</p>
 ]]></content>
   </entry>
   

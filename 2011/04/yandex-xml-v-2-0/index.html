@@ -1,0 +1,568 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Yandex XML версии 2.0 - Записки Вредного программиста</title>
+  <meta name="author" content="Зудочкин Дима">
+
+  
+  <meta name="description" content="Сегодня речь пойдет опять о Yandex и его сервисе XML">
+  <meta name="keywords" content="yandex xml, yandex zend framework, yandex zf, zend framework seo,seo,xml,zf,php,zend framework">
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://zudochkin.ru/2011/04/yandex-xml-v-2-0">
+
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Записки Вредного программиста" type="application/atom+xml">
+  <link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-11803166-9', 'zudochkin.ru');
+  ga('send', 'pageview');
+
+</script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <div id="logo">
+  	<div id="logoLeft">{</div>
+  	<div id="logoText">Zudochkin Dmitry</div>
+  	<div id="logoRight">}</div>
+  	<div class="clear"></div>
+  </div>
+  <h1><a href="/">Записки Вредного программиста</a></h1>
+  
+    <h2>enjoy, motherfuckers ;)</h2>
+  
+  <div class="clear"></div>
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:zudochkin.ru" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Главная</a></li>
+  <li><a href="/archives">Архив</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      
+        <h1 class="entry-title">Yandex XML версии 2.0</h1>
+      
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-26T22:05:47+04:00" pubdate data-updated="true">26.04.2011</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Приветствую вас, многоуважаемые разработчики. Сегодня речь пойдет опять о Yandex и его сервисе XML, о котором я уже упоминал в заметке о <a href="/2010/03/yandex-xml-get-host-position/">Yandex XML</a>, т.к. нашей веб студии для собственных нужд понадобился сей компонент, но немного расширенный, модернизированный и использующий Zend Framework. Сейчас он будет более объектно-ориентированный и удобный в использовании.</p>
+
+<!-- more -->
+
+
+<p><a href="/images/posts/2011-04-yandex-xml-v-2-0/yandex.jpg"><img class="image" src="/images/posts/2011-04-yandex-xml-v-2-0/yandex-150x150.jpg"></a></p>
+
+<p>Набросал для себя первую версию для всей грязной работы, который умеет только получать позицию сайт по определенному ключевому слову, а большего и не нужно.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+<span class='line-number'>123</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="o">&lt;?</span><span class="nx">php</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">set_time_limit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="sd">/**</span>
+</span><span class='line'><span class="sd"> * YandexParser is class what helps getting position of your site by query string</span>
+</span><span class='line'><span class="sd"> *</span>
+</span><span class='line'><span class="sd"> * @author vredniy (dnd.pliz@gmail.com)</span>
+</span><span class='line'><span class="sd"> */</span>
+</span><span class='line'><span class="k">class</span> <span class="nc">Model_YandexParser</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="sd">/**</span>
+</span><span class='line'><span class="sd">     * @var string</span>
+</span><span class='line'><span class="sd">     */</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="nv">$_query</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
+</span><span class='line'>    <span class="sd">/**</span>
+</span><span class='line'><span class="sd">     * @var string</span>
+</span><span class='line'><span class="sd">     */</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="nv">$_host</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
+</span><span class='line'>    <span class="sd">/**</span>
+</span><span class='line'><span class="sd">     * @var int</span>
+</span><span class='line'><span class="sd">     */</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="nv">$_pageLimit</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="nv">$_username</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">private</span> <span class="nv">$_key</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="sd">/**</span>
+</span><span class='line'><span class="sd">     *</span>
+</span><span class='line'><span class="sd">     * @param string $query query string</span>
+</span><span class='line'><span class="sd">     * @param string $host host string</span>
+</span><span class='line'><span class="sd">     * @param int $pageLimit page limit</span>
+</span><span class='line'><span class="sd">     */</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">function</span> <span class="nf">__construct</span><span class="p">(</span><span class="nv">$query</span><span class="p">,</span> <span class="nv">$host</span><span class="p">,</span> <span class="nv">$pageLimit</span> <span class="o">=</span> <span class="k">null</span><span class="p">,</span> <span class="nv">$username</span> <span class="o">=</span> <span class="k">null</span><span class="p">,</span> <span class="nv">$key</span> <span class="o">=</span> <span class="k">null</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="nb">isset</span><span class="p">(</span><span class="nv">$query</span><span class="p">))</span>
+</span><span class='line'>            <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_query</span> <span class="o">=</span> <span class="nb">htmlspecialchars</span><span class="p">(</span><span class="nv">$query</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="nb">isset</span><span class="p">(</span><span class="nv">$host</span><span class="p">))</span>
+</span><span class='line'>            <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_host</span> <span class="o">=</span> <span class="nb">preg_replace</span><span class="p">(</span><span class="s1">&#39;[^http://|www\.]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="nb">htmlspecialchars</span><span class="p">(</span><span class="nv">$host</span><span class="p">));</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="nb">isset</span><span class="p">(</span><span class="nv">$pageLimit</span><span class="p">))</span>
+</span><span class='line'>            <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_pageLimit</span> <span class="o">=</span> <span class="nb">is_int</span> <span class="p">(</span><span class="nv">$pageLimit</span><span class="p">)</span> <span class="o">?</span> <span class="nv">$pageLimit</span> <span class="o">:</span> <span class="p">(</span><span class="nx">int</span><span class="p">)</span> <span class="nv">$pageLimit</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="nb">isset</span><span class="p">(</span><span class="nv">$username</span><span class="p">))</span>
+</span><span class='line'>            <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_username</span> <span class="o">=</span> <span class="nv">$username</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="nb">isset</span><span class="p">(</span><span class="nv">$key</span><span class="p">))</span>
+</span><span class='line'>            <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_key</span> <span class="o">=</span> <span class="nv">$key</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="sd">/**</span>
+</span><span class='line'><span class="sd">     * send request</span>
+</span><span class='line'><span class="sd">     *</span>
+</span><span class='line'><span class="sd">     * @return int|string</span>
+</span><span class='line'><span class="sd">     */</span>
+</span><span class='line'>    <span class="k">public</span> <span class="k">function</span> <span class="nf">request</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$page</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">do</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">if</span> <span class="p">(</span><span class="nv">$result</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_doRoutine</span><span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_query</span><span class="p">,</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_host</span><span class="p">,</span> <span class="nv">$page</span><span class="o">++</span><span class="p">))</span>
+</span><span class='line'>                <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="nv">$page</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">&lt;</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_pageLimit</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="k">false</span> <span class="o">==</span> <span class="nv">$result</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">return</span> <span class="s1">&#39;Nothing Found&#39;</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nv">$result</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="sd">/**</span>
+</span><span class='line'><span class="sd">     * does all dirty work</span>
+</span><span class='line'><span class="sd">     *</span>
+</span><span class='line'><span class="sd">     * @param string $query</span>
+</span><span class='line'><span class="sd">     * @param string $host</span>
+</span><span class='line'><span class="sd">     * @param int    $page</span>
+</span><span class='line'><span class="sd">     * @throws       Zend_Http_Client_Exception</span>
+</span><span class='line'><span class="sd">     * @return       false|int</span>
+</span><span class='line'><span class="sd">     */</span>
+</span><span class='line'>    <span class="k">protected</span> <span class="k">function</span> <span class="nf">_doRoutine</span><span class="p">(</span><span class="nv">$query</span><span class="p">,</span> <span class="nv">$host</span><span class="p">,</span> <span class="nv">$page</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="nv">$page</span> <span class="o">&gt;=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_pageLimit</span><span class="p">)</span>
+</span><span class='line'>            <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nv">$doc</span> <span class="o">=</span> <span class="s2">&quot;&lt;?xml version=&#39;1.0&#39; encoding=&#39;utf-8&#39;?&gt;</span>
+</span><span class='line'><span class="s2">            &lt;request&gt;</span>
+</span><span class='line'><span class="s2">                &lt;query&gt;</span><span class="si">$query</span><span class="s2">&lt;/query&gt;</span>
+</span><span class='line'><span class="s2">                &lt;page&gt;</span><span class="si">$page</span><span class="s2">&lt;/page&gt;</span>
+</span><span class='line'><span class="s2">                &lt;maxpassages&gt;0&lt;/maxpassages&gt;</span>
+</span><span class='line'><span class="s2">                &lt;groupings&gt;</span>
+</span><span class='line'><span class="s2">                &lt;groupby attr=&#39;d&#39; mode=&#39;deep&#39; groups-on-page=&#39;10&#39; docs-in-group=&#39;1&#39; curcateg=&#39;-1&#39;/&gt;</span>
+</span><span class='line'><span class="s2">                &lt;/groupings&gt;</span>
+</span><span class='line'><span class="s2">            &lt;/request&gt;&quot;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nv">$uri</span> <span class="o">=</span> <span class="s1">&#39;http://xmlsearch.yandex.ru/xmlsearch&#39;</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_username</span><span class="p">)</span>
+</span><span class='line'>            <span class="nv">$uri</span> <span class="o">.=</span> <span class="s1">&#39;?user=&#39;</span> <span class="o">.</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_username</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_key</span><span class="p">)</span>
+</span><span class='line'>            <span class="nv">$uri</span> <span class="o">.=</span> <span class="s1">&#39;&amp;key=&#39;</span> <span class="o">.</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">_key</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nv">$httpClient</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Zend_Http_Client</span><span class="p">(</span><span class="nv">$uri</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nv">$response</span> <span class="o">=</span> <span class="nv">$httpClient</span>
+</span><span class='line'>                <span class="o">-&gt;</span><span class="na">setRawData</span><span class="p">(</span><span class="nv">$doc</span><span class="p">,</span> <span class="s1">&#39;text/xml&#39;</span><span class="p">)</span>
+</span><span class='line'>                <span class="o">-&gt;</span><span class="na">request</span><span class="p">(</span><span class="s1">&#39;POST&#39;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="p">(</span><span class="nv">$response</span><span class="o">-&gt;</span><span class="na">isSuccessful</span><span class="p">())</span> <span class="p">{</span>
+</span><span class='line'>            <span class="nv">$zQ</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Zend_Dom_Query</span><span class="p">(</span><span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getBody</span><span class="p">());</span>
+</span><span class='line'>            <span class="nv">$result</span> <span class="o">=</span> <span class="nv">$zQ</span><span class="o">-&gt;</span><span class="na">queryXpath</span><span class="p">(</span><span class="s1">&#39;/yandexsearch/response/results/grouping/group/doc/url&#39;</span><span class="p">);</span>
+</span><span class='line'>            <span class="nv">$innerHTML</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
+</span><span class='line'>            <span class="nv">$counter</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="nv">$page</span><span class="p">;</span>
+</span><span class='line'>            <span class="k">foreach</span><span class="p">(</span><span class="nv">$result</span> <span class="k">as</span> <span class="nv">$r</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>                <span class="nv">$children</span> <span class="o">=</span> <span class="nv">$r</span><span class="o">-&gt;</span><span class="na">childNodes</span><span class="p">;</span>
+</span><span class='line'>                <span class="nv">$counter</span><span class="o">++</span><span class="p">;</span>
+</span><span class='line'>                <span class="k">foreach</span><span class="p">(</span><span class="nv">$children</span> <span class="k">as</span> <span class="nv">$child</span><span class="p">)</span>
+</span><span class='line'>                    <span class="k">if</span> <span class="p">(</span><span class="k">false</span> <span class="o">!==</span> <span class="nb">strpos</span><span class="p">(</span><span class="nv">$child</span><span class="o">-&gt;</span><span class="na">ownerDocument</span><span class="o">-&gt;</span><span class="na">saveXml</span><span class="p">(</span><span class="nv">$child</span><span class="p">),</span> <span class="nv">$host</span><span class="p">))</span>
+</span><span class='line'>                        <span class="k">return</span> <span class="nv">$counter</span><span class="p">;</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nx">Zend_Http_Client_Exception</span><span class="p">(</span><span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getHeadersAsString</span><span class="p">(</span><span class="k">true</span><span class="p">,</span> <span class="s1">&#39;&lt;br&gt;&#39;</span><span class="p">));</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="cp">?&gt;</span><span class="x"></span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Конструктор (строки 34-47) заполняет внутренние свойства класса, которые нам понадобятся для дальнейшей работы.</p>
+
+<p>Метод <strong>Model_YandexParser::request()</strong> (54-65) запускает цикл по всей глубине поиска заданного сайта и возвращает значение.</p>
+
+<p>Защищенный метод <strong>Model_YandexParser::_doRoutine(&hellip;)</strong> (76-120) выполняет всю грязную работу по отправлению запроса, получению ответа от Yandex&#8217;а и поиска подходящего нам сайта. Нужно будет, как будет больше времени, дописать проверка на ошибки и вывод соответствующих сообщений.</p>
+
+<p>Дальше регистрируем свой IP (требования Yandex&#8217;а) <a href="http://xml.yandex.ru/settings.xml">тут</a> и запускаем наш поиск в каком-нибудь из наших экшнов. К примеру так</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='php'><span class='line'><span class="k">public</span> <span class="k">function</span> <span class="nf">indexAction</span><span class="p">()</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nv">$yandex</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Model_YandexParser</span><span class="p">(</span>
+</span><span class='line'>                        <span class="s1">&#39;голая Викки Блоуз&#39;</span><span class="p">,</span>
+</span><span class='line'>                        <span class="s1">&#39;wowboobs.ru&#39;</span><span class="p">,</span>
+</span><span class='line'>                        <span class="mi">1000</span><span class="p">,</span>
+</span><span class='line'>                        <span class="s1">&#39;username&#39;</span><span class="p">,</span>
+</span><span class='line'>                        <span class="s1">&#39;INSERT_HERE_YOUR_SECRET_KEY&#39;</span>
+</span><span class='line'>        <span class="p">);</span>
+</span><span class='line'>        <span class="nv">$result</span> <span class="o">=</span> <span class="nv">$yandex</span><span class="o">-&gt;</span><span class="na">request</span><span class="p">();</span>
+</span><span class='line'>        <span class="nb">var_dump</span><span class="p">(</span><span class="nv">$result</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>И наслаждаемся результатом :)</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">admin</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-26T22:05:47+04:00" pubdate data-updated="true">26.04.2011</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/zend-framework/'>Zend Framework</a>, <a class='category' href='/blog/categories/php/'>php</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://zudochkin.ru/2011/04/yandex-xml-v-2-0" data-via="vredniy" data-counturl="http://zudochkin.ru/2011/04/yandex-xml-v-2-0" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left articlenav" href="/2011/03/zend-framework-wysiwyg-filebrowser" title="Предыдущий пост: Zend Framework: WYSIWYG + FileBrowser">&laquo; Zend Framework: WYSIWYG + FileBrowser</a>
+      
+      
+        <a class="basic-alignment right articlenav" href="/2011/05/view-helper-wherever-u-want" title="Следующий пост: Zend Framework: вставляем viewHelper куда душе угодно">Zend Framework: вставляем viewHelper куда душе угодно &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Комментарии</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Последние посты</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/2014/01/fulltext-phones-postgresql">Полнотекстовый поиск по телефонным номерам разного формата (PostgreSQL)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/11/open-uri-progress-bar">Ruby OpenURI::open и ProgressBar</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/first-photography">Первая выездная фотосъемка (Большой Москворецкий мост)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/vim-first-plugin">Написание первого плагина для Vim</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2013/08/logrotate-unicorn">Ротация логов на примере логов Unicorn</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Зудочкин Дима -
+  <span class="credit">Powered by <a rel="nofollow" href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'zudochkinru';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://zudochkin.ru/2011/04/yandex-xml-v-2-0';
+        var disqus_url = 'http://zudochkin.ru/2011/04/yandex-xml-v-2-0';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

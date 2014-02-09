@@ -4,7 +4,7 @@
   <title><![CDATA[Category: OOP | Записки Вредного программиста]]></title>
   <link href="http://zudochkin.ru/blog/categories/oop/atom.xml" rel="self"/>
   <link href="http://zudochkin.ru/"/>
-  <updated>2014-02-03T21:38:05+04:00</updated>
+  <updated>2014-02-09T16:59:49+04:00</updated>
   <id>http://zudochkin.ru/</id>
   <author>
     <name><![CDATA[Зудочкин Дима]]></name>
@@ -524,6 +524,575 @@ array('suit' =&gt; 's', 'rank' =&gt; 't')
 <h3>Эпилог</h3>
 
 <p>Данный класс можно немного доработать, чтобы вместо название комбинаций, он выводил какой-нибудь балл комбинации, чтобы имелась возможность сравнивать две одинаковых комбинации, но это по желанию и выходит за пределы данной заметки. Также вы можете допилить проверку на корректность заданной комбинации. На этом на сегодня все.  Удачи вам в любых начинаниях и продолжениях.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Пишем свой первый фреймворк на PHP]]></title>
+    <link href="http://zudochkin.ru/2011/06/mvc-framework-php"/>
+    <updated>2011-06-11T20:15:56+04:00</updated>
+    <id>http://zudochkin.ru/2011/06/mvc-framework-php</id>
+    <content type="html"><![CDATA[<p>Привет тебе, коллега-разработчик или просто случайно зашедший на мой блог посетитель. В сегодняшней заметке я хочу рассказать вам о том, как прошел у меня вчерашний вечер (нет, нет, тут не будет ничего личного, аля покатался на роликах, попил пивка в парке). Как и у каждого веб-программиста рано или поздно возникает идея создать свой велосипед, пусть и с квадратными колесами и вместо руля торчащий штырь. Вчерашним велосипедом для меня стал легкий простой фреймворк, хотя с натяжкой его можно так назвать, но есть несколько моментов в нем, которые могут послужить отправной точкой для создание нечто большего. Ну обо всем по порядку.</p>
+
+<!-- more -->
+
+
+<h3>Структура папок</h3>
+
+<p>Так как на меня большое влияние в последнее время оказал Zend Framework, структура папок, а также несколько еще штук будут очень похожи.</p>
+
+<p>В корне мы имеем две папки <strong>app</strong> и <strong>library</strong>. Также в корне есть два файла (опять же все как у ZF) .htaccess (будет перенаправлять все запросы в index.php) и сам index.php, который эти самые запросы принимать будет.</p>
+
+<h3>.htaccess и index.php</h3>
+
+<p><img class="image" src="/images/posts/2011-06-mvc-framework-php/vredniy-simple-mvc-150x150.png"></p>
+
+<p><strong>.htaccess</strong> полностью взял с ZF</p>
+
+<p><code>
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} -s [OR]
+RewriteCond %{REQUEST_FILENAME} -l [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^.*$ - [NC,L]
+RewriteRule ^.*$ index.php [NC,L]
+</code></p>
+
+<p>Мне этого было более, чем достаточно. По сути этот .htaccess перенаправляет все запросы, если они не ведут на существующую директорию или файл нашему index.php.</p>
+
+<p><strong>index.php</strong></p>
+
+<p>``` php
+&lt;?php
+// объявляем нужные константы
+define(&lsquo;APPLICATION_PATH&rsquo;, realpath(dirname(<strong>FILE</strong>) . DIRECTORY_SEPARATOR . &lsquo;app&rsquo;));
+define(&lsquo;LIBRARY_PATH&rsquo;, realpath(dirname(<strong>FILE</strong>) . DIRECTORY_SEPARATOR . &lsquo;library&rsquo;));
+// добавляем путь к library к indlude path
+set_include_path(implode(DIRECTORY_SEPARATOR, array(</p>
+
+<pre><code>        realpath(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library'),
+        get_include_path()
+    )));
+</code></pre>
+
+<p>// подключаем Автолоадер
+require_once &lsquo;MVC/Autoload/Autoloader.php&rsquo;;</p>
+
+<p>// регистрируем наш автолоадер
+spl_autoload_register(array(&lsquo;MVC_Autoload_Autoloader&rsquo;, &lsquo;autoload&rsquo;));</p>
+
+<p>// создаем инстант нашего &ldquo;Фронт Контроллера&rdquo;
+// в кавычках он потому, что это вовсе не паттерн Фронт Контроллер )
+$frontController = new MVC_FrontController($_SERVER);
+// запускаем наше приложение
+$frontController->run();
+```</p>
+
+<h3>папка library</h3>
+
+<p>В данной папке будет пока две директории MVC и Smarty, первая &ndash; это наш фреймворк, вторая как вы уже догадались &ndash; шаблонизатор :)</p>
+
+<p>Рассмотрим поподробнее папку <strong>MVC</strong>
+<strong>MVC_Autoload_Autoloader</strong></p>
+
+<p>``` php
+&lt;?php</p>
+
+<p>class MVC_Autoload_Autoloader
+{</p>
+
+<pre><code>public static function autoload($className)
+{
+    // все как в ZF, чтобы отыскать класс заменяем в нем
+  // '_' на '/'
+    $className = str_replace('_', '/', $className);
+    $classPath = LIBRARY_PATH . DIRECTORY_SEPARATOR . $className . '.php';
+    if (file_exists($classPath) &amp;&amp; is_readable($classPath)) {
+     // подключаем его, если файл имеется и мы имеем к нему доступ
+        require_once $classPath;
+    } else {
+        //throw new MVC_Exception("Class name '{$className}' not found");
+    }
+    //echo $classPath;
+}
+</code></pre>
+
+<p>   // тут я планировал указывать какие еще префиксы загружать автоматически</p>
+
+<pre><code>public static function registerAutoload()
+{
+
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p><strong>MVC_Autoload_Resource</strong> &ndash; будет отвечать за подгрузку контроллеров, правда получился он не особо гибким и пути были жестко прописаны в код (очень не хорошо получилось).</p>
+
+<p>``` php
+&lt;?php</p>
+
+<p>class MVC_Autoload_Resource
+{
+   // думал будет у меня несколько ресурсов
+   // аля контроллеры, модели и прочие штуки</p>
+
+<pre><code>protected static $_resources = array(
+    'controller' =&gt; '@App_Controller_(\w+)Controller@',
+);
+</code></pre>
+
+<p>   // метод без проверок, т.к. фреймворк создавался для ознакомительных целей</p>
+
+<pre><code>public static function autoload($className)
+{
+  // пробегаемся по всем ресурсам
+  // и смотрим на что заканчивает класс
+    foreach(self::$_resources as $resource =&gt; $path) {
+     // если на то, что нужно подгружаем его
+        if (ucfirst($resource) == substr($className, -strlen($resource))) {
+            if (preg_match(self::$_resources[$resource], $className, $matches)) {
+                self::load($matches[1], $resource);
+            }
+        }
+    }
+}
+
+protected static function load($name, $resourceType)
+{
+    switch ($resourceType) {
+        case 'controller':
+            require_once APPLICATION_PATH . DIRECTORY_SEPARATOR
+                    . 'controllers' . DIRECTORY_SEPARATOR
+                    . "{$name}Controller.php";
+
+
+            break;
+
+        default:
+            break;
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Стукрутра папок в приложении (App)</h3>
+
+<p>3 папки: config, controllers, views
+<strong>config</strong> &ndash; содержит на данный момент всего один файл с настройками приложения application.php</p>
+
+<p>``` php
+&lt;?php</p>
+
+<p>$settings = array(</p>
+
+<pre><code>'application' =&gt; array(
+    'applicationName' =&gt; 'first application'
+),
+</code></pre>
+
+<p>   // самое интересное, наверное, в этом фреймворке</p>
+
+<pre><code>'routes' =&gt; array(
+  // все рауты имеют имя, шаблон или регулярное выражение
+  // контроллер, экшн и параметры
+    'static' =&gt; array(
+        'template' =&gt; '^(\w+)\.html$',
+        'controller' =&gt; 'static',
+        'action' =&gt; 'show',
+        'params' =&gt; array(
+            'name' =&gt; 1
+        )
+    ),
+    'main' =&gt; array(
+        'template' =&gt; null,
+        'controller' =&gt; 'index',
+        'action' =&gt; 'index'
+    ),
+    'dynamic' =&gt; array(
+        'template' =&gt; '^(\w+)\/(\w+)$',
+        'controller' =&gt; 'dynamic',
+        'action' =&gt; 'show',
+        'params' =&gt; array(
+            'category' =&gt; 1,
+            'article' =&gt; 2
+        )
+    )
+),
+'view' =&gt; array(
+  // где будут лежать наши шаблоны (views)
+    'viewPath' =&gt; APPLICATION_PATH . DIRECTORY_SEPARATOR . 'views',
+  // имя нашего шаблона (layout)
+    'template' =&gt; 'template.tpl'
+)
+</code></pre>
+
+<p>);
+```</p>
+
+<p>Вскользь хочу упоминуть лишь некоторые классы
+<strong>MVC_Registry</strong> &ndash; стандартный паттерн Registry без излишеств, нужен нам для того, чтобы хранить данные и предоставлять доступ к ним из любого места в приложении.</p>
+
+<p><strong>MVC_Request</strong> &ndash; класс запроса, который мы строим в нашем &ldquo;Фронт контроллере&rdquo; и передаем в контроллеры приложения. Содержит параметры в запросе, активный контроллер и экшн.</p>
+
+<p><strong>MVC_View</strong> &ndash; класс, который просто инициализует Smarty и устанавливает все нужные нам значения путей для шаблонов.</p>
+
+<h3>&ldquo;Front Controller&rdquo;</h3>
+
+<p>Этот класс &ndash; точка входа для нашего приложение, хоть и должен был он реализован быть как Одиночка (Singleton)</p>
+
+<p><strong>MVC_FrontController</strong></p>
+
+<p>``` php
+&lt;?php</p>
+
+<p>class MVC_FrontController
+{</p>
+
+<pre><code>protected $_routes;
+protected $_settings;
+protected $_controller;
+protected $_action;
+protected $_params;
+
+public function __construct($request)
+{
+    $this-&gt;_initConfigs();
+    $this-&gt;_initResources();
+    $this-&gt;_initRoutes();
+}
+
+protected function _parseRequest()
+{
+    return $_SERVER['REQUEST_URI'];
+}
+
+public function run()
+{
+    $uri = $this-&gt;_parseRequest();
+
+    $activeRoute = $this-&gt;_checkActiveRoute($uri);
+    if (null === $activeRoute)
+        throw new MVC_Exception('Cannot find active route');
+    $this-&gt;_dispatch($activeRoute);
+
+    $controllerName = sprintf('App_Controller_%sController', ucfirst($this-&gt;_controller));
+    $controllerObj = new $controllerName(
+                    new MVC_Request(
+                            array('params' =&gt; $this-&gt;_params,
+                                'controller' =&gt; $this-&gt;_controller,
+                                'action' =&gt; $this-&gt;_action)
+                    )
+    );
+    $methodName = $this-&gt;_action . 'Action';
+    if (method_exists($controllerObj, $methodName)) {
+        $controllerObj-&gt;$methodName();
+        $controllerObj-&gt;render();
+    } else {
+        throw new MVC_Exception('action not found');
+    }
+}
+
+protected function _initConfigs()
+{
+
+    require_once APPLICATION_PATH . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'application.php';
+
+    MVC_Registry::getInstance()-&gt;set('settings', $settings);
+    $this-&gt;_settings = $settings;
+}
+
+/**
+ * init resource autoloading
+ */
+protected function _initResources()
+{
+    spl_autoload_register(array('MVC_Autoload_Resource', 'autoload'));
+}
+
+/**
+ * init routes
+ */
+protected function _initRoutes()
+{
+    if (isset($this-&gt;_settings['routes'])) {
+        $this-&gt;_routes = $this-&gt;_settings['routes'];
+    } else {
+        throw new MVC_Exception('Routes must be specified');
+    }
+}
+
+/**
+ * get active route name
+ *
+ * @param string $uri
+ * @return string active route name
+ */
+protected function _checkActiveRoute($uri)
+{
+    $uri = substr($uri, 1);
+    if (trim($uri)) {
+        $activeRoute = null;
+
+        foreach($this-&gt;_routes as $name =&gt; $routeSettings) {
+            if (!$routeSettings['template'])
+                continue;
+            if (preg_match('@' . $routeSettings['template'] . '@', $uri, $matches)) {
+                if (isset($routeSettings['params'])) {
+                    foreach($routeSettings['params'] as $paramName =&gt; $param) {
+                        $this-&gt;_params[$paramName] = $matches[$param];
+                    }
+                }
+                $activeRoute = $name;
+            }
+        }
+    } else {
+        $activeRoute = 'main';
+    }
+
+    return $activeRoute;
+}
+
+/**
+ * dispatch
+ *
+ * @param string $activeRoute active route name
+ */
+protected function _dispatch($activeRoute)
+{
+    if (isset($this-&gt;_routes[$activeRoute])) {
+        $this-&gt;_controller = $this-&gt;_routes[$activeRoute]['controller'];
+        $this-&gt;_action = $this-&gt;_routes[$activeRoute]['action'];
+    }
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Я старался комментировать не особо очевидные места, но если возникнут вопросы, обязательно задавайте их в комментериях внизу заметки. Метод _checkActiveRoute() определяет в зависимости от REQUEST_URI активный раут. И заполняет параметры для контроллера нашего приложения.</p>
+
+<p>Метод _dispatch() по активному рауту определяет нужный в данный момент контроллер и экшн.</p>
+
+<p>Метод run() запускает наш контроллер, передавая ему объект запроса с нужными нам параметрами. После запуска нужного экшна мы запускаем метод контроллера render() который и выводит контент.</p>
+
+<h3>MVC_Controller_Abstract</h3>
+
+<p>Этот класс раширяют все контроллеры нашего приложения, единственный метод, на котором стоит заостроить внимание это render()</p>
+
+<p>``` php
+public function render()</p>
+
+<pre><code>{
+    $templatePath = $this-&gt;_view-&gt;template_dir . DIRECTORY_SEPARATOR;
+    $templatePath .= strtolower(
+            $this-&gt;getRequest()-&gt;getController()
+            . DIRECTORY_SEPARATOR
+            . $this-&gt;getRequest()-&gt;getAction() . '.tpl'
+    );
+    if (file_exists($templatePath) &amp;&amp; is_readable($templatePath)) {
+        $this-&gt;getView()-&gt;assign('tplName', $templatePath);
+
+        if (null === $this-&gt;_view-&gt;template)
+            $this-&gt;getView()-&gt;display('template.tpl');
+        else {
+            $this-&gt;getView()-&gt;display($this-&gt;getView()-&gt;template);
+        }
+    } else {
+        throw new MVC_Exception("Template '{$templatePath}' not found");
+    }
+}
+</code></pre>
+
+<p>```</p>
+
+<p>Допустим мы прошли по адресу example.com/ нашего приложения. Наш &ldquo;Фронт Контроллер&rdquo; запустит app/controllers/IndexController.php и метод indexAction(). В нем, к примеру, мы присвоим переменной name значение vredniy</p>
+
+<p>``` php
+public function indexAction()</p>
+
+<pre><code>{
+    $this-&gt;getView()-&gt;assign('name', 'Vredniy');
+}
+</code></pre>
+
+<p>```</p>
+
+<p>Дальше метод <strong>MVC_Controller_Abstract::render()</strong> отыщет наш шаблон (layout). В данном случает это, находящийся в папке app/views, файл template.tpl. Приведу его содержимое</p>
+
+<p>``` html
+<html></p>
+
+<pre><code>&lt;head&gt;
+    &lt;title&gt;title&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;template&lt;/h1&gt;
+    {include file="$tplName"}
+    &lt;h2&gt;footer&lt;/h2&gt;
+&lt;/body&gt;
+</code></pre>
+
+<p></html>
+```</p>
+
+<p>Это и есть основной шаблон для нашего приложения. Вы спросите, а как же тогда выводится переменная name, значение которой мы присваивали в IndexController::indexAction(). Все просто: встроенная конструкция Smarty {include file=&ldquo;$tplName&rdquo;} заменяется содержимым соответствующего экшна видом.
+Метода render() в MVC_Controller_Abstract</p>
+
+<p>``` php
+$this->getView()&ndash;>assign(&lsquo;tplName&rsquo;, $templatePath);</p>
+
+<p>```</p>
+
+<p>Сам же вид экшна имеет вид</p>
+
+<p>``` html
+<b>{$name|upper}</b></p>
+
+<h2>MAin page</h2>
+
+
+<p>```</p>
+
+<p><a href="/images/posts/2011-06-mvc-framework-php/php-mvc-project1.png"><img class="image" src="/images/posts/2011-06-mvc-framework-php/php-mvc-project1-300x168.png"></a></p>
+
+<p>Вот вроде и все. Данный фреймворк не предназначен для построения сложных сайтов, да и вообще для сайтов. Да и вообще ни для чего он не предназначен, кроме понимания некоторых важных для любого фреймворка вещей. В данном ознакомительном фреймворке куча ошибок и недоработок, реализация или исправления которых могли существенно захломить тестовый фреймворк и намного усложнить его понимание.</p>
+
+<p>Спасибо всем за внимание, надеюсь, хоть часть мною написанного вам пригодится. Ах да, чуть не забыл прилагаю к заметке ссылку на <a href="https://github.com/vredniy/simple-mvc">репозиторий</a>, чтобы вы смогли скачать данный фреймворк и запустить у себя.</p>
+
+<p>UPDATE: Сегодня решил, что в связке MVC не может не быть модели, поэтому решил я ее сегодня дописать.</p>
+
+<h3>Модель в MVC</h3>
+
+<p>Добавил я два класса: первый это MVC_Db_Exception, чтобы выбрасывать эксепшны не просто MVC_Exception. Второй &ndash; освновной MVC_Db_Abstract, который мы будем расширять в модели. Приведу его код:</p>
+
+<p>``` php
+&lt;?php</p>
+
+<p>class MVC_Db_Abstract
+{</p>
+
+<pre><code>/**
+ * PDO object
+ *
+ * @var Pdo
+ */
+private $_connection;
+/**
+ * PDO options
+ *
+ * @var array
+ */
+protected $_options = array(PDO::MYSQL_ATTR_INIT_COMMAND =&gt; "SET NAMES 'UTF8'");
+
+/**
+ * PDO attributes
+ *
+ * @param array|string $attribs
+ */
+public function __construct()
+{
+    $this-&gt;_initConnection();
+}
+</code></pre>
+
+<p>   // инициализуем соединение, если его еще нет</p>
+
+<pre><code>private function _initConnection()
+{
+    if (!$this-&gt;_connection instanceof PDO) {
+        $settings = MVC_Registry::get('settings');
+        $dbSettings = $settings['database'];
+        $dsn = sprintf('%s:host=%s;dbname=%s', $dbSettings['adapter'], $dbSettings['params']['host'], $dbSettings['params']['dbname']);
+        try {
+            $this-&gt;_connection = new PDO($dsn, $dbSettings['params']['username'], $dbSettings['params']['password'],
+                            $this-&gt;_options);
+        } catch (PDOException $e) {
+            echo 'Connection failed: ' . $e-&gt;getMessage();
+        }
+    }
+}
+</code></pre>
+
+<p>   // возвращаем соединение, которое и будем использовать в моделях</p>
+
+<pre><code>public function getConnection()
+{
+    return $this-&gt;_connection;
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>И внимание, кто пробует это проделать по заметке, будьте внимательны, потому что я чуть дописал MVC_Autoload_Resource, чтобы он помимо контроллеров мог подгружать еще и наши модельки. Самая актуальная версия в <a href="https://github.com/vredniy/simple-mvc">репозитории</a>.</p>
+
+<h3>Использование модели</h3>
+
+<p>Создадим папку app/models, где и будут лежать наши модели. В ней создадим файл PageModel.php с таким содержимым</p>
+
+<p>``` php
+&lt;?php</p>
+
+<p>class App_Model_PageModel extends MVC_Db_Abstract
+{</p>
+
+<pre><code>/**
+ * get page id
+ *
+ * @param int
+ */
+public function getPage($id)
+{
+    $statementString = 'SELECT id, alias, content FROM pages WHERE %s = ?';
+    if (is_int($id)) {
+        $statementString = sprintf($statementString, 'id');
+    } else {
+        throw new MVC_Db_Exception('id must be int');
+    }
+    $statement = $this-&gt;getConnection()-&gt;prepare($statementString);
+    $statement-&gt;execute(array($id));
+    return $statement-&gt;fetch();
+}
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Данная модель умеет извлекать из таблицы pages нужные нам данные с помощью PHP Data Object (PHP) по id. Дамп базы данных я выложил в репозитории в папке data/dumps</p>
+
+<p>Теперь в контроллере попробуем использовать нашу модель. Я взял для примера IndexController, в index экшн которого я дописал следующее.</p>
+
+<p>``` php</p>
+
+<pre><code>public function indexAction()
+{
+  // создаем нашу модель
+    $model = new App_Model_PageModel();
+  // извлекаем из нее нужные нам данные и
+  // отдаем их Smarty, т.е. во View
+    $this-&gt;getView()-&gt;assign('data', $model-&gt;getPage(1));
+    $this-&gt;getView()-&gt;assign('name', 'Vredniy');
+}
+</code></pre>
+
+<p>```</p>
+
+<p>В шаблоне views/index/index.tpl я добавил три строчки, которые и будут выводить содержимое:</p>
+
+<p>``` html
+<b>{$name|upper}</b></p>
+
+<h2>{$data.alias}</h2>
+
+
+<p>{$data.content}
+```</p>
+
+<p>Вот вроде и все, еще раз удачи вам :)</p>
 ]]></content>
   </entry>
   
