@@ -18,12 +18,15 @@ tags:
 - mvc
 - OOP
 - php
+
+keywords: "php framework, php mvc, php фреймворк, mvc implementation php,framework,mvc,oop,php,программирование"
+description: "Как и у каждого веб-программиста рано или поздно возникает идея создать свой велосипед. Вчерашним велосипедом для меня стал легкий простой фреймворк"
 ---
 
 
-Привет тебе, коллега-разработчик или просто случайно зашедший на мой блог посетитель. В сегодняшней заметке я хочу рассказать вам о том, как прошел у меня вчерашний вечер (нет, нет, тут не будет ничего личного, аля покатался на роликах, попил пивка в парке). Как и у каждого веб-программиста рано или поздно возникает идея создать свой велосипед, пусть и с квадратными колесами и вместо руля торчащий штырь. Вчерашним велосипедом для меня стал легкий простой фреймворк, хотя с натяжкой его можно так назвать, но есть несколько моментов в нем, которые могут послужить отправной точкой для создание нечто большего. Ну обо всем по порядку. 
+Привет тебе, коллега-разработчик или просто случайно зашедший на мой блог посетитель. В сегодняшней заметке я хочу рассказать вам о том, как прошел у меня вчерашний вечер (нет, нет, тут не будет ничего личного, аля покатался на роликах, попил пивка в парке). Как и у каждого веб-программиста рано или поздно возникает идея создать свой велосипед, пусть и с квадратными колесами и вместо руля торчащий штырь. Вчерашним велосипедом для меня стал легкий простой фреймворк, хотя с натяжкой его можно так назвать, но есть несколько моментов в нем, которые могут послужить отправной точкой для создание нечто большего. Ну обо всем по порядку.
 
-
+<!-- more -->
 
 
 ### Структура папок
@@ -32,27 +35,53 @@ tags:
 Так как на меня большое влияние в последнее время оказал Zend Framework, структура папок, а также несколько еще штук будут очень похожи.
 
 В корне мы имеем две папки **app** и **library**. Также в корне есть два файла (опять же все как у ZF) .htaccess (будет перенаправлять все запросы в index.php) и сам index.php, который эти самые запросы принимать будет.
-<!-- more -->
+
 
 
 ### .htaccess и index.php
 
 
-![vredniy-simple-mvc](http://vredniy.ru/wp-content/uploads/2011/06/vredniy-simple-mvc-150x150.png)**.htaccess** полностью взял с ZF
-[cc]
+{% img image /images/posts/2011-06-mvc-framework-php/vredniy-simple-mvc-150x150.png %}
+
+**.htaccess** полностью взял с ZF
+
+```
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} -s [OR]
 RewriteCond %{REQUEST_FILENAME} -l [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^.*$ - [NC,L]
 RewriteRule ^.*$ index.php [NC,L]
-[/cc]
+```
+
 Мне этого было более, чем достаточно. По сути этот .htaccess перенаправляет все запросы, если они не ведут на существующую директорию или файл нашему index.php.
 
 **index.php**
-[cc lang="php"]
-run();
-[/cc]
+
+``` php
+<?php
+// объявляем нужные константы
+define('APPLICATION_PATH', realpath(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'app'));
+define('LIBRARY_PATH', realpath(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library'));
+// добавляем путь к library к indlude path
+set_include_path(implode(DIRECTORY_SEPARATOR, array(
+            realpath(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'library'),
+            get_include_path()
+        )));
+
+// подключаем Автолоадер
+require_once 'MVC/Autoload/Autoloader.php';
+
+// регистрируем наш автолоадер
+spl_autoload_register(array('MVC_Autoload_Autoloader', 'autoload'));
+
+// создаем инстант нашего "Фронт Контроллера"
+// в кавычках он потому, что это вовсе не паттерн Фронт Контроллер )
+$frontController = new MVC_FrontController($_SERVER);
+// запускаем наше приложение
+$frontController->run();
+```
+
 
 
 
@@ -63,20 +92,58 @@ run();
 
 Рассмотрим поподробнее папку **MVC**
 **MVC_Autoload_Autoloader**
-[cc lang="php"]
-MVC_Autoload_Resource** - будет отвечать за подгрузку контроллеров, правда получился он не особо гибким и пути были жестко прописаны в код (очень не хорошо получилось).
 
-[cc lang="php"]
-'@App_Controller_(\w+)Controller@',
-    );
+``` php
+<?php
 
-	// метод без проверок, т.к. фреймворк создавался для ознакомительных целей
+class MVC_Autoload_Autoloader
+{
+
     public static function autoload($className)
     {
-		// пробегаемся по всем ресурсам
-		// и смотрим на что заканчивает класс
+        // все как в ZF, чтобы отыскать класс заменяем в нем
+      // '_' на '/'
+        $className = str_replace('_', '/', $className);
+        $classPath = LIBRARY_PATH . DIRECTORY_SEPARATOR . $className . '.php';
+        if (file_exists($classPath) && is_readable($classPath)) {
+         // подключаем его, если файл имеется и мы имеем к нему доступ
+            require_once $classPath;
+        } else {
+            //throw new MVC_Exception("Class name '{$className}' not found");
+        }
+        //echo $classPath;
+    }
+
+   // тут я планировал указывать какие еще префиксы загружать автоматически
+    public static function registerAutoload()
+    {
+
+    }
+}
+```
+
+
+**MVC_Autoload_Resource** - будет отвечать за подгрузку контроллеров, правда получился он не особо гибким и пути были жестко прописаны в код (очень не хорошо получилось).
+
+
+``` php
+<?php
+
+class MVC_Autoload_Resource
+{
+   // думал будет у меня несколько ресурсов
+   // аля контроллеры, модели и прочие штуки
+    protected static $_resources = array(
+        'controller' => '@App_Controller_(\w+)Controller@',
+    );
+
+   // метод без проверок, т.к. фреймворк создавался для ознакомительных целей
+    public static function autoload($className)
+    {
+      // пробегаемся по всем ресурсам
+      // и смотрим на что заканчивает класс
         foreach(self::$_resources as $resource => $path) {
-			// если на то, что нужно подгружаем его
+         // если на то, что нужно подгружаем его
             if (ucfirst($resource) == substr($className, -strlen($resource))) {
                 if (preg_match(self::$_resources[$resource], $className, $matches)) {
                     self::load($matches[1], $resource);
@@ -102,7 +169,8 @@ MVC_Autoload_Resource** - будет отвечать за подгрузку к
     }
 
 }
-[/cc]
+```
+
 
 
 
@@ -112,14 +180,18 @@ MVC_Autoload_Resource** - будет отвечать за подгрузку к
 
 3 папки: config, controllers, views
 **config** - содержит на данный момент всего один файл с настройками приложения application.php
-[cc lang="php"]
-array(
+
+``` php
+<?php
+
+$settings = array(
+    'application' => array(
         'applicationName' => 'first application'
     ),
-	// самое интересное, наверное, в этом фреймворке
+   // самое интересное, наверное, в этом фреймворке
     'routes' => array(
-		// все рауты имеют имя, шаблон или регулярное выражение
-		// контроллер, экшн и параметры
+      // все рауты имеют имя, шаблон или регулярное выражение
+      // контроллер, экшн и параметры
         'static' => array(
             'template' => '^(\w+)\.html$',
             'controller' => 'static',
@@ -144,20 +216,21 @@ array(
         )
     ),
     'view' => array(
-		// где будут лежать наши шаблоны (views)
+      // где будут лежать наши шаблоны (views)
         'viewPath' => APPLICATION_PATH . DIRECTORY_SEPARATOR . 'views',
-		// имя нашего шаблона (layout)
+      // имя нашего шаблона (layout)
         'template' => 'template.tpl'
     )
 );
-[/cc]
+```
+
 
 Вскользь хочу упоминуть лишь некоторые классы
 **MVC_Registry** - стандартный паттерн Registry без излишеств, нужен нам для того, чтобы хранить данные и предоставлять доступ к ним из любого места в приложении.
 
 **MVC_Request** - класс запроса, который мы строим в нашем "Фронт контроллере" и передаем в контроллеры приложения. Содержит параметры в запросе, активный контроллер и экшн.
 
-**MVC_View** - класс, который просто инициализует Smarty и устанавливает все нужные нам значения путей для шаблонов. 
+**MVC_View** - класс, который просто инициализует Smarty и устанавливает все нужные нам значения путей для шаблонов.
 
 
 
@@ -168,8 +241,22 @@ array(
 Этот класс - точка входа для нашего приложение, хоть и должен был он реализован быть как Одиночка (Singleton)
 
 **MVC_FrontController**
-[cc lang="php"]
-_initConfigs();
+
+``` php
+<?php
+
+class MVC_FrontController
+{
+
+    protected $_routes;
+    protected $_settings;
+    protected $_controller;
+    protected $_action;
+    protected $_params;
+
+    public function __construct($request)
+    {
+        $this->_initConfigs();
         $this->_initResources();
         $this->_initRoutes();
     }
@@ -236,7 +323,7 @@ _initConfigs();
 
     /**
      * get active route name
-     * 
+     *
      * @param string $uri
      * @return string active route name
      */
@@ -279,9 +366,10 @@ _initConfigs();
     }
 
 }
-[/cc]
+```
 
-Я старался комментировать не особо очевидные места, но если возникнут вопросы, обязательно задавайте их в комментериях внизу заметки. Метод _checkActiveRoute() определяет в зависимости от REQUEST_URI активный раут. И заполняет параметры для контроллера нашего приложения. 
+
+Я старался комментировать не особо очевидные места, но если возникнут вопросы, обязательно задавайте их в комментериях внизу заметки. Метод _checkActiveRoute() определяет в зависимости от REQUEST_URI активный раут. И заполняет параметры для контроллера нашего приложения.
 
 Метод _dispatch() по активному рауту определяет нужный в данный момент контроллер и экшн.
 
@@ -295,7 +383,8 @@ _initConfigs();
 
 Этот класс раширяют все контроллеры нашего приложения, единственный метод, на котором стоит заостроить внимание это render()
 
-[cc lang="php"]
+
+``` php
 public function render()
     {
         $templatePath = $this->_view->template_dir . DIRECTORY_SEPARATOR;
@@ -316,53 +405,56 @@ public function render()
             throw new MVC_Exception("Template '{$templatePath}' not found");
         }
     }
-[/cc]
+```
+
 
 Допустим мы прошли по адресу example.com/ нашего приложения. Наш "Фронт Контроллер" запустит app/controllers/IndexController.php и метод indexAction(). В нем, к примеру, мы присвоим переменной name значение vredniy
-[cc lang="php"]
+
+``` php
 public function indexAction()
     {
         $this->getView()->assign('name', 'Vredniy');
     }
-[/cc]
+```
+
 
 Дальше метод **MVC_Controller_Abstract::render()** отыщет наш шаблон (layout). В данном случает это, находящийся в папке app/views, файл template.tpl. Приведу его содержимое
-[cc lang="html"]
 
-    
-    
-        
-
-# template
-
-
+``` html
+<html>
+    <head>
+        <title>title</title>
+    </head>
+    <body>
+        <h1>template</h1>
         {include file="$tplName"}
-        
+        <h2>footer</h2>
+    </body>
+</html>
+```
 
-## footer
 
-
-    
-
-[/cc]
-
-Это и есть основной шаблон для нашего приложения. Вы спросите, а как же тогда выводится переменная name, значение которой мы присваивали в IndexController::indexAction(). Все просто: встроенная конструкция Smarty {include file="$tplName"} заменяется содержимым соответствующего экшна видом. 
+Это и есть основной шаблон для нашего приложения. Вы спросите, а как же тогда выводится переменная name, значение которой мы присваивали в IndexController::indexAction(). Все просто: встроенная конструкция Smarty {include file="$tplName"} заменяется содержимым соответствующего экшна видом.
 Метода render() в MVC_Controller_Abstract
-[cc lang="php"]
+
+``` php
 $this->getView()->assign('tplName', $templatePath);
-[/cc]
+
+```
+
 
 Сам же вид экшна имеет вид
-[cc lang="html"]
-**{$name|upper}**
+
+``` html
+<b>{$name|upper}</b>
+<h2>MAin page</h2>
+
+```
 
 
-## MAin page
+[{% img image /images/posts/2011-06-mvc-framework-php/php-mvc-project1-300x168.png %}](/images/posts/2011-06-mvc-framework-php/php-mvc-project1.png)
 
-
-[/cc]
-
-[![php-mvc-project](http://vredniy.ru/wp-content/uploads/2011/06/php-mvc-project1-300x168.png)](http://vredniy.ru/wp-content/uploads/2011/06/php-mvc-project1.png)Вот вроде и все. Данный фреймворк не предназначен для построения сложных сайтов, да и вообще для сайтов. Да и вообще ни для чего он не предназначен, кроме понимания некоторых важных для любого фреймворка вещей. В данном ознакомительном фреймворке куча ошибок и недоработок, реализация или исправления которых могли существенно захломить тестовый фреймворк и намного усложнить его понимание. 
+Вот вроде и все. Данный фреймворк не предназначен для построения сложных сайтов, да и вообще для сайтов. Да и вообще ни для чего он не предназначен, кроме понимания некоторых важных для любого фреймворка вещей. В данном ознакомительном фреймворке куча ошибок и недоработок, реализация или исправления которых могли существенно захломить тестовый фреймворк и намного усложнить его понимание.
 
 Спасибо всем за внимание, надеюсь, хоть часть мною написанного вам пригодится. Ах да, чуть не забыл прилагаю к заметке ссылку на [репозиторий](https://github.com/vredniy/simple-mvc), чтобы вы смогли скачать данный фреймворк и запустить у себя.
 
@@ -376,20 +468,37 @@ UPDATE: Сегодня решил, что в связке MVC не может н
 
 Добавил я два класса: первый это MVC_Db_Exception, чтобы выбрасывать эксепшны не просто MVC_Exception. Второй - освновной MVC_Db_Abstract, который мы будем расширять в модели. Приведу его код:
 
-[cc lang="php"]
-"SET NAMES 'UTF8'");
+
+``` php
+<?php
+
+class MVC_Db_Abstract
+{
+
+    /**
+     * PDO object
+     *
+     * @var Pdo
+     */
+    private $_connection;
+    /**
+     * PDO options
+     *
+     * @var array
+     */
+    protected $_options = array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'UTF8'");
 
     /**
      * PDO attributes
      *
-     * @param array|string $attribs 
+     * @param array|string $attribs
      */
     public function __construct()
     {
         $this->_initConnection();
     }
-	
-	// инициализуем соединение, если его еще нет
+
+   // инициализуем соединение, если его еще нет
     private function _initConnection()
     {
         if (!$this->_connection instanceof PDO) {
@@ -405,14 +514,15 @@ UPDATE: Сегодня решил, что в связке MVC не может н
         }
     }
 
-	// возвращаем соединение, которое и будем использовать в моделях
+   // возвращаем соединение, которое и будем использовать в моделях
     public function getConnection()
     {
         return $this->_connection;
     }
 
 }
-[/cc]
+```
+
 
 И внимание, кто пробует это проделать по заметке, будьте внимательны, потому что я чуть дописал MVC_Autoload_Resource, чтобы он помимо контроллеров мог подгружать еще и наши модельки. Самая актуальная версия в [репозитории](https://github.com/vredniy/simple-mvc).
 
@@ -422,39 +532,59 @@ UPDATE: Сегодня решил, что в связке MVC не может н
 
 
 Создадим папку app/models, где и будут лежать наши модели. В ней создадим файл PageModel.php с таким содержимым
-[cc lang="php"]
-getConnection()->prepare($statementString);
+
+``` php
+<?php
+
+class App_Model_PageModel extends MVC_Db_Abstract
+{
+
+    /**
+     * get page id
+     *
+     * @param int
+     */
+    public function getPage($id)
+    {
+        $statementString = 'SELECT id, alias, content FROM pages WHERE %s = ?';
+        if (is_int($id)) {
+            $statementString = sprintf($statementString, 'id');
+        } else {
+            throw new MVC_Db_Exception('id must be int');
+        }
+        $statement = $this->getConnection()->prepare($statementString);
         $statement->execute(array($id));
         return $statement->fetch();
     }
 
 }
-[/cc]
+```
+
 
 Данная модель умеет извлекать из таблицы pages нужные нам данные с помощью PHP Data Object (PHP) по id. Дамп базы данных я выложил в репозитории в папке data/dumps
 
 Теперь в контроллере попробуем использовать нашу модель. Я взял для примера IndexController, в index экшн которого я дописал следующее.
-[cc lang="php"]
+
+``` php
     public function indexAction()
     {
-		// создаем нашу модель
+      // создаем нашу модель
         $model = new App_Model_PageModel();
-		// извлекаем из нее нужные нам данные и
-		// отдаем их Smarty, т.е. во View
+      // извлекаем из нее нужные нам данные и
+      // отдаем их Smarty, т.е. во View
         $this->getView()->assign('data', $model->getPage(1));
         $this->getView()->assign('name', 'Vredniy');
     }
-[/cc]
+```
+
 
 В шаблоне views/index/index.tpl я добавил три строчки, которые и будут выводить содержимое:
-[cc lang="html"]
-**{$name|upper}**
 
-
-## {$data.alias}
-
-
+``` html
+<b>{$name|upper}</b>
+<h2>{$data.alias}</h2>
 {$data.content}
-[/cc]
+```
+
 
 Вот вроде и все, еще раз удачи вам :)

@@ -14,6 +14,9 @@ categories:
 - jQuery
 tags:
 - jQuery
+
+keywords: "jquery closest, jquery parent, jquery parents, jquery for beginners, jquery для начинающих, jquery,jquery,javascript"
+description: "Это заметка должна избавить вас от путаницы между методами jQuery .parent(), .parents(), .closest()"
 ---
 
 Быстрый рост JavaScript библиотек и разнообразных фреймворков, таких как jQuery, для программирования на стороне клиента, предоставил всю мощь языка JavaScript для широкой аудитории. jQuery предоставляет свой собственный API, методы и синтаксические особенности. Порой которые похожи друг на друга, но отличающиеся в чем-то. Это заметка должна избавить вас от путаницы
@@ -32,10 +35,12 @@ tags:
 
 Попросту находит одного непосредственного родителя для элемента или элементов. Он также может принимать селектор в виде параметра, который будет полезен для нахождения родителя в определенном контексте.
 
-[cc lang="javascript"]
-	$('span.my').parent().css('border', '1px solid red');
-	$('p').parent('div.sidebar').css('border', '1px solid red');
-[/cc]
+
+``` javascript
+$('span.my').parent().css('border', '1px solid red');
+$('p').parent('div.sidebar').css('border', '1px solid red');
+```
+
 
 В первой строке мы получаем родителя с классом my. Во второй же получает родителей для всех элементов <p>, при условии, что родитель его <div> с классом .sidebar.
 
@@ -49,54 +54,44 @@ tags:
 
 Работает по тому же принципу, что и .parent() за исключением того, что данный метод не ограничен одним уровнем и может возвращать несколько предков. К примеру:
 
-[cc lang="html"]
-	$('li.naivgation').parents('li');
-[/cc]
+
+``` html
+$('li.naivgation').parents('li');
+```
+
 
 Для каждого элемента <li> который содержит в себе класс **navigation**, возвращает всех родителей и предков, который в свою очередь тоже элементы списка <li>. Данный метод может быть полезен с многоуровнемым меню.
 
-[cc lang="html"]
-	
 
+``` html
+<ul class="navigation">
+  <li>Catalog
+     <ul>
+        <li>Electronics</li>
+        <li>Animals</li>
+        <li>Birds</li>
+     </ul>
+  </li>
+  <li>About...
+     <ul>
+        <li>me</li>
+        <li>company</li>
+     </ul>
+  </li>
+</ul>
+```
 
-		
-  * Catalog
-			
-				
-    * Electronics
-
-				
-    * Animals
-
-				
-    * Birds
-
-			
-		
-
-		
-  * About...
-			
-				
-    * me
-
-				
-    * company
-
-			
-		
-
-	
-[/cc]
 
 Допустим нам нужно поменять цвет фона только для третьего уровня вложенности:
 
-[cc lang="javascript"]
-	$('.navigation li').each(function() {
-		if (2 == $(this).parents('.navigation li').length)
-			$(this).css('background-color', 'cyan');
-	});
-[/cc]
+
+``` javascript
+$('.navigation li').each(function() {
+  if (2 == $(this).parents('.navigation li').length)
+     $(this).css('background-color', 'cyan');
+});
+```
+
 
 Для каждого элемента <li>, найденного в классе **navigation** находим количество <li>-предков. Если это два, значит раскрашиваем его.
 
@@ -107,20 +102,24 @@ tags:
 
 Это больше магия, но очень полезная. Данный метод работает также как и .parents(), исключая то, что возвращает только одного родителя или предка. Бывают ситуации, когда вам не нужны все родители, возвращаемые методом .parents(), тогда в дело вступает метод .closest(). Допустим, нам нужно узнать явлвется ли один элемент непосредственным наследником другого:
 
-[cc lang="javascript"]
-	if (1 == $('.elem1').closest('.elem2').length)
-		console.log('Непосредственный предок');
-	else
-		console.log('Дальний родственник :)');
-[/cc]
+
+``` javascript
+if (1 == $('.elem1').closest('.elem2').length)
+  console.log('Непосредственный предок');
+else
+  console.log('Дальний родственник :)');
+```
+
 
 
 
 Метод .closest() легко сэмулировать методом .parents(), ограничив количество возвращаемых элементов:
 
 
-[cc lang="javascript"]
-	$($('.elem1').parents('.elem2').get(0)).css('border', '1px solid red');
-[/cc]
 
-И еще метод .closest() начинает обход, начиная с элемента, удовлетворяющему селектору, а не с его родителя. 
+``` javascript
+$($('.elem1').parents('.elem2').get(0)).css('border', '1px solid red');
+```
+
+
+И еще метод .closest() начинает обход, начиная с элемента, удовлетворяющему селектору, а не с его родителя.
