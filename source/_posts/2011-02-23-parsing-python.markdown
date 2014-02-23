@@ -18,14 +18,19 @@ tags:
 - python
 ---
 
-[![python-parser](http://vredniy.ru/wp-content/uploads/2011/02/python-parser-150x150.png)](http://vredniy.ru/wp-content/uploads/2011/02/python-parser.png)
+
 В сегодняшней заметки мы с вами получим порядка 1500+ в высоком разрешении, позаимствовав из с некоторого сайта путем парсинга html страниц.
 <!-- more -->
+
+[{% img image /images/posts/2011-02-parsing-python/python-parser-150x150.png %}](/images/posts/2011-02-parsing-python/python-parser.png)
+
+
 Немного поковырялся я в Python (больно понравился мне его синтаксис) и чтобы закрепить полученные начальные знания решил на нем небольшую прикладную задачку, которая сводится к взятию с сайта b000.ru всех картинок. Чуть ниже исходный код:
-[cc lang="python"]
+
+``` python
 # -*- coding: utf-8 -*-
-''' 
-image parser 
+'''
+image parser
 (C) vredniy
 vredniy.ru
 '''
@@ -50,13 +55,7 @@ else:
      print url
      data = response.read()
 
-m = re.search('
-
-[\w\W]*?
-
-# (.*?)
-
-[\W\w]+?[<img[\w\W]*?alt="(.*?)"', data, re.IGNORECASE & re.UNICODE);
+m = re.search('<div id="image_list">[\w\W]*?<h1>(.*?)</h1>[\W\w]+?<a href="(.+?)"><img[\w\W]*?alt="(.*?)"', data, re.IGNORECASE & re.UNICODE);
 if m:
      downloadImage(m.group(2), m.group(3))
 
@@ -74,5 +73,7 @@ def main(url):
 if __name__ == "__main__":
 url = 'http://b000.ru/view/'
 main(url)
-[/cc]
+```
+
+
 И в папочке images сохраняются все обои, правда занимает это продолжительное время :)
