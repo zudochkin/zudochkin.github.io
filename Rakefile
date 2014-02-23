@@ -69,7 +69,7 @@ def replace_images(content, yaml_object)
     filename = File.basename $2
 
     File.open("#{folder_path}/#{filename}", 'wb') do |saved_file|
-      open($2, 'rb') do |read_file|
+      open(URI.encode($2), 'rb') do |read_file|
         saved_file.write(read_file.read)
       end
     end
