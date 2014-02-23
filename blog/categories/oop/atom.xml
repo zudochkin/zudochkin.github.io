@@ -4,7 +4,7 @@
   <title><![CDATA[Category: OOP | Записки Вредного программиста]]></title>
   <link href="http://zudochkin.ru/blog/categories/oop/atom.xml" rel="self"/>
   <link href="http://zudochkin.ru/"/>
-  <updated>2014-02-09T16:59:49+04:00</updated>
+  <updated>2014-02-23T20:16:54+04:00</updated>
   <id>http://zudochkin.ru/</id>
   <author>
     <name><![CDATA[Зудочкин Дима]]></name>
@@ -1093,6 +1093,360 @@ public function getPage($id)
 ```</p>
 
 <p>Вот вроде и все, еще раз удачи вам :)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Модели, Doctrine и Zend Framework]]></title>
+    <link href="http://zudochkin.ru/2010/11/mvc-models-doctrine-zend-framework"/>
+    <updated>2010-11-27T21:02:20+03:00</updated>
+    <id>http://zudochkin.ru/2010/11/mvc-models-doctrine-zend-framework</id>
+    <content type="html"><![CDATA[<p>Давайте напишем пару слов о популярном сейчас ORM Doctrine, научимся устанавливать его, использовать в своих проектах наряду с Zend Framework'ом.</p>
+
+<!-- more -->
+
+
+<p><a href="/images/posts/2010-11-mvc-models-doctrine-zend-framework/zend-framework-doctrine1.jpg"><img class="image" src="/images/posts/2010-11-mvc-models-doctrine-zend-framework/zend-framework-doctrine1-150x150.jpg"></a></p>
+
+<h3>Установка Doctrine</h3>
+
+<p>  В первую очередь скачиваем с официального сайта <a href="http://www.doctrine-project.org/projects/orm/download">Doctrine</a>, я свое ознакомление начал со стабильной версии 1.2, хотя для скачивания доступна вторая версия (бета), думаю ее &ldquo;пощупаю&rdquo; немного попозже. Распаковываем ее и копируем папку lib из Doctrine-* в include_path, я поместил ее в /usr/share/php/. Теперь напишем первый скрипт, который проверит работу Doctrine. Хотя подождите, подготовим сначала базу данных и наполним ее данными для тестов. За неимением лучшего я всего скачиваю mysql wordl database (на этот раз это будет innoDB версия) по <a href="http://dev.mysql.com/doc/index-other.html">ссылке </a> и создаю пользователя для тестов с паролем и логином таким же, как и название базы данных. У меня получился пользователь world с паролем world и база данных тоже называется world, теперь приступим.</p>
+
+<p>``` php
+&lt;?php
+  include_once &lsquo;Doctrine/Doctrine.php&rsquo;;</p>
+
+<p>  // подключаем автозагрузку
+  spl_autoload_register(array(&lsquo;Doctrine&rsquo;, &lsquo;autoload&rsquo;));</p>
+
+<p>  $manager = Doctrine_Manager::getInstance();</p>
+
+<p>  // подключаемся к базе данных
+  $conn = $magager->connection(&lsquo;mysql://world:world@localhost/world&rsquo;, &lsquo;doctrine&rsquo;);</p>
+
+<p>  // получаем список всех баз данных
+  $databases = $conn->import->listDatabases();
+  var_dump($databases);
+?>
+```</p>
+
+<p>Дальше запускаем наш скрипт и видим, если все сделали правильно, список всех баз данных.</p>
+
+<h3>Генерация моделей Doctrine</h3>
+
+<p>Так как Doctrine идет в комплекте с мощным генератором моделей, который может &ldquo;читать&rdquo; существующую базу данных и создавать классы моделей. Чтобы увидеть это в действии, запустим  следующее.</p>
+
+<p>``` php
+&lt;?php
+  include_once &lsquo;Doctrine/Doctrine.php&rsquo;;
+  spl_autoload_register(array(&lsquo;Doctrine&rsquo;, &lsquo;autoload&rsquo;));</p>
+
+<p>  $manager = Doctrine_Manager::getInstance();</p>
+
+<p>  $conn = $manager->connection(&lsquo;mysql://world:world@localhost/world&rsquo;, &lsquo;doctrine&rsquo;);</p>
+
+<p>  // генерируем модели в папке со скриптом
+  // 2 параметр соединение, которое мы указывали на строчку выше
+  // 3 префикс для названия файлов и классов
+  Doctrine::generateModelsFromDb(&lsquo;./models&rsquo;,</p>
+
+<pre><code>array('doctrine'),
+array('classPrefix' =&gt; 'Model_', 'classPrefixFiles' =&gt; false)
+</code></pre>
+
+<p>  );
+?></p>
+
+<p>```</p>
+
+<p>К сведению, Doctrine для каждой таблицы в базе данных создает 2 класса модели, базовый класс и класс-наследник. Базовый класс расширяет Doctrine_Record и включает определения таблицы и базовые операции по работе с таблицей. Класс-наследник &ndash; это место для написания дополнительного функционала, который мы собираемся добавить в модель.</p>
+
+<p>Теперь скопируем все получившиеся модели (их должно получиться 6 штук) в наш Zend Framework проект в папку application/models.</p>
+
+<h3>Настраиваем модельные связи</h3>
+
+<p><a href="http://vredniy.ru/wp-content/uploads/2010/11/doctrine.png"><img class="image" src="/images/posts/2010-11-mvc-models-doctrine-zend-framework/doctrine-300x194.png"></a>
+Doctrine &ndash; очень мощный ORM, но она не может справиться с установлением связей между таблицами, чем мы займемся сами. Doctrine поддерживает все виды связи один-к-одной, один-ко-многим, многие-ко-многим и рекурсивную используя всего 2 метода hasOne() и hasMany(). У каждого метода два аргумента: имя другой модели для объявления связи и массив опций, характеризующих связь. Для того, чтобы связи автоматически загружались поместим их в setUp() метод.</p>
+
+<p><strong>models/City.php</strong></p>
+
+<p>``` php
+&lt;?php
+  class Model_City extends Model_BaseCity
+  {</p>
+
+<pre><code>  public function setUp()
+  {
+ $this-&gt;hasOne('Model_Country', array(
+     'local' =&gt; 'CountryCode',
+     'foreign' =&gt; 'Code'
+ ));
+  }
+</code></pre>
+
+<p>  }
+?>
+```</p>
+
+<p><strong>models/Country.php</strong></p>
+
+<p>``` php
+&lt;?php
+  class Model_Country extends Model_BaseCountry
+  {</p>
+
+<pre><code>  public function setUp()
+  {
+ $this-&gt;hasOne('Model_City', array(
+     'local' =&gt; 'Code',
+     'foreign' =&gt; 'CountryCode'
+ ));
+ $this-&gt;hasOne('Model_CountryLanguage', array(
+     'local' =&gt; 'Code',
+     'foreign' =&gt; 'CountryCode'
+ ));
+  }
+</code></pre>
+
+<p>  }
+?>
+```</p>
+
+<p><strong>models/CountryLanguage.php</strong></p>
+
+<p>``` php
+&lt;?php
+  class Model_CountryLanguage extends Model_BaseCountryLanguage
+  {</p>
+
+<pre><code>  public function setUp()
+  {
+ $this-&gt;hasOne('Model_Country', array(
+     'local' =&gt; 'CountryCode',
+     'foreign' =&gt; 'Code'
+ ));
+  }
+</code></pre>
+
+<p>  }
+?>
+```</p>
+
+<h3>Автозагрузка классов Doctrine в Zend Framework</h3>
+
+<p>Все что осталось сделать, так это то, чтобы приложение Zend Framework и Doctrine хорошо жили совместно. В первую очередь поместим Doctrine в папку library Zend Framework'а. Следующая стадия &ndash; обновить конфигурационный файл application.ini, поместив туда строку DSN, чтобы Doctrine могла без проблем соединяться с базой данных. Допишем в [production] секцию</p>
+
+<p><code>php
+doctrine.dsn = "mysql://world:world@localhost/world"
+</code></p>
+
+<p>Финальным шагом для инициализации Doctrine напишем защищенный метод в нашем бутстрапе.
+<strong>application/Bootstrap.php</strong></p>
+
+<p>``` php
+&lt;?php
+class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
+{
+  protected function _initDoctrine()
+  {</p>
+
+<pre><code>require_once 'Doctrine/Doctrine.php';
+$this-&gt;getApplication()
+-&gt;getAutoloader()
+-&gt;pushAutoloader(array('Doctrine', 'autoload'), 'Doctrine');
+
+$manager = Doctrine_Manager::getInstance();
+$magager-&gt;setAttribute(
+  Doctrine::ATTR_MODEL_LOADING, Doctrine::MODEL_LOADING_CONSERVATIVE
+);
+
+$config = $this-&gt;getOption('doctrine');
+$conn = Doctrine_Manager::connection($config['dsn'], 'doctrine');
+</code></pre>
+
+<p>  }
+}
+?>
+```</p>
+
+<h3>Операции с моделью Doctrine</h3>
+
+<p>До того, как погрузиться в кроличью, освоим элементарные операции с моделями.
+Извлечение данных
+&hellip; по ID:</p>
+
+<p><code>php
+&lt;?php
+  $city = Doctrine::getTable('Model_City')-&gt;find(10);
+  var_dump($city);
+?&gt;
+</code></p>
+
+<p>&hellip; всех записей:</p>
+
+<p><code>php
+&lt;?php
+  $cities = Doctrine::getTable('Model_City')-&gt;findAll();
+  var_dump($cities);
+?&gt;
+</code></p>
+
+<p>Также в Doctrine есть свой язык запросов DQL (Doctrine Query Language), который предоставляет гибкий интерфейс для создания и выполнения запросов. Посмотрим на примеры.</p>
+
+<p>``` php
+&lt;?php
+  $query = Doctrine_Query::create()</p>
+
+<pre><code>   -&gt;from('Model_City c');
+</code></pre>
+
+<p>  $result = $query->fetchArray();
+?>
+```</p>
+
+<p>Использование условий</p>
+
+<p>``` php
+&lt;?php
+  $query = Doctrine_Query::create()</p>
+
+<pre><code>   -&gt;from('Model_City c');
+   -&gt;where('c.id = ?', 10);
+</code></pre>
+
+<p>  $result = $query->fetchArray();
+?>
+```</p>
+
+<p>В DQL много приятных плюшек, среди которых группировка и сортировка, но мы остановимся чуть подробнее на присоединении таблиц, для которого предусмотрены два метода leftJoin() и innerJoin(). А где же присоединение справа спросите вы, оно как считают разработчики не нужно, ведь можно так спроектировать запрос, чтобы присоединение справа не было нужно.</p>
+
+<p>``` php
+&lt;?php
+  $query = Doctrine_Query::create()</p>
+
+<pre><code>   -&gt;from('Catalog_Model_Country co')
+   -&gt;leftJoin('co.Catalog_Model_City ci')
+   -&gt;where('ci.id = ?', 10)
+</code></pre>
+
+<p>  $result = $query->execute();
+?>
+```</p>
+
+<p>  Поля необходимые для соединения таблиц автоматически устанавливаются Doctrine, основываясь на связях, определенных в методе setUp модели.</p>
+
+<blockquote><p>   Небольшой совет: используя DQL, иногда необходимо посмотреть что же там получилось, для этого и существует метод getSqlQuery(), который и возвращает сырой SQL.</p></blockquote>
+
+<h3>Doctrine и CRUD</h3>
+
+<p>Сейчас научимся элементарным операциям аля create, read, update и delete (CRUD).
+Для добавление новой записи, вам необходимо создать экземпляр класса, заполнить все поля (свойства) и вызывать метод save(). Вот пример</p>
+
+<p><code>php
+&lt;?php
+  $city = new Model_City();
+  $city-&gt;Name = 'New City';
+  $city-&gt;CountryCode = 'RUS';
+  $city-&gt;District = 'New City';
+  $city-&gt;Population = 1;
+  $city-&gt;save();
+?&gt;
+</code></p>
+
+<p>Изменим-ка что-нибудь в уже существующей записи. Для начала найдем ту, в которой и будем что-либо менять, затем сохраним, вызвав save() метод.</p>
+
+<p><code>php
+&lt;?php
+  $city = Doctrine::getTable('Model_City')-&gt;find(10);
+  $city-&gt;Name = 'Updated city';
+  $city-&gt;save();
+?&gt;
+</code></p>
+
+<p>Удалять записи также легко, как и создавать новые, только вместо save() нужно использовать delete().</p>
+
+<h3>Вернемся к Zend Framework'у</h3>
+
+<p>Чтобы закрепить знания, давайте попробуем все это дело привести в более приятный вид. Сделаем все это в IndexController, чтобы не плодить тестовых контроллеров. Вот его код.</p>
+
+<p>``` php
+&lt;?php
+class IndexController extends Zend_Controller_Action
+{
+  public function init() {}</p>
+
+<p>  public function showAction()
+  {</p>
+
+<pre><code>$filters = array(
+  'id' =&gt; array('HtmlEntities', 'StripTags', 'StringTrim')
+);
+
+$validators = array(
+  'id' =&gt; array('NotEmpty', 'Int')
+);
+
+$input = new Zend_Filter_Input(
+  $filters,
+  $validators,
+  $this-&gt;getRequest()-&gt;getParam('id')
+);
+
+if ($input-&gt;isValid()) {
+  $query = Doctrine_Query::create()
+        -&gt;from('Model_Country co')
+        -&gt;leftJoin('co.Model_City ci')
+        -&gt;leftJoin('co.Model_CountryLanguage cl')
+        -&gt;where('ci.id = ?', $input-&gt;id);
+
+  $this-&gt;view-&gt;query = $query-&gt;getSql();
+  $result = $query-&gt;fetchArray();
+  if (count($result) == 1) {
+ $this-&gt;view-&gt;item = $result[0];
+  } else {
+ throw new Zend_Controller_Action_Exception('Страница не найдена');
+  }
+} else {
+  throw new Zend_Controller_Action_Exception('Неверный параметр');
+}
+</code></pre>
+
+<p>  }
+}
+?>
+```</p>
+
+<p>И для этого дела приделаем способ отображение а-ля index/show.phtml</p>
+
+<p>``` php
+&lt;?php</p>
+
+<table>
+  <tr>
+    <th>County name</th>
+    <th>Continent</th>
+    <th>Country population</th>
+    <th>City name</th>
+    <th>LAnguage</th>
+  </tr>
+  <tr>
+    <td><?php echo $this->item['Name'] ?></td>
+    <td><?php echo $this->item['Continent'] ?></td>
+    <td><?php echo $this->item['Population'] ?></td>
+    <td><?php echo $this->item['Model_City']['Name'] ?></td>
+    <td><?php echo $this->item['CountryLanguage']['Language'] ?></td>
+  </tr>
+</table>
+
+
+<p>?>
+```</p>
+
+<p>Теперь когда вы зайдете по адресу yourhost.local/index/show/id/10, вы увидите часть информации о нем.</p>
+
+<p>Вот и подошла к концу очередная заметка на тему веб-программирования, так мне интересную, надеюсь, вам понравилось.</p>
+
+<p>И кстати, если кто увидит ошибки, прошу сообщать, очень не уверен, что правильно расставил связи один-ко-многим и один-к-одному. Заранее благодарю откликнувшихся.</p>
 ]]></content>
   </entry>
   

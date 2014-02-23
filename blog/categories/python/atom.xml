@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: python | Записки Вредного программиста]]></title>
+  <link href="http://zudochkin.ru/blog/categories/python/atom.xml" rel="self"/>
+  <link href="http://zudochkin.ru/"/>
+  <updated>2014-02-23T20:16:54+04:00</updated>
+  <id>http://zudochkin.ru/</id>
+  <author>
+    <name><![CDATA[Зудочкин Дима]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Парсинг на Python или как скачать обои в большом разрешении]]></title>
+    <link href="http://zudochkin.ru/2011/02/parsing-python"/>
+    <updated>2011-02-23T18:16:04+03:00</updated>
+    <id>http://zudochkin.ru/2011/02/parsing-python</id>
+    <content type="html"><![CDATA[<p>В сегодняшней заметки мы с вами получим порядка 1500+ в высоком разрешении, позаимствовав из с некоторого сайта путем парсинга html страниц.</p>
+
+<!-- more -->
+
+
+<p><a href="/images/posts/2011-02-parsing-python/python-parser.png"><img class="image" src="/images/posts/2011-02-parsing-python/python-parser-150x150.png"></a></p>
+
+<p>Немного поковырялся я в Python (больно понравился мне его синтаксис) и чтобы закрепить полученные начальные знания решил на нем небольшую прикладную задачку, которая сводится к взятию с сайта b000.ru всех картинок. Чуть ниже исходный код:</p>
+
+<p>``` python</p>
+
+<h1>&ndash;<em>&ndash; coding: utf-8 &ndash;</em>&ndash;</h1>
+
+<p>&lsquo;&rsquo;&lsquo;
+image parser
+&copy; vredniy
+vredniy.ru
+&rsquo;&lsquo;&rsquo;
+from urllib2 import Request, urlopen, URLError, HTTPError
+from urllib import urlretrieve
+import os
+import sys
+import re
+import time</p>
+
+<p>def doRoutine(url):</p>
+
+<pre><code> req = Request(url)
+ try: response = urlopen(req)
+</code></pre>
+
+<p>except HTTPError, e:</p>
+
+<pre><code> print e.code
+ return 0
+</code></pre>
+
+<p>except URLError, e:</p>
+
+<pre><code> print e.reason
+ return 0
+</code></pre>
+
+<p>else:</p>
+
+<pre><code> print url
+ data = response.read()
+</code></pre>
+
+<p>m = re.search(&lsquo;<div id="image_list">[\w\W]<em>?<h1>(.</em>?)</h1>[\W\w]+?<a href="(.+?)">&lt;img[\w\W]<em>?alt=&ldquo;(.</em>?)&rdquo;&rsquo;, data, re.IGNORECASE &amp; re.UNICODE);
+if m:</p>
+
+<pre><code> downloadImage(m.group(2), m.group(3))
+</code></pre>
+
+<p>def downloadImage(imageUrl, imageName):</p>
+
+<pre><code> urlretrieve(imageUrl, './images/' + imageName + '.jpg')
+ print imageName + ' скачано'
+</code></pre>
+
+<p>def main(url):</p>
+
+<pre><code> counter = 1
+ while (counter &lt; 1900):
+ counter = counter + 1
+ doRoutine("%s%d" % (url, counter))
+</code></pre>
+
+<p>if <strong>name</strong> == &ldquo;<strong>main</strong>&rdquo;:
+url = &lsquo;http://b000.ru/view/&rsquo;
+main(url)
+```</p>
+
+<p>И в папочке images сохраняются все обои, правда занимает это продолжительное время :)</p>
+]]></content>
+  </entry>
+  
+</feed>

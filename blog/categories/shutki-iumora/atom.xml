@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: шутки юмора | Записки Вредного программиста]]></title>
+  <link href="http://zudochkin.ru/blog/categories/shutki-iumora/atom.xml" rel="self"/>
+  <link href="http://zudochkin.ru/"/>
+  <updated>2014-02-23T20:16:54+04:00</updated>
+  <id>http://zudochkin.ru/</id>
+  <author>
+    <name><![CDATA[Зудочкин Дима]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Jpeg2text или немного баловства]]></title>
+    <link href="http://zudochkin.ru/2011/03/jpeg2text-ascii-art"/>
+    <updated>2011-03-17T23:09:11+03:00</updated>
+    <id>http://zudochkin.ru/2011/03/jpeg2text-ascii-art</id>
+    <content type="html"><![CDATA[<p>Привет, разработчики или просто тем, кто зашел на мой блог. Сегодня не напрягающая мозги заметка, которая создана лишь с целью позабавиться. Из картинки мы будем делать цветной ASCII ART. Пригодится для поздравлений или просто шутки ради.<!-- more --></p>
+
+<p><a href="/images/posts/2011-03-jpeg2text-ascii-art/main.png"><img class="image" src="/images/posts/2011-03-jpeg2text-ascii-art/main-150x150.png"></a></p>
+
+<p>Нам понадобится любая картинка в формате jpeg (кто хочет поддержку других форматов, может легко это доделать) и немного кода на php + расширение gd (хотя сейчас сложно найти хостинг без поддержки этой замечательной графической библиотеки).</p>
+
+<p>Алгоритм до безумия прост:
+ &ndash; Ресайзим картинку до размеров по максимальному измерению до 100 пикселей (падает точность, но скорость заметно возрастает).</p>
+
+<ul>
+<li>В цикле по всем пиксилям полученного изображения выводим любой символ (я предпочел звездочку &ldquo;*&rdquo;), закрашивая его соответствующим цветом исходного изображения.</li>
+</ul>
+
+
+<p>Еще допишем стили, чтобы наш ASCII ART красиво отображался (проверял в FF и Chrome):</p>
+
+<p><code>css
+div#picture span {
+  display: block;
+  float: left;
+  width: 5px;
+  height: 5px;
+}
+</code></p>
+
+<p>И исходный код трансформатора на php:</p>
+
+<p>``` php
+&lt;?php
+/<em>*
+ * @author vredniy.ru
+ </em>/
+$file = &ldquo;homer6.jpg&rdquo;;</p>
+
+<p>// максимальное измерение (прибавляет скорости)
+$mSize = 100;</p>
+
+<p>$im = imagecreatefromjpeg($file);
+list($x, $y) = getimagesize($file);
+$ratio = $x/$y;
+if ($x > $y) {
+   $nx = $mSize;
+   $ny = round($mSize / $ratio);
+} else {
+   $ratio = 1/$ratio;
+   $ny = $mSize;
+   $nx = round($mSize / $ratio);
+}
+$ni = imagecreatetruecolor($nx, $ny);
+// создаем пропорционально уменьшенную копию
+imagecopyresampled($ni, $im, 0, 0, 0, 0, $nx, $ny, $x, $y);</p>
+
+<p>$message = &lsquo;<div id="picture">&rsquo;;
+for($h = 0; $h &lt; $ny; $h++) {
+   $message .= &lsquo;<div style="clear:both"></div>&rsquo;;
+   for($w = 0; $w &lt; ceil($nx); $w++) {</p>
+
+<pre><code>  $rgb = imagecolorat($ni, $w, $h);
+  $r = ($rgb &gt;&gt; 16) &amp; 0xFF;
+  $g = ($rgb &gt;&gt; 8) &amp; 0xFF;
+  $b = $rgb &amp; 0xFF;
+  $message .= sprintf('&lt;span style="color: rgb(%d, %d, %d)"&gt;*&lt;/span&gt;', $r, $g, $b);
+</code></pre>
+
+<p>   }
+}
+$message .= &lsquo;</div>&rsquo;;
+echo $message;
+?>
+```</p>
+
+<p>Первое изображение в заметке &ndash; это результат трансформации изображения чуть ниже. Удачи вам и кода без ошибок :) <a href="/images/posts/2011-03-jpeg2text-ascii-art/homer6.jpg"><img class="image" src="/images/posts/2011-03-jpeg2text-ascii-art/homer6-300x225.jpg"></a></p>
+]]></content>
+  </entry>
+  
+</feed>
